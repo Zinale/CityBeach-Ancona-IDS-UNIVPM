@@ -8,11 +8,26 @@ from Controller.Controller import AppController
 from Model.Data import AppData
 from PyQt6.QtGui import QFontDatabase, QPixmap
 
+style_input_bar = """
+    QLineEdit { background-color: #FFFFFF;color: #444444;border: 1px solid #CCCCCC;border-radius: 6px;border-color: #78b395;padding: 4px 12px;
+    }
+    QLineEdit:hover { background-color: #DCEFFF; } """
+style_QButton_verde = """
+            QPushButton {
+                background-color: #A8E6CF;color: #444444;  border-style: solid; border-width: 1px;border-radius: 14px;border-color: #78b395; padding: 2px 16px;
+            }
+            QPushButton:hover { background-color: #81C784; }"""
+
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("CityBeach Ancona | Login")
         self.model = AppData.load_from_file("data.pkl")
+        print("Utenti Salvati")
+        print(str(self.model.users))
+        for utente in self.model.users: print(str(self.model.users[utente]))
+        print("\nCurrent user: " + str(self.model.current_user))
+        print("\n Articoli Salvati: \n" + str(self.model.articles))
         self.controller = AppController(self.model)
         self.init_login_ui()
 
@@ -31,13 +46,14 @@ class MainWindow(QWidget):
         textCity.setStyleSheet("font-family: Gotham; color: #444444;font-size: 16pt;")  # azzurrino
         textCity.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
 
-        homeLab = QLabel()
+        #image | LOGO
+        imageLogo = QLabel()
         pixmap = QPixmap("src/img/1-1example.png")
         resized_pixmap = pixmap.scaled(180, 180)  # larghezza, altezza
-        homeLab.setPixmap(resized_pixmap)
-        homeLab.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+        imageLogo.setPixmap(resized_pixmap)
+        imageLogo.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
 
-        layoutV1.addWidget(homeLab)
+        layoutV1.addWidget(imageLogo)
         layoutV1.addWidget(textCity)
 
         layoutV1.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
@@ -46,74 +62,35 @@ class MainWindow(QWidget):
         layoutV2 = QVBoxLayout()
         self.user_input = QLineEdit()
         self.user_input.setPlaceholderText("Username")
-        self.user_input.setStyleSheet("""
-            QLineEdit {
-                background-color: #A8E6CF;color: #444444;border: none;border-radius: 4px;padding: 4px 16px;
-            }
-            QLineEdit:hover {
-                background-color: #81C784;
-            }
-        """)
         self.pass_input = QLineEdit()
         self.pass_input.setPlaceholderText("Password")
         self.pass_input.setEchoMode(QLineEdit.EchoMode.Password)
 
         login_btn = QPushButton("Login")
-        login_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #A8E6CF;color: #444444;border: none;border-radius: 14px;padding: 2px 16px;
-            }
-            QPushButton:hover {
-                background-color: #81C784;
-            }
-        """)
+        login_btn.setStyleSheet(style_QButton_verde)
         register_btn = QPushButton("Registrati")
-        register_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #A8E6CF;color: #444444;border: none;border-radius: 14px;padding: 2px 16px;
-            }
-            QPushButton:hover {
-                background-color: #81C784;
-            }
-        """)
+        register_btn.setStyleSheet(style_QButton_verde)
 
-        input_style = """
-            QLineEdit {
-                background-color: #FFFFFF;
-                color: #444444;
-                border: 1px solid #CCCCCC;
-                border-radius: 6px;
-                padding: 4px 12px;
-            }
-            QLineEdit:hover {
-                background-color: #DCEFFF;
-            }
-        """
-
-        self.user_input.setStyleSheet(input_style)
-        self.pass_input.setStyleSheet(input_style)
+        self.user_input.setStyleSheet(style_input_bar)
+        self.pass_input.setStyleSheet(style_input_bar)
 
         login_btn.clicked.connect(self.login)
         register_btn.clicked.connect(self.register)
 
-        layoutV2 = QVBoxLayout()
-
-
-        # Imposta anche altezza dei widget
+        # Imposta anche altezza dei widget (fissa)
         self.user_input.setFixedHeight(32)
         self.pass_input.setFixedHeight(32)
         login_btn.setFixedHeight(32)
         register_btn.setFixedHeight(32)
 
-
         layoutV2.addWidget(self.user_input)
         layoutV2.addWidget(self.pass_input)
-        layoutV2.addSpacing(20)
+        layoutV2.addSpacing(25)
         layoutV2.addWidget(login_btn)
         layoutV2.addWidget(register_btn)
         layoutV2.setAlignment(Qt.AlignmentFlag.AlignTop)
         layoutV2.setContentsMargins(0, 10, 0, 10)
-        layoutV2.setSpacing(15)  # questo evita che siano "attaccati"
+        layoutV2.setSpacing(10)  # questo evita che siano attaccati tra loro
         layoutV2.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
         layout.addSpacing(30)
         layout.addLayout(layoutV2)
