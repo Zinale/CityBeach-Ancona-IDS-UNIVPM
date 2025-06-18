@@ -6,58 +6,96 @@ from PyQt6.uic.Compiler.qtproxies import QtCore
 
 from Controller.Controller import AppController
 from Model.Data import AppData
-from PyQt6.QtGui import QFontDatabase, QPixmap
+from PyQt6.QtGui import QFontDatabase, QPixmap, QIcon
 
 style_input_bar = """
-    QLineEdit { background-color: #FFFFFF;color: #444444;border: 1px solid #CCCCCC;border-radius: 6px;border-color: #78b395;padding: 4px 12px;
+    QLineEdit {
+        background-color: #FFFFFF;
+        color: #444444;
+        border: 1px solid #CCCCCC;
+        border-radius: 6px;
+        padding: 4px 12px;
     }
-    QLineEdit:hover { background-color: #DCEFFF; } """
-style_QButton_verde = """
-            QPushButton {
-                background-color: #A8E6CF;color: #444444;  border-style: solid; border-width: 1px;border-radius: 14px;border-color: #78b395; padding: 2px 16px;
-            }
-            QPushButton:hover { background-color: #81C784; }"""
+    QLineEdit:hover {
+        background-color: #EEEEEE;
+    }
+"""
+
+style_QButton_principale = """
+    QPushButton {
+        background-color: #E30613;
+        color: #FFFFFF;
+        border: 1px solid #B20510;
+        border-radius: 14px;
+        padding: 6px 20px;
+    }
+    QPushButton:hover {
+        background-color: #B20510;
+    }
+"""
+style_QButton_secondario = """
+    QPushButton {
+        background-color: #028B95;
+        color: #FFFFFF;
+        border: 1px solid #026E7E;
+        border-radius: 14px;
+        padding: 6px 20px;
+    }
+    QPushButton:hover {
+        background-color: #026E7E;
+    }
+"""
+style_blackText = """
+    QLabel, QFrame {
+        color: #000000;
+    }
+"""
 
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("CityBeach Ancona | Login")
+        self.setWindowIcon(QIcon("src/img/logo.png"))
         self.model = AppData.load_from_file("data.pkl")
-        print("Utenti Salvati")
-        print(str(self.model.users))
-        for utente in self.model.users: print(str(self.model.users[utente]))
+        self.controller = AppController(self.model)
+        if (self.model.users.__len__() == 0):
+            #"admin": "admin" is the first user to be created
+            self.controller.register("","")
+
+        #for utente in self.model.users: print(str(self.model.users[utente]))
+        print(self.model.users)
         print("\nCurrent user: " + str(self.model.current_user))
         print("\n Articoli Salvati: \n" + str(self.model.articles))
-        self.controller = AppController(self.model)
         self.init_login_ui()
 
     def init_login_ui(self):
         self.clear_layout()
         self.setStyleSheet("background-color: #EAF6FF;")
-        a, b = 500, 300
+        a, b = 500, 240
         self.setMinimumSize(PyQt6.QtCore.QSize(a,b))
         self.setMaximumSize(PyQt6.QtCore.QSize(a,b))
-        layout = QHBoxLayout()
+        self.setStyleSheet(style_blackText)
+        layoutMAIN = QVBoxLayout()
+        layoutHor = QHBoxLayout()
 
         layoutV1 = QVBoxLayout()
 
         #CITY BEACH
         textCity = QLabel("CityBeach | Ancona")
-        textCity.setStyleSheet("font-family: Gotham; color: #444444;font-size: 16pt;")  # azzurrino
+        textCity.setStyleSheet("font-family: Gotham; color: #444444;font-size: 16pt;")
         textCity.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
 
         #image | LOGO
         imageLogo = QLabel()
-        pixmap = QPixmap("src/img/1-1example.png")
+        pixmap = QPixmap("src/img/logo.png")
         resized_pixmap = pixmap.scaled(180, 180)  # larghezza, altezza
         imageLogo.setPixmap(resized_pixmap)
         imageLogo.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
 
         layoutV1.addWidget(imageLogo)
-        layoutV1.addWidget(textCity)
 
         layoutV1.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
-        layout.addLayout(layoutV1)
+        layoutHor.addLayout(layoutV1)
 
         layoutV2 = QVBoxLayout()
         self.user_input = QLineEdit()
@@ -67,35 +105,32 @@ class MainWindow(QWidget):
         self.pass_input.setEchoMode(QLineEdit.EchoMode.Password)
 
         login_btn = QPushButton("Login")
-        login_btn.setStyleSheet(style_QButton_verde)
-        register_btn = QPushButton("Registrati")
-        register_btn.setStyleSheet(style_QButton_verde)
+        login_btn.setStyleSheet(style_QButton_principale)
 
         self.user_input.setStyleSheet(style_input_bar)
         self.pass_input.setStyleSheet(style_input_bar)
 
         login_btn.clicked.connect(self.login)
-        register_btn.clicked.connect(self.register)
 
         # Imposta anche altezza dei widget (fissa)
         self.user_input.setFixedHeight(32)
         self.pass_input.setFixedHeight(32)
         login_btn.setFixedHeight(32)
-        register_btn.setFixedHeight(32)
 
         layoutV2.addWidget(self.user_input)
         layoutV2.addWidget(self.pass_input)
-        layoutV2.addSpacing(25)
+        layoutV2.addSpacing(35)
         layoutV2.addWidget(login_btn)
-        layoutV2.addWidget(register_btn)
         layoutV2.setAlignment(Qt.AlignmentFlag.AlignTop)
         layoutV2.setContentsMargins(0, 10, 0, 10)
         layoutV2.setSpacing(10)  # questo evita che siano attaccati tra loro
         layoutV2.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
-        layout.addSpacing(30)
-        layout.addLayout(layoutV2)
+        layoutHor.addSpacing(30)
+        layoutHor.addLayout(layoutV2)
 
-        self.setLayout(layout)
+        layoutMAIN.addLayout(layoutHor)
+        layoutMAIN.addWidget(textCity)
+        self.setLayout(layoutMAIN)
 
     def init_main_ui(self):
         self.clear_layout()
@@ -204,10 +239,8 @@ class MainWindow(QWidget):
             else:
                 QMessageBox.warning(self, "Error", "Impossibile modificare i dati")
 
-
         ind_btn.clicked.connect(self.init_main_ui)
         save_btn.clicked.connect(salva_modifiche)
-
 
         layout.addWidget(QLabel("Dati:"))
         layout.addWidget(username_text)
@@ -221,3 +254,14 @@ class MainWindow(QWidget):
     def clear_layout(self):
         if self.layout():
             QWidget().setLayout(self.layout())
+
+    def closeEvent(self, event):
+        reply = QMessageBox.question(
+            self,"Conferma uscita","Sei sicuro di voler uscire?",QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No  #evidenziato
+        )
+
+        if reply == QMessageBox.StandardButton.Yes:
+            self.controller.logout()
+            event.accept()  # Chiude la finestra
+        else:
+            event.ignore()  # Annulla la chiusura
