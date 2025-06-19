@@ -4,7 +4,6 @@ from Model.Article import Article
 from Model.Data import AppData
 from Model.User import User
 
-
 class AppController:
     def __init__(self, model: AppData):
         self.model = model
@@ -16,7 +15,7 @@ class AppController:
             return True
         return False
 
-    def register(self, username: str, password: str) -> bool:
+    def register(self, username: str, password: str,is_admin:bool = False) -> bool:
         if username in self.model.users:
             return False
         self.model.users[username] = User(username, password)
