@@ -67,7 +67,16 @@ style_blackText = """
 style_text_gotham_b = """
         font-family: Gotham; color: #444444;font-size: 16pt;"""
 
-#background - image: url(src / img / fullhd.jpg); / *Percorso immagine * /
+style_text_red_on_white = """
+        font-family: Gotham; color: #E30613;background-color:#ffffff; font-size: 16pt; border: 2px solid #E30613;
+        padding: 6px 20px;
+        border-radius: 14px;"""
+
+style_text_white_on_red = """
+        font-family: Gotham; color: #ffffff;background-color:#E30613; font-size: 16pt; border: 2px solid #ffffff;
+        padding: 6px 20px;
+        border-radius: 14px;"""
+
 style_img1_bg = """
             QPushButton {
                 border: none;
@@ -79,24 +88,21 @@ style_img1_bg = """
                 padding: 6px 20px;
             }
             QPushButton:hover {
-                background-color: rgba(0, 0, 0, 50);  /* Effetto hover */
+                background-color: rgba(0, 0, 0, 30);  /* Effetto hover */
             }
         """
-
 style_img2_bg = """
     QPushButton {
-        border: 1px solid #000000;
+        border: 1px solid #B000000;
         border-radius: 14px;
         padding: 6px 20px;
-        background-image: url(src/img/logo.png);
         background-repeat: no-repeat;
         background-position: center;
         background-size: contain;
     }
 
     QPushButton:hover {
-        background-image: url(src/img/logo.png);
-        background-color: rgba(0, 0, 0, 0.2); /* semitrasparente */
+        background-color: rgba(0, 0, 0, 30); /* semitrasparente */
         background-blend-mode: darken;  /* <-- Qt non supporta, ma aiuta a capire l’intento */
     }
 """
@@ -110,18 +116,16 @@ class MainWindow(QWidget):
         self.controller = AppController(self.model)
         if (self.model.users.__len__() == 0):
             #"admin": "admin" is the first user to be created
-            self.controller.register("","",is_admin = True)
+            self.controller.register("admin","admin",is_admin = True)
 
-        #DEBUG
+        #DEBUG -------------------------------------------------------
         print(self.model.users)
         print("\nCurrent user: " + str(self.model.current_user))
         print("\n Articoli Salvati: \n" + str(self.model.articles))
-
         #to get Screen's size
         self.max_width, self.max_height = self.getMaxSize();
-
         print("Screen MAX Size: ",self.max_width,self.max_height)
-
+        #-------------------------------------------------------
         self.init_login_ui()
 
     def init_login_ui(self):
@@ -129,6 +133,9 @@ class MainWindow(QWidget):
         self.setWindowTitle("CityBeach Ancona | Login")
         self.setStyleSheet("background-color: #EAF6FF;")
         self.setStyleSheet(style_blackText)
+        a, b = 450, 250
+        self.setMinimumSize(a, b)
+        self.resize(a,b)
         layoutMAIN = QVBoxLayout()
         layoutHor = QHBoxLayout()
         layoutV1 = QVBoxLayout()
@@ -192,11 +199,19 @@ class MainWindow(QWidget):
     def init_main_ui(self):
         self.clear_layout()
 
+        #EAF6FF bianco/grigio
+        #F5F5F5 bianco sporco
+        #FAFAFA avorio
+        #FFE6E6 rosa chiaro
+        #FFF0E6 albicocca chiaro
+
+        self.setStyleSheet("background-color: #FFF0E6;")
         self.setMinimumSize(1280, 720)
         self.setMaximumSize(10000,10000)
-        self.showMaximized()
+        #self.showMaximized()
 
         self.setWindowTitle("CityBeach Ancona | Menù")
+        self.center_window()
 
         # Layout verticale principale
         main_layout = QVBoxLayout(self)
@@ -232,19 +247,35 @@ class MainWindow(QWidget):
         vv5 = QVBoxLayout()
         vv6 = QVBoxLayout()
 
-        imgCampi = QIcon(QPixmap("src/img/Baby.tux.sit-800x800.png"))
+        #imgCampi = QIcon(QPixmap("src/img/Baby.tux.sit-800x800.png"))
         imgPrenotazioni = QIcon(QPixmap("src/img/logo.png"))
         imgGiocatori = QIcon(QPixmap("src/img/1-1.jpg"))
         imgAttSpo = QIcon(QPixmap("src/img/1-1.png"))
         imgDipend = QIcon(QPixmap("src/img/fullhd.jpg"))
         imgRisto = QIcon(QPixmap("src/img/fullhd.jpg"))
 
+        #da fare per ogni button
+        style_img1_bg = """
+            QPushButton {
+                border: 1px solid #000000;
+                border-radius: 14px;
+                background-image: url(src/img/Baby.tux.sit-800x800.png);
+                background-repeat: no-repeat;
+                background-position: center;
+                background-size: contain;
+            }
+            QPushButton:hover {
+                background-color: rgba(0, 0, 0, 30);
+                border: 2px solid #3777FF;
+            }
+        """
+
         #CAMPI DA GIOCO
         btn_campi = QPushButton()
         btn_campi.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        btn_campi.setStyleSheet(style_img2_bg)
-        btn_campi.setIcon(imgCampi)
-        btn_campi.setIconSize(btn_campi.size())
+        #btn_campi.setIcon(imgCampi)
+        #btn_campi.setIconSize(btn_campi.size())
+        btn_campi.setStyleSheet(style_img1_bg)
         label_campi = QLabel("Campi da Gioco")
         label_campi.setStyleSheet(style_text_gotham_b)
         label_campi.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
@@ -256,9 +287,7 @@ class MainWindow(QWidget):
         #PRENOTAZIONE
         btn_pren = QPushButton()
         btn_pren.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        btn_pren.setStyleSheet(style_img2_bg)
-        btn_pren.setIcon(imgPrenotazioni)
-        btn_pren.setIconSize(btn_pren.size())
+        btn_pren.setStyleSheet(style_img1_bg)
         label_pren = QLabel("Prenotazioni")
         label_pren.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         label_pren.setStyleSheet(style_text_gotham_b)
@@ -271,8 +300,6 @@ class MainWindow(QWidget):
         btn_gioc = QPushButton()
         btn_gioc.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         btn_gioc.setStyleSheet(style_img1_bg)
-        btn_gioc.setIcon(imgGiocatori)
-        btn_gioc.setIconSize(btn_gioc.size())
         label_gioc = QLabel("Profili Giocatori")
         label_gioc.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         label_gioc.setStyleSheet(style_text_gotham_b)
@@ -285,8 +312,6 @@ class MainWindow(QWidget):
         btn_attspo = QPushButton()
         btn_attspo.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         btn_attspo.setStyleSheet(style_img1_bg)
-        btn_attspo.setIcon(imgAttSpo)
-        btn_attspo.setIconSize(btn_attspo.size())
         label_attspo = QLabel("Attrezzatura Sportiva")
         label_attspo.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         label_attspo.setStyleSheet(style_text_gotham_b)
@@ -299,9 +324,7 @@ class MainWindow(QWidget):
         btn_dip = QPushButton()
         btn_dip.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         btn_dip.setStyleSheet(style_img1_bg)
-        btn_dip.setIcon(imgDipend)
-        btn_dip.setIconSize(btn_dip.size())
-        label_dip = QLabel("Attrezzatura Sportiva")
+        label_dip = QLabel("Dipendenti")
         label_dip.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         label_dip.setStyleSheet(style_text_gotham_b)
         vv5.addWidget(btn_dip)
@@ -313,8 +336,6 @@ class MainWindow(QWidget):
         btn_rist = QPushButton()
         btn_rist.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         btn_rist.setStyleSheet(style_img1_bg)
-        btn_rist.setIcon(imgRisto)
-        btn_rist.setIconSize(btn_rist.size())
         label_rist = QLabel("Area ristoro")
         label_rist.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         label_rist.setStyleSheet(style_text_gotham_b)
@@ -332,11 +353,12 @@ class MainWindow(QWidget):
 
         main_layout.addLayout(core_layout, stretch=1)
 
-        # --- Barra in basso -------------------------------------------------
+        # --- BOTTOM BAR ------------------------------------------------------------------------------------
         bottom_bar = QHBoxLayout()
         bottom_bar.setContentsMargins(0, 0, 0, 0)
 
-        # Logo piccolo (24 px di altezza)
+        # Logo piccolo (24px di altezza)
+        #DA FARE PER TUTTE LE IMMAGINI
         logo_label = QLabel()
         try:
             pixmap = QPixmap("src/img/logo.png")
@@ -351,16 +373,22 @@ class MainWindow(QWidget):
         bottom_bar.addSpacing(10)
 
         # Testo centrale
-        center_text = QLabel("Testo centrale")
+        center_text = QLabel(f"{self.controller.get_current_user().username}")
         center_text.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        if not self.controller.get_current_user().is_admin:
+            center_text.setStyleSheet(style_text_red_on_white)
+        else:
+            center_text.setStyleSheet(style_text_white_on_red)
 
         bottom_bar.addStretch()
         bottom_bar.addWidget(center_text)
         bottom_bar.addStretch()
 
         # Pulsante a destra
-        action_button = QPushButton("Azione")
-        bottom_bar.addWidget(action_button)
+        log_btn = QPushButton("Logout")
+        log_btn.setStyleSheet(style_QButton_red)
+        log_btn.clicked.connect(self.logout)
+        bottom_bar.addWidget(log_btn)
 
         main_layout.addLayout(bottom_bar)
 
@@ -480,21 +508,19 @@ class MainWindow(QWidget):
 
         self.setLayout(layout)
 
-
     def clear_layout(self):
         if self.layout():
             QWidget().setLayout(self.layout())
 
     def closeEvent(self, event):
         reply = QMessageBox.question(
-            self,"Conferma uscita","Sei sicuro di voler uscire?",QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No  #evidenziato
+            self,"Conferma uscita","Sei sicuro di voler uscire?",QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No  #highlighted
         )
-
         if reply == QMessageBox.StandardButton.Yes:
             self.controller.logout()
-            event.accept()  # Chiude la finestra
+            event.accept()  # close the program
         else:
-            event.ignore()  # Annulla la chiusura
+            event.ignore()  # cancel the request
 
     def center_window(self):
         screen = QGuiApplication.primaryScreen()

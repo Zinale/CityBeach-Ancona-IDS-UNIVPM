@@ -15,10 +15,10 @@ class AppController:
             return True
         return False
 
-    def register(self, username: str, password: str,is_admin:bool = False) -> bool:
+    def register(self, username: str, password: str, is_admin:bool = False) -> bool:
         if username in self.model.users:
             return False
-        self.model.users[username] = User(username, password)
+        self.model.users[username] = User(username, password, is_admin)
         return True
 
     def logout(self):

@@ -6,7 +6,7 @@ from datetime import *
 
 
 class User:
-    def __init__(self, username: str, password: str,is_admin = False):
+    def __init__(self, username: str, password: str, is_admin:bool = False):
         self.username = username
         self.password = password
         self.data_created = datetime.now()
