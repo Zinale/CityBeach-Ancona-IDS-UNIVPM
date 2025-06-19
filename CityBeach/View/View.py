@@ -64,10 +64,13 @@ style_blackText = """
     }
 """
 
+style_text_gotham_b = """
+        font-family: Gotham; color: #444444;font-size: 16pt;"""
+
+#background - image: url(src / img / fullhd.jpg); / *Percorso immagine * /
 style_img1_bg = """
             QPushButton {
                 border: none;
-                background-image: url('src/img/fullhd.jpg');  /* Percorso immagine */
                 background-repeat: no-repeat;
                 background-position: center;
                 background-size: contain;  /* Adatta immagine */
@@ -80,10 +83,27 @@ style_img1_bg = """
             }
         """
 
+style_img2_bg = """
+    QPushButton {
+        border: 1px solid #000000;
+        border-radius: 14px;
+        padding: 6px 20px;
+        background-image: url(src/img/logo.png);
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: contain;
+    }
+
+    QPushButton:hover {
+        background-image: url(src/img/logo.png);
+        background-color: rgba(0, 0, 0, 0.2); /* semitrasparente */
+        background-blend-mode: darken;  /* <-- Qt non supporta, ma aiuta a capire l’intento */
+    }
+"""
+
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("CityBeach Ancona | Login")
         self.setWindowIcon(QIcon("src/img/logo.png"))
         self.setWindowFlag(Qt.WindowType.Window)
         self.model = AppData.load_from_file("data.pkl")
@@ -106,6 +126,7 @@ class MainWindow(QWidget):
 
     def init_login_ui(self):
         self.clear_layout()
+        self.setWindowTitle("CityBeach Ancona | Login")
         self.setStyleSheet("background-color: #EAF6FF;")
         self.setStyleSheet(style_blackText)
         layoutMAIN = QVBoxLayout()
@@ -114,7 +135,7 @@ class MainWindow(QWidget):
 
         #CITY BEACH
         textCity = QLabel("CityBeach | Ancona")
-        textCity.setStyleSheet("font-family: Gotham; color: #444444;font-size: 16pt;")
+        textCity.setStyleSheet(style_text_gotham_b)
         textCity.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
 
         #image | LOGO
@@ -163,10 +184,6 @@ class MainWindow(QWidget):
         self.setLayout(layoutMAIN)
 
         a, b = 450, 250
-        #self.setFixedSize(PyQt6.QtCore.QSize(a,b))
-        #self.setMaximumSize(PyQt6.QtCore.QSize(a,b))
-        #self.setMinimumSize(PyQt6.QtCore.QSize(a,b))
-        #self.setFixedSize(a, b)
         self.resize(a,b)
         self.showMaximized()        #to avoid the bug: fullscreen's icon active while the window isn't
         self.showNormal()
@@ -179,99 +196,173 @@ class MainWindow(QWidget):
         self.setMaximumSize(10000,10000)
         self.showMaximized()
 
-        layoutMAIN = QVBoxLayout()
-        layoutH1 = QHBoxLayout()    #"CITY-BEACH | ANCONA + datetime
-        layoutV2 = QVBoxLayout()    #core of the window
-        layoutV2H1 = QHBoxLayout()   #1st level of the grid  (3 button)
-        layoutV2H2 = QHBoxLayout()   #2nd level of the grid  (3 button)
-        layoutH3 = QHBoxLayout()    #logo + user.name
+        self.setWindowTitle("CityBeach Ancona | Menù")
 
-        layout_vv1 = QVBoxLayout()  #for every button: image + text
-        layout_vv2 = QVBoxLayout()
-        layout_vv3 = QVBoxLayout()
-        layout_vv4 = QVBoxLayout()
-        layout_vv5 = QVBoxLayout()
-        layout_vv6 = QVBoxLayout()
+        # Layout verticale principale
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(10, 10, 10, 10)
+        main_layout.setSpacing(10)
 
-        # CITY BEACH
+        # --- TOP BAR ------------------------------------------------------------------------------------
+        top_bar = QHBoxLayout()
+        top_bar.setContentsMargins(0, 0, 0, 0)
+
         textCity = QLabel("CityBeach | Ancona")
-        textCity.setStyleSheet("font-family: Gotham; color: #444444;font-size: 16pt;")
-        #textCity.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        textCity.setStyleSheet(style_text_gotham_b)
+        textCity.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+        current_time = dt.DateTimeLabel()
+        current_time.label.setStyleSheet(style_text_gotham_b)
+        current_time.label.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
 
-        #datetime
-        datetime_labeL = dt.DateTimeLabel()
-        datetime_labeL = QLabel(f"{datetime.date.today()}")
-        datetime_labeL.label.setStyleSheet("font-family: Gotham; color: #444444;font-size: 16pt;")
-        #datetime_labeL.label.setAlignment(Qt.AlignmentFlag.AlignRight| Qt.AlignmentFlag.AlignVCenter)
+        top_bar.addWidget(textCity)
+        top_bar.addStretch()
+        top_bar.addWidget(current_time)
 
-        layoutH1.addWidget(datetime_labeL)
-        layoutH1.addWidget(textCity)
-        layoutH1.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+        main_layout.addLayout(top_bar)
 
-        campi_btn = QPushButton("")
-        #campi_btn.setStyleSheet(style_QButton_red)
-        campi_btn.setStyleSheet(style_img1_bg)
-        textCampi = QLabel("Campi da Gioco")
-        textCampi.setStyleSheet("font-family: Gotham; color: #444444;font-size: 14pt;")
-        textCampi.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-        layout_vv1.addWidget(campi_btn)
-        layout_vv1.addWidget(textCampi)
-        layoutV2H1.addLayout(layout_vv1)
+        # --- Core: 2 row x 3 button with text ------------------------------------------------------------------------------------
+        core_layout = QGridLayout()
+        core_layout.setHorizontalSpacing(40)  # column space
+        core_layout.setVerticalSpacing(20)    # row space
 
-        pren_btn = QPushButton("")
-        #campi_btn.setStyleSheet(style_QButton_red)
-        pren_btn.setStyleSheet(style_img1_bg)
-        textPreno = QLabel("Prenotazioni")
-        textPreno.setStyleSheet("font-family: Gotham; color: #444444;font-size: 14pt;")
-        textPreno.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-        layout_vv2.addWidget(pren_btn)
-        layout_vv2.addWidget(textPreno)
-        layoutV2H1.addLayout(layout_vv2)
+        vv1 = QVBoxLayout()
+        vv2 = QVBoxLayout()
+        vv3 = QVBoxLayout()
+        vv4 = QVBoxLayout()
+        vv5 = QVBoxLayout()
+        vv6 = QVBoxLayout()
 
-        gioc_btn = QPushButton("")
-        #campi_btn.setStyleSheet(style_QButton_red)
-        gioc_btn.setStyleSheet(style_img1_bg)
-        textGioc = QLabel("Giocatori")
-        textGioc.setStyleSheet("font-family: Gotham; color: #444444;font-size: 14pt;")
-        textGioc.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-        layout_vv3.addWidget(gioc_btn)
-        layout_vv3.addWidget(textGioc)
-        layoutV2H1.addLayout(layout_vv3)
+        imgCampi = QIcon(QPixmap("src/img/Baby.tux.sit-800x800.png"))
+        imgPrenotazioni = QIcon(QPixmap("src/img/logo.png"))
+        imgGiocatori = QIcon(QPixmap("src/img/1-1.jpg"))
+        imgAttSpo = QIcon(QPixmap("src/img/1-1.png"))
+        imgDipend = QIcon(QPixmap("src/img/fullhd.jpg"))
+        imgRisto = QIcon(QPixmap("src/img/fullhd.jpg"))
 
-        attSpo_btn = QPushButton("")
-        # campi_btn.setStyleSheet(style_QButton_red)
-        attSpo_btn.setStyleSheet(style_img1_bg)
-        textAtt = QLabel("Inventario")
-        textAtt.setStyleSheet("font-family: Gotham; color: #444444;font-size: 14pt;")
-        textAtt.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-        layout_vv4.addWidget(attSpo_btn)
-        layout_vv4.addWidget(textAtt)
-        layoutV2H2.addLayout(layout_vv4)
+        #CAMPI DA GIOCO
+        btn_campi = QPushButton()
+        btn_campi.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        btn_campi.setStyleSheet(style_img2_bg)
+        btn_campi.setIcon(imgCampi)
+        btn_campi.setIconSize(btn_campi.size())
+        label_campi = QLabel("Campi da Gioco")
+        label_campi.setStyleSheet(style_text_gotham_b)
+        label_campi.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+        vv1.addWidget(btn_campi)
+        vv1.addWidget(label_campi)
+        vv1.setSpacing(6)
+        core_layout.addLayout(vv1,0,0)
 
-        dipe_btn = QPushButton("")
-        # campi_btn.setStyleSheet(style_QButton_red)
-        dipe_btn.setStyleSheet(style_img1_bg)
-        textDipe = QLabel("Dipendenti")
-        textDipe.setStyleSheet("font-family: Gotham; color: #444444;font-size: 14pt;")
-        textDipe.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-        layout_vv5.addWidget(dipe_btn)
-        layout_vv5.addWidget(textDipe)
-        layoutV2H2.addLayout(layout_vv5)
+        #PRENOTAZIONE
+        btn_pren = QPushButton()
+        btn_pren.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        btn_pren.setStyleSheet(style_img2_bg)
+        btn_pren.setIcon(imgPrenotazioni)
+        btn_pren.setIconSize(btn_pren.size())
+        label_pren = QLabel("Prenotazioni")
+        label_pren.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        label_pren.setStyleSheet(style_text_gotham_b)
+        vv2.addWidget(btn_pren)
+        vv2.addWidget(label_pren)
+        vv2.setSpacing(6)
+        core_layout.addLayout(vv2,0,1)
 
-        rist_btn = QPushButton("")
-        # campi_btn.setStyleSheet(style_QButton_red)
-        rist_btn.setStyleSheet(style_img1_bg)
-        textRist = QLabel("Area Ristoro")
-        textRist.setStyleSheet("font-family: Gotham; color: #444444;font-size: 14pt;")
-        textRist.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-        layout_vv6.addWidget(rist_btn)
-        layout_vv6.addWidget(textRist)
-        layoutV2H2.addLayout(layout_vv6)
+        #Profili Giocatori
+        btn_gioc = QPushButton()
+        btn_gioc.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        btn_gioc.setStyleSheet(style_img1_bg)
+        btn_gioc.setIcon(imgGiocatori)
+        btn_gioc.setIconSize(btn_gioc.size())
+        label_gioc = QLabel("Profili Giocatori")
+        label_gioc.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        label_gioc.setStyleSheet(style_text_gotham_b)
+        vv3.addWidget(btn_gioc)
+        vv3.addWidget(label_gioc)
+        vv3.setSpacing(6)
+        core_layout.addLayout(vv3,0,2)
 
-        layoutV2.addLayout(layoutV2H1)
-        layoutV2.addLayout(layoutV2H2)
-        layoutV2.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
-        layoutV2.setSpacing(15)
+        #Att. Sportiva
+        btn_attspo = QPushButton()
+        btn_attspo.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        btn_attspo.setStyleSheet(style_img1_bg)
+        btn_attspo.setIcon(imgAttSpo)
+        btn_attspo.setIconSize(btn_attspo.size())
+        label_attspo = QLabel("Attrezzatura Sportiva")
+        label_attspo.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        label_attspo.setStyleSheet(style_text_gotham_b)
+        vv4.addWidget(btn_attspo)
+        vv4.addWidget(label_attspo)
+        vv4.setSpacing(6)
+        core_layout.addLayout(vv4,1,0)
+
+        #Dipendenti
+        btn_dip = QPushButton()
+        btn_dip.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        btn_dip.setStyleSheet(style_img1_bg)
+        btn_dip.setIcon(imgDipend)
+        btn_dip.setIconSize(btn_dip.size())
+        label_dip = QLabel("Attrezzatura Sportiva")
+        label_dip.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        label_dip.setStyleSheet(style_text_gotham_b)
+        vv5.addWidget(btn_dip)
+        vv5.addWidget(label_dip)
+        vv5.setSpacing(6)
+        core_layout.addLayout(vv5,1,1)
+
+        #Area Ristoro
+        btn_rist = QPushButton()
+        btn_rist.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        btn_rist.setStyleSheet(style_img1_bg)
+        btn_rist.setIcon(imgRisto)
+        btn_rist.setIconSize(btn_rist.size())
+        label_rist = QLabel("Area ristoro")
+        label_rist.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        label_rist.setStyleSheet(style_text_gotham_b)
+        vv6.addWidget(btn_rist)
+        vv6.addWidget(label_rist)
+        vv6.setSpacing(6)
+        core_layout.addLayout(vv6,1,2)
+
+
+        # Permette al layout centrale di espandersi
+        for col in range(3):
+            core_layout.setColumnStretch(col, 1)
+        for row in range(2):
+            core_layout.setRowStretch(row, 1)
+
+        main_layout.addLayout(core_layout, stretch=1)
+
+        # --- Barra in basso -------------------------------------------------
+        bottom_bar = QHBoxLayout()
+        bottom_bar.setContentsMargins(0, 0, 0, 0)
+
+        # Logo piccolo (24 px di altezza)
+        logo_label = QLabel()
+        try:
+            pixmap = QPixmap("src/img/logo.png")
+            if not pixmap.isNull():
+                logo_label.setPixmap(
+                pixmap.scaledToHeight(60, Qt.TransformationMode.SmoothTransformation)
+        )
+        except Exception as e:
+            print(f"Errore caricamento immagine: {e}")
+
+        bottom_bar.addWidget(logo_label)
+        bottom_bar.addSpacing(10)
+
+        # Testo centrale
+        center_text = QLabel("Testo centrale")
+        center_text.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        bottom_bar.addStretch()
+        bottom_bar.addWidget(center_text)
+        bottom_bar.addStretch()
+
+        # Pulsante a destra
+        action_button = QPushButton("Azione")
+        bottom_bar.addWidget(action_button)
+
+        main_layout.addLayout(bottom_bar)
 
 
 
@@ -282,10 +373,6 @@ class MainWindow(QWidget):
 
 
 
-        layoutMAIN.addLayout(layoutH1)
-        layoutMAIN.addLayout(layoutV2)
-        layoutMAIN.addLayout(layoutH3)
-        self.setLayout(layoutMAIN)
 
 
 
