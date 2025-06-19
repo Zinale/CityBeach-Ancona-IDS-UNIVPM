@@ -18,7 +18,7 @@ class AppController:
     def register(self, username: str, password: str, is_admin:bool = False) -> bool:
         if username in self.model.users:
             return False
-        self.model.users[username] = User(username, password, is_admin)
+        self.model.users[username] = User(username, password, is_admin=is_admin)
         return True
 
     def logout(self):
@@ -69,3 +69,5 @@ class AppController:
 
     def get_current_user(self) -> User | None:
         return self.model.current_user
+    def get_all_users(self) -> List[User] :
+        return list(self.model.users.values())

@@ -2,14 +2,20 @@ import datetime
 from typing import List
 
 from Model.Article import Article
-from datetime import *
+import datetime
 
 
 class User:
-    def __init__(self, username: str, password: str, is_admin:bool = False):
+    def __init__(self, username: str, password: str, is_admin:bool = False,name:str = " ",surname:str=" ",datebirth:datetime.date | None=None):
         self.username = username
         self.password = password
-        self.data_created = datetime.now()
+        self.data_created = datetime.datetime.now()
+        self.name = name
+        self.surname = surname
+        self.birthday = datebirth
+        if datebirth is None:
+            self.birthday = datetime.date.today()
+
         self.article_ids: List[str] = []
         self.is_admin:bool = False
         if is_admin:

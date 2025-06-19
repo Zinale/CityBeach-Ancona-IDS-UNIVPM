@@ -1,7 +1,7 @@
 import PyQt6.QtCore
 from PyQt6.QtCore import Qt,QRect
 from PyQt6.QtWidgets import *
-from PyQt6.QtGui import QFont
+from PyQt6.QtGui import QFont, QBrush, QColor
 from PyQt6.uic.Compiler.qtproxies import QtCore
 
 from datetime import date
@@ -9,103 +9,7 @@ from Controller.Controller import AppController
 from Model.Data import AppData
 from PyQt6.QtGui import QFontDatabase, QPixmap, QIcon,QGuiApplication
 from . import DateTimeLabel as dt
-
-style_input_bar_white = """
-    QLineEdit {
-        background-color: #FFFFFF;
-        color: #444444;
-        border: 1px solid #CCCCCC;
-        border-radius: 6px;
-        padding: 4px 12px;
-    }
-    QLineEdit:hover {
-        background-color: #EEEEEE;
-    }
-"""
-style_input_bar_red = """
-    QLineEdit {
-        background-color: #E30613;
-        color: #FFFFFF;
-        border: 1px solid #B20510;
-        border-radius: 6px;
-        padding: 4px 12px;
-    }
-    QLineEdit:hover {
-        background-color: #B20510;
-    }
-"""
-style_QButton_red = """
-    QPushButton {
-        background-color: #E30613;
-        color: #FFFFFF;
-        border: 1px solid #B20510;
-        border-radius: 14px;
-        padding: 6px 20px;
-    }
-    QPushButton:hover {
-        background-color: #B20510;
-    }
-"""
-style_QButton_white = """
-    QPushButton {
-        background-color: #FFFFFF;
-        color: #444444;
-        border: 1px solid #CCCCCC;
-        border-radius: 14px;
-        padding: 6px 20px;
-    }
-    QPushButton:hover {
-        background-color: #EEEEEE;
-    }
-"""
-style_blackText = """
-    QLabel, QFrame {
-        color: #000000;
-    }
-"""
-
-style_text_gotham_b = """
-        font-family: Gotham; color: #444444;font-size: 16pt;"""
-
-style_text_red_on_white = """
-        font-family: Gotham; color: #E30613;background-color:#ffffff; font-size: 16pt; border: 2px solid #E30613;
-        padding: 6px 20px;
-        border-radius: 14px;"""
-
-style_text_white_on_red = """
-        font-family: Gotham; color: #ffffff;background-color:#E30613; font-size: 16pt; border: 2px solid #ffffff;
-        padding: 6px 20px;
-        border-radius: 14px;"""
-
-style_img1_bg = """
-            QPushButton {
-                border: none;
-                background-repeat: no-repeat;
-                background-position: center;
-                background-size: contain;  /* Adatta immagine */
-                border: 1px solid #B000000;
-                border-radius: 14px;
-                padding: 6px 20px;
-            }
-            QPushButton:hover {
-                background-color: rgba(0, 0, 0, 30);  /* Effetto hover */
-            }
-        """
-style_img2_bg = """
-    QPushButton {
-        border: 1px solid #B000000;
-        border-radius: 14px;
-        padding: 6px 20px;
-        background-repeat: no-repeat;
-        background-position: center;
-        background-size: contain;
-    }
-
-    QPushButton:hover {
-        background-color: rgba(0, 0, 0, 30); /* semitrasparente */
-        background-blend-mode: darken;  /* <-- Qt non supporta, ma aiuta a capire l’intento */
-    }
-"""
+from View.styles import *
 
 class MainWindow(QWidget):
     def __init__(self):
@@ -198,13 +102,6 @@ class MainWindow(QWidget):
 
     def init_main_ui(self):
         self.clear_layout()
-
-        #EAF6FF bianco/grigio
-        #F5F5F5 bianco sporco
-        #FAFAFA avorio
-        #FFE6E6 rosa chiaro
-        #FFF0E6 albicocca chiaro
-
         self.setStyleSheet("background-color: #FFF0E6;")
         self.setMinimumSize(1280, 720)
         self.setMaximumSize(10000,10000)
@@ -219,21 +116,7 @@ class MainWindow(QWidget):
         main_layout.setSpacing(10)
 
         # --- TOP BAR ------------------------------------------------------------------------------------
-        top_bar = QHBoxLayout()
-        top_bar.setContentsMargins(0, 0, 0, 0)
-
-        textCity = QLabel("CityBeach | Ancona")
-        textCity.setStyleSheet(style_text_gotham_b)
-        textCity.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
-        current_time = dt.DateTimeLabel()
-        current_time.label.setStyleSheet(style_text_gotham_b)
-        current_time.label.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
-
-        top_bar.addWidget(textCity)
-        top_bar.addStretch()
-        top_bar.addWidget(current_time)
-
-        main_layout.addLayout(top_bar)
+        main_layout.addLayout(self.topBar())
 
         # --- Core: 2 row x 3 button with text ------------------------------------------------------------------------------------
         core_layout = QGridLayout()
@@ -253,22 +136,6 @@ class MainWindow(QWidget):
         imgAttSpo = QIcon(QPixmap("src/img/1-1.png"))
         imgDipend = QIcon(QPixmap("src/img/fullhd.jpg"))
         imgRisto = QIcon(QPixmap("src/img/fullhd.jpg"))
-
-        #da fare per ogni button
-        style_img1_bg = """
-            QPushButton {
-                border: 1px solid #000000;
-                border-radius: 14px;
-                background-image: url(src/img/Baby.tux.sit-800x800.png);
-                background-repeat: no-repeat;
-                background-position: center;
-                background-size: contain;
-            }
-            QPushButton:hover {
-                background-color: rgba(0, 0, 0, 30);
-                border: 2px solid #3777FF;
-            }
-        """
 
         #CAMPI DA GIOCO
         btn_campi = QPushButton()
@@ -324,6 +191,7 @@ class MainWindow(QWidget):
         btn_dip = QPushButton()
         btn_dip.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         btn_dip.setStyleSheet(style_img1_bg)
+        btn_dip.clicked.connect(self.view_dipendenti)
         label_dip = QLabel("Dipendenti")
         label_dip.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         label_dip.setStyleSheet(style_text_gotham_b)
@@ -392,6 +260,108 @@ class MainWindow(QWidget):
 
         main_layout.addLayout(bottom_bar)
 
+    def init_dipendenti_ui(self):
+        self.clear_layout()
+        self.setStyleSheet("background-color: #FFF0E6;")
+        self.setMinimumSize(1280, 720)
+        self.setMaximumSize(10000, 10000)
+        # self.showMaximized()
+
+        self.setWindowTitle("CityBeach Ancona | Dipendenti")
+        self.center_window()
+
+        # Layout verticale principale
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(10, 10, 10, 10)
+        main_layout.setSpacing(10)
+        vLayout = QVBoxLayout()
+
+        # --- TOP BAR ------------------------------------------------------------------------------------
+        main_layout.addLayout(self.topBar())
+        # --- Text + QTreeWidget + Add / ------------------------------------------------------------------------------------
+        contextText = QLabel("Lista Dipendenti:")
+        contextText.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        contextText.setStyleSheet("""font-family: Gotham; color: #000000;font-size: 20pt;""")
+        vLayout.addWidget(contextText)
+
+        self.tree = QTreeWidget()
+        self.tree.setHeaderLabels(["Nome", "Cognome", "Amministratore","Username","Data di Nascita","Creato il"])
+
+        for user in self.controller.get_all_users():
+            item = QTreeWidgetItem([
+                str(user.name),
+                str(user.surname),
+                str(user.is_admin),
+                str(user.username),
+                str(user.birthday),
+                str(user.data_created),
+            ])
+            if user.is_admin:
+                item.setBackground(0,QBrush(QColor("#E30613")))
+                item.setBackground(2,QBrush(QColor("#E30613")))
+                item.setForeground(0,QBrush(QColor("#ffffff")))
+                item.setForeground(2,QBrush(QColor("#ffffff")))
+                item.setBackground(3,QBrush(QColor("#E30613")))
+                item.setForeground(3,QBrush(QColor("#ffffff")))
+            self.tree.addTopLevelItem(item)
+
+        for i in range(50):
+            item = QTreeWidgetItem([str(i),str(i),str(i),str(i),str(i),str(i)])
+            self.tree.addTopLevelItem(item)
+
+        vLayout.addWidget(self.tree)
+        #vLayout.addSpacing(1)
+
+        # add Dipendente btn
+        add_btn = QPushButton("Crea Dipendente")
+        add_btn.setStyleSheet(style_QButton_white_18Gotham)
+        add_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
+        #add_btn.clicked.connect(self.aggiungiDipendente)
+
+        vLayout.addWidget(add_btn,alignment=Qt.AlignmentFlag.AlignHCenter)
+        vLayout.setSpacing(15)
+        main_layout.addLayout(vLayout)
+
+        # --- BOTTOM BAR ------------------------------------------------------------------------------------
+        bottom_bar = QHBoxLayout()
+        bottom_bar.setContentsMargins(0, 0, 0, 0)
+
+        logo_label = QLabel()
+        try:
+            pixmap = QPixmap("src/img/logo.png")
+            if not pixmap.isNull():
+                logo_label.setPixmap(
+                    pixmap.scaledToHeight(60, Qt.TransformationMode.SmoothTransformation)
+                )
+        except Exception as e:
+            print(f"Errore caricamento immagine: {e}")
+
+        bottom_bar.addWidget(logo_label)
+        bottom_bar.addSpacing(10)
+
+        # mid text
+        center_text = QLabel(f"{self.controller.get_current_user().username}")
+        center_text.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        if not self.controller.get_current_user().is_admin:
+            center_text.setStyleSheet(style_text_red_on_white)
+        else:
+            center_text.setStyleSheet(style_text_white_on_red)
+
+        bottom_bar.addStretch()
+        bottom_bar.addWidget(center_text)
+        bottom_bar.addStretch()
+
+        # right btn
+        back_btn = QPushButton("Indietro")
+        back_btn.setStyleSheet(style_QButton_red)
+        back_btn.clicked.connect(self.init_main_ui)
+        bottom_bar.addWidget(back_btn)
+
+        main_layout.addLayout(bottom_bar)
+        self.setLayout(main_layout)
+
+
+
 
 
 
@@ -419,6 +389,12 @@ class MainWindow(QWidget):
             self.init_main_ui()
         else:
             QMessageBox.warning(self, "Errore", "Credenziali non valide")
+
+    def view_dipendenti(self):
+        if self.controller.get_current_user().is_admin:
+            self.init_dipendenti_ui()
+        else:
+            QMessageBox.warning(self, "Permesso negato", "Non sei amminisratore")
 
     def register(self):
         if self.controller.register(self.user_input.text(), self.pass_input.text()):
@@ -535,3 +511,20 @@ class MainWindow(QWidget):
         screen = QApplication.primaryScreen()
         screen_geometry = screen.availableGeometry()
         return screen_geometry.width(),screen_geometry.height()
+
+    def topBar(self) -> QHBoxLayout():
+        # --- TOP BAR ------------------------------------------------------------------------------------
+        top_bar = QHBoxLayout()
+        top_bar.setContentsMargins(0, 0, 0, 0)
+
+        textCity = QLabel("CityBeach | Ancona")
+        textCity.setStyleSheet(style_text_gotham_b)
+        textCity.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+        current_time = dt.DateTimeLabel()
+        current_time.label.setStyleSheet(style_text_gotham_b)
+        current_time.label.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+
+        top_bar.addWidget(textCity)
+        top_bar.addStretch()
+        top_bar.addWidget(current_time)
+        return top_bar
