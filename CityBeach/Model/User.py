@@ -6,20 +6,24 @@ import datetime
 
 
 class User:
-    def __init__(self, username: str, password: str, is_admin:bool = False,name:str = " ",surname:str=" ",datebirth:datetime.date | None=None):
+    def __init__(self, username: str, password: str, is_admin:bool = False,
+                 name:str = " ",surname:str=" ",datebirth:datetime.date | None=None,
+                 sesso:str = "M/F",added_by: str = "admin"):
         self.username = username
         self.password = password
-        self.data_created = datetime.datetime.now()
         self.name = name
         self.surname = surname
         self.birthday = datebirth
         if datebirth is None:
             self.birthday = datetime.date.today()
-
+        self.sesso = sesso
         self.article_ids: List[str] = []
         self.is_admin:bool = False
         if is_admin:
             self.is_admin = True
+
+        self.data_created = datetime.datetime.now()
+        self.added_by = added_by
 
     def __str__(self):
         return f"Username: '{self.username}'\t\t\t\tPassword: '{self.password}'"

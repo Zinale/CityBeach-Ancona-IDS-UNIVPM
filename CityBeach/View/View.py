@@ -9,7 +9,11 @@ from Controller.Controller import AppController
 from Model.Data import AppData
 from PyQt6.QtGui import QFontDatabase, QPixmap, QIcon,QGuiApplication
 from . import DateTimeLabel as dt
-from View.styles import *
+
+
+from .Dialogs import *
+from .styles import *
+
 
 class MainWindow(QWidget):
     def __init__(self):
@@ -35,8 +39,8 @@ class MainWindow(QWidget):
     def init_login_ui(self):
         self.clear_layout()
         self.setWindowTitle("CityBeach Ancona | Login")
-        self.setStyleSheet("background-color: #EAF6FF;")
         self.setStyleSheet(style_blackText)
+        self.setStyleSheet("background-color: #FFF0E6;")
         a, b = 450, 250
         self.setMinimumSize(a, b)
         self.resize(a,b)
@@ -285,7 +289,7 @@ class MainWindow(QWidget):
         vLayout.addWidget(contextText)
 
         self.tree = QTreeWidget()
-        self.tree.setHeaderLabels(["Nome", "Cognome", "Amministratore","Username","Data di Nascita","Creato il"])
+        self.tree.setHeaderLabels(["Nome", "Cognome", "Amministratore","Username","Data di Nascita","Sesso","Creato il","Creato da"])
 
         for user in self.controller.get_all_users():
             item = QTreeWidgetItem([
@@ -294,7 +298,9 @@ class MainWindow(QWidget):
                 str(user.is_admin),
                 str(user.username),
                 str(user.birthday),
+                str(user.sesso),
                 str(user.data_created),
+                str(user.added_by)
             ])
             if user.is_admin:
                 item.setBackground(0,QBrush(QColor("#E30613")))
@@ -313,12 +319,12 @@ class MainWindow(QWidget):
         #vLayout.addSpacing(1)
 
         # add Dipendente btn
-        add_btn = QPushButton("Crea Dipendente")
-        add_btn.setStyleSheet(style_QButton_white_18Gotham)
-        add_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
-        #add_btn.clicked.connect(self.aggiungiDipendente)
+        dip_btn = QPushButton("Crea Dipendente")
+        dip_btn.setStyleSheet(style_QButton_white_18Gotham)
+        dip_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
+        dip_btn.clicked.connect(self.open_add_dipendente_ui)
 
-        vLayout.addWidget(add_btn,alignment=Qt.AlignmentFlag.AlignHCenter)
+        vLayout.addWidget(dip_btn,alignment=Qt.AlignmentFlag.AlignHCenter)
         vLayout.setSpacing(15)
         main_layout.addLayout(vLayout)
 
@@ -359,10 +365,6 @@ class MainWindow(QWidget):
 
         main_layout.addLayout(bottom_bar)
         self.setLayout(main_layout)
-
-
-
-
 
 
 
@@ -528,3 +530,17 @@ class MainWindow(QWidget):
         top_bar.addStretch()
         top_bar.addWidget(current_time)
         return top_bar
+
+    def open_add_dipendente_ui(self):
+        dlg = add_Dipendete_ui(self)
+        if dlg.exec():
+            print("AGGIUNTO!!!!")
+            print(dlg.data)
+        else:
+            print("ANNULLATO")
+
+
+
+
+
+

@@ -43,7 +43,7 @@ style_QButton_white = """
         padding: 6px 20px;
     }
     QPushButton:hover {
-        background-color: ##EEEEEE;
+        background-color: #EEEEEE;
     }
 """
 style_QButton_white_18Gotham = """
@@ -56,7 +56,8 @@ style_QButton_white_18Gotham = """
         padding: 6px 20px;
     }
     QPushButton:hover {
-        background-color: ##EEEEEE;
+        background-color: #EEEEEE;
+        border: 2px solid #E30613;
     }
 """
 style_blackText = """
@@ -94,6 +95,44 @@ style_img1_bg = """
     }
 """
 
+style_app_Dialogs = """
+ 
+    QWidget {
+        background-color: #FFF0E6;
+        font-family: 'Segoe UI', sans-serif;
+        font-size: 10pt;
+    }
+
+    QLineEdit, QDateEdit, QComboBox {
+        background-color: white;
+        border: 1px solid #ccc;
+        padding: 4px;
+        border-radius: 4px;
+    }
+
+    QCheckBox {
+        padding-left: 5px;
+    }
+        
+    QCalendarWidget QToolButton {
+        background-color: #ffffff;
+        color: black;
+    }
+
+    QCalendarWidget QMenu::item{
+        color:black;
+        background-color: #ffffff;
+    }
+    
+    QCalendarWidget QMenu::item:selected{
+        color:#FFFFFF;
+        background-color: #E30613;
+    }
+    
+    QLabel {
+        color: #333;
+    }
+"""
 
 # EAF6FF bianco/grigio
 # F5F5F5 bianco sporco
