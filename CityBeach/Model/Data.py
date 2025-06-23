@@ -7,7 +7,7 @@ from Model.User import User
 
 class AppData:
     def __init__(self):
-        self.users: Dict[str, User] = {}
+        self.users: Dict[int, User] = {}
         self.articles: Dict[str, Article] = {}
         self.current_user: User | None = None
 
@@ -20,5 +20,5 @@ class AppData:
         try:
             with open(path, 'rb') as f:
                 return pickle.load(f)
-        except FileNotFoundError:
+        except (FileNotFoundError,pickle.UnpicklingError):
             return AppData()

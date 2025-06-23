@@ -6,9 +6,10 @@ import datetime
 
 
 class User:
-    def __init__(self, username: str, password: str, is_admin:bool = False,
+    def __init__(self, id:int,username: str, is_admin:bool = False,
                  name:str = " ",surname:str=" ",datebirth:datetime.date | None=None,
-                 sesso:str = "M/F",added_by: str = "admin"):
+                 gender:str = "M/F",added_by: str = "admin",password: str=""):
+        self.id = id
         self.username = username
         self.password = password
         self.name = name
@@ -16,7 +17,7 @@ class User:
         self.birthday = datebirth
         if datebirth is None:
             self.birthday = datetime.date.today()
-        self.sesso = sesso
+        self.gender = gender
         self.article_ids: List[str] = []
         self.is_admin:bool = False
         if is_admin:
@@ -26,10 +27,9 @@ class User:
         self.added_by = added_by
 
     def __str__(self):
-        return f"Username: '{self.username}'\t\t\t\tPassword: '{self.password}'"
+        return f"Username: '{self.username}'\t\t\t\tPassword: '{self.password}'\tid:{self.id}"
     def __repr__(self):
-        print("USERNAME\t|\tPASSWORD\t|\tis_admin\t|\tDATETIME_created")
-        return f"'{self.username}' \t|\t '{self.password}' \t|\t '{self.is_admin}' \t|\t '{self.data_created}')"
+        return f"{self.id}' {self.username}' \t|\t '{self.password}' \t|\t '{self.is_admin}' \t|\t '{self.data_created}')\n\r"
 
     def can_delete(self, article: Article) -> bool:
         return article.id in self.article_ids

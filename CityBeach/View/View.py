@@ -1,3 +1,5 @@
+import sys
+
 import PyQt6.QtCore
 from PyQt6.QtCore import Qt,QRect
 from PyQt6.QtWidgets import *
@@ -10,10 +12,8 @@ from Model.Data import AppData
 from PyQt6.QtGui import QFontDatabase, QPixmap, QIcon,QGuiApplication
 from . import DateTimeLabel as dt
 
-
 from .Dialogs import *
 from .styles import *
-
 
 class MainWindow(QWidget):
     def __init__(self):
@@ -24,15 +24,15 @@ class MainWindow(QWidget):
         self.controller = AppController(self.model)
         if (self.model.users.__len__() == 0):
             #"admin": "admin" is the first user to be created
-            self.controller.register("admin","admin",is_admin = True)
-
+            self.controller.register("admin","admin","admin",PyQt6.QtCore.QDate(1,1,1).toString("dd/MM/yyyy"),is_admin = True,gender ="M",password="admin")
         #DEBUG -------------------------------------------------------
-        print(self.model.users)
-        print("\nCurrent user: " + str(self.model.current_user))
-        print("\n Articoli Salvati: \n" + str(self.model.articles))
+        #print("USERNAME\t|\tPASSWORD\t|\tis_admin\t|\tDATETIME_created")
+        #print(self.model.users)
+        #print("\nCurrent user: " + str(self.model.current_user))
+        #print("\n Articoli Salvati: \n" + str(self.model.articles))
         #to get Screen's size
-        self.max_width, self.max_height = self.getMaxSize();
-        print("Screen MAX Size: ",self.max_width,self.max_height)
+        #self.max_width, self.max_height = self.getMaxSize();
+        #print("Screen MAX Size: ",self.max_width,self.max_height)
         #-------------------------------------------------------
         self.init_login_ui()
 
@@ -82,12 +82,18 @@ class MainWindow(QWidget):
         login_btn.clicked.connect(self.login)
         login_btn.setFixedHeight(32)
 
+        close_btn = QPushButton("Chiudi")
+        close_btn.setStyleSheet(style_QButton_white)
+        close_btn.clicked.connect(self.closeEvent)
+        close_btn.setFixedHeight(32)
+
         layoutV2.addWidget(self.user_input)
         layoutV2.addWidget(self.pass_input)
         layoutV2.addSpacing(35)
         layoutV2.addWidget(login_btn)
+        layoutV2.addWidget(close_btn)
         layoutV2.setContentsMargins(0, 10, 0, 10)
-        layoutV2.setSpacing(10)  # questo evita che siano attaccati tra loro
+        layoutV2.setSpacing(10)
         layoutV2.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
         layoutHor.addSpacing(30)
         layoutHor.addLayout(layoutV2)
@@ -109,6 +115,7 @@ class MainWindow(QWidget):
         self.setStyleSheet("background-color: #FFF0E6;")
         self.setMinimumSize(1280, 720)
         self.setMaximumSize(10000,10000)
+        self.selected_user = None
         #self.showMaximized()
 
         self.setWindowTitle("CityBeach Ancona | Menù")
@@ -192,10 +199,15 @@ class MainWindow(QWidget):
         core_layout.addLayout(vv4,1,0)
 
         #Dipendenti
+        def view_dipendenti():
+            if self.controller.get_current_user().is_admin:
+                self.init_dipendenti_ui()
+            else:
+                QMessageBox.warning(self, "Permesso negato", "Non sei amministratore")
         btn_dip = QPushButton()
         btn_dip.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         btn_dip.setStyleSheet(style_img1_bg)
-        btn_dip.clicked.connect(self.view_dipendenti)
+        btn_dip.clicked.connect(view_dipendenti)
         label_dip = QLabel("Dipendenti")
         label_dip.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         label_dip.setStyleSheet(style_text_gotham_b)
@@ -254,9 +266,16 @@ class MainWindow(QWidget):
 
         bottom_bar.addStretch()
         bottom_bar.addWidget(center_text)
-        bottom_bar.addStretch()
+        #bottom_bar.addStretch()
+        def show_edit_user_ui():
+            dlg = edit_user_ui(self)
+            if dlg.exec():
+                self.init_main_ui()
+        profile_btn = QPushButton("Visualizza Profilo")
+        profile_btn.setStyleSheet(style_QButton_white)
+        profile_btn.clicked.connect(show_edit_user_ui)
+        bottom_bar.addWidget(profile_btn)
 
-        # Pulsante a destra
         log_btn = QPushButton("Logout")
         log_btn.setStyleSheet(style_QButton_red)
         log_btn.clicked.connect(self.logout)
@@ -269,6 +288,7 @@ class MainWindow(QWidget):
         self.setStyleSheet("background-color: #FFF0E6;")
         self.setMinimumSize(1280, 720)
         self.setMaximumSize(10000, 10000)
+        self.selected_user = None
         # self.showMaximized()
 
         self.setWindowTitle("CityBeach Ancona | Dipendenti")
@@ -288,17 +308,17 @@ class MainWindow(QWidget):
         contextText.setStyleSheet("""font-family: Gotham; color: #000000;font-size: 20pt;""")
         vLayout.addWidget(contextText)
 
-        self.tree = QTreeWidget()
-        self.tree.setHeaderLabels(["Nome", "Cognome", "Amministratore","Username","Data di Nascita","Sesso","Creato il","Creato da"])
-
+        tree = QTreeWidget()
+        tree.setHeaderLabels(["Nome", "Cognome", "id","Amministratore","Username","Data di Nascita","Sesso","Creato il","Creato da"])
         for user in self.controller.get_all_users():
             item = QTreeWidgetItem([
                 str(user.name),
                 str(user.surname),
+                str(user.id),
                 str(user.is_admin),
                 str(user.username),
                 str(user.birthday),
-                str(user.sesso),
+                str(user.gender),
                 str(user.data_created),
                 str(user.added_by)
             ])
@@ -309,22 +329,53 @@ class MainWindow(QWidget):
                 item.setForeground(2,QBrush(QColor("#ffffff")))
                 item.setBackground(3,QBrush(QColor("#E30613")))
                 item.setForeground(3,QBrush(QColor("#ffffff")))
-            self.tree.addTopLevelItem(item)
-
+            tree.addTopLevelItem(item)
         for i in range(50):
             item = QTreeWidgetItem([str(i),str(i),str(i),str(i),str(i),str(i)])
-            self.tree.addTopLevelItem(item)
+            tree.addTopLevelItem(item)
+        vLayout.addWidget(tree)
+        tree.setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
-        vLayout.addWidget(self.tree)
-        #vLayout.addSpacing(1)
+        def del_dipendente():
+            if self.selected_user == None:
+                return False
+            status, err_id = self.controller.delete_user(self.selected_user.text(4))
+            if status:
+                self.model = AppData.load_from_file("data.pkl")
+                QMessageBox.information(self, "Rimosso", "Utente eliminato.")
+                self.init_dipendenti_ui()
+            else:
+                if err_id==1:
+                    QMessageBox.warning(self, "Errore", "Non puoi eliminare il tuo account.")
+                elif err_id==2:
+                    QMessageBox.critical(self, "Errore", "Errore")
+                elif err_id == 3:
+                    QMessageBox.warning(self, "Errore", "Si è verificato un problema durante l'operazione.")
 
+        def tree_on_item_selected():
+            selected_user = tree.selectedItems()
+            if selected_user and selected_user.__len__() == 1:
+                self.selected_user = selected_user[0]  # it is an QTree Object
+
+        tree.itemSelectionChanged.connect(tree_on_item_selected)
+
+        hLayoutBtn = QHBoxLayout()
+        hLayoutBtn.addStretch(1)
         # add Dipendente btn
         dip_btn = QPushButton("Crea Dipendente")
         dip_btn.setStyleSheet(style_QButton_white_18Gotham)
         dip_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
-        dip_btn.clicked.connect(self.open_add_dipendente_ui)
+        dip_btn.clicked.connect(self.show_add_dipendente_ui)
+        hLayoutBtn.addWidget(dip_btn,alignment=Qt.AlignmentFlag.AlignHCenter)
 
-        vLayout.addWidget(dip_btn,alignment=Qt.AlignmentFlag.AlignHCenter)
+        #delete Dipendente btn
+        del_dip_btn = QPushButton("Elimina Dipendente")
+        del_dip_btn.setStyleSheet(style_QButton_white_18Gotham)
+        del_dip_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
+        del_dip_btn.clicked.connect(del_dipendente)
+        hLayoutBtn.addWidget(del_dip_btn,alignment=Qt.AlignmentFlag.AlignHCenter)
+
+        vLayout.addLayout(hLayoutBtn)
         vLayout.setSpacing(15)
         main_layout.addLayout(vLayout)
 
@@ -386,23 +437,18 @@ class MainWindow(QWidget):
 
 
 
+
+
+
+
     def login(self):
         if self.controller.login(self.user_input.text(), self.pass_input.text()):
             self.init_main_ui()
         else:
             QMessageBox.warning(self, "Errore", "Credenziali non valide")
 
-    def view_dipendenti(self):
-        if self.controller.get_current_user().is_admin:
-            self.init_dipendenti_ui()
-        else:
-            QMessageBox.warning(self, "Permesso negato", "Non sei amminisratore")
-
-    def register(self):
-        if self.controller.register(self.user_input.text(), self.pass_input.text()):
-            QMessageBox.information(self, "Registrazione", "Registrazione completata. Ora effettua il login.")
-        else:
-            QMessageBox.warning(self, "Errore", "Username già esistente")
+    def register_user(self, name, surname, username, birthday, is_admin, gender):
+        return self.controller.register(name,surname,username,birthday,is_admin,gender)
 
     def logout(self):
         self.controller.logout()
@@ -467,9 +513,7 @@ class MainWindow(QWidget):
 
             if not username_modified or not password_modified:
                 QMessageBox.warning(self, "Errore", "Errore nella modifica")
-
             status = self.controller.modifica_user(username_modified, password_modified)
-
             if status:
                 QMessageBox.information(self, "Ok", "Dati modificati con successo")
             else:
@@ -490,15 +534,20 @@ class MainWindow(QWidget):
         if self.layout():
             QWidget().setLayout(self.layout())
 
+
+
     def closeEvent(self, event):
-        reply = QMessageBox.question(
-            self,"Conferma uscita","Sei sicuro di voler uscire?",QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No  #highlighted
-        )
-        if reply == QMessageBox.StandardButton.Yes:
-            self.controller.logout()
-            event.accept()  # close the program
-        else:
-            event.ignore()  # cancel the request
+        try:
+            reply = QMessageBox.question(
+                self,"Conferma uscita","Sei sicuro di voler uscire?",QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No  #highlighted
+            )
+            if reply == QMessageBox.StandardButton.Yes:
+                self.controller.logout()
+                event.accept()  # close the program
+            else:
+                event.ignore()  # cancel the request
+        finally:
+            sys.exit()
 
     def center_window(self):
         screen = QGuiApplication.primaryScreen()
@@ -531,13 +580,17 @@ class MainWindow(QWidget):
         top_bar.addWidget(current_time)
         return top_bar
 
-    def open_add_dipendente_ui(self):
+
+    def show_add_dipendente_ui(self):
         dlg = add_Dipendete_ui(self)
+        #dlg.salva_btn.clicked.connect(self.register_dipendente(dlg.nome.text(),dlg.cognome.text(),
+        #                                                       dlg.username.text(),dlg.data_nascita.date(),
+        #                                                       dlg.flagAmministratore.isChecked(),dlg.sesso.currentText()))
         if dlg.exec():
-            print("AGGIUNTO!!!!")
-            print(dlg.data)
-        else:
-            print("ANNULLATO")
+            #print("AGGIUNTO!!!!")
+            #print(dlg.data)
+            self.init_dipendenti_ui()
+
 
 
 

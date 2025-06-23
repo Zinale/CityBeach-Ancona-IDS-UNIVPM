@@ -34,6 +34,7 @@ style_QButton_red = """
         background-color: #B20510;
     }
 """
+
 style_QButton_white = """
     QPushButton {
         background-color: #FFFFFF;
