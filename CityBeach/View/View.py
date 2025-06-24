@@ -25,9 +25,10 @@ class MainWindow(QWidget):
         super().__init__()
 
         SRC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-        FONTS_DIR = os.path.join(SRC_DIR, "fonts")
+        FONTS_DIR = os.path.join(SRC_DIR, "src","fonts")
         font_path = os.path.join(FONTS_DIR, "GothamBook.ttf")
         print(font_path)
+        print("Esiste il file?", os.path.exists(font_path))
         font_id = QFontDatabase.addApplicationFont(font_path)
         if font_id == -1:
             raise Exception("Errore nel caricamento del font Gotham")
@@ -105,7 +106,6 @@ class MainWindow(QWidget):
         log_btn.clicked.connect(self.logout)
 
         self.setLayout(main_layout)
-
 
     def init_dipendenti_ui(self):
         self.clear_layout()
