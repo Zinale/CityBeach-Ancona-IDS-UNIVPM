@@ -5,6 +5,8 @@ from PyQt6.QtCore import Qt,QRect
 from PyQt6.QtWidgets import *
 from PyQt6.QtGui import QFont, QBrush, QColor
 from PyQt6.uic.Compiler.qtproxies import QtCore
+from PyQt6.QtGui import QFontDatabase
+
 
 from datetime import date
 from Controller.Controller import AppController
@@ -17,11 +19,21 @@ from .Login_ui import login_ui_layout
 from .Main_ui import main_ui_layout
 from .styles import *
 from .topBar import *
-
-
+import os
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
+
+        SRC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        FONTS_DIR = os.path.join(SRC_DIR, "fonts")
+        font_path = os.path.join(FONTS_DIR, "GothamBook.ttf")
+        print(font_path)
+        font_id = QFontDatabase.addApplicationFont(font_path)
+        if font_id == -1:
+            raise Exception("Errore nel caricamento del font Gotham")
+        fontfamilyGotham = QFontDatabase.applicationFontFamilies(font_id)[0]
+        print(f"Font caricato: {fontfamilyGotham}")  # debug utile
+        self.fontGotham = fontfamilyGotham
         self.setWindowIcon(QIcon("src/img/logo.png"))
         self.setWindowFlag(Qt.WindowType.Window)
         self.model = AppData.load_from_file("data.pkl")
@@ -177,14 +189,14 @@ class MainWindow(QWidget):
         hLayoutBtn.addStretch(1)
         # add Dipendente btn
         dip_btn = QPushButton("Crea Dipendente")
-        dip_btn.setStyleSheet(style_QButton_white_18Gotham())
+        dip_btn.setStyleSheet(style_QButton_white_18Gotham(font=self.fontGotham))
         dip_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
         dip_btn.clicked.connect(self.show_add_dipendente_ui)
         hLayoutBtn.addWidget(dip_btn,alignment=Qt.AlignmentFlag.AlignHCenter)
 
         #delete Dipendente btn
         del_dip_btn = QPushButton("Elimina Dipendente")
-        del_dip_btn.setStyleSheet(style_QButton_white_18Gotham())
+        del_dip_btn.setStyleSheet(style_QButton_white_18Gotham(font=self.fontGotham))
         del_dip_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
         del_dip_btn.clicked.connect(del_dipendente)
         hLayoutBtn.addWidget(del_dip_btn,alignment=Qt.AlignmentFlag.AlignHCenter)
