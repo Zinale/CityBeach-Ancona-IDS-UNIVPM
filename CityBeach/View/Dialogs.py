@@ -99,8 +99,6 @@ class add_Dipendete_ui(QDialog):
                     QMessageBox.warning(self, "Errore", "Impossibile inserire una data pari o successiva alla corrente")
         else:
             QMessageBox.critical(self, "Errore", "Controller non valido.")
-
-
 class edit_user_ui(QDialog):
 
     def __init__(self,parent=None):
