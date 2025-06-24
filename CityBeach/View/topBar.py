@@ -10,14 +10,14 @@ def topBar() -> QHBoxLayout():
     top_bar = QHBoxLayout()
     top_bar.setContentsMargins(0, 0, 0, 0)
 
-    textCity = QLabel("CityBeach | Ancona")
-    textCity.setStyleSheet(style_text_gotham_b)
-    textCity.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+    text_city = QLabel("CityBeach | Ancona")
+    text_city.setStyleSheet(style_text_gotham_b)
+    text_city.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
     current_time = dt()
     current_time.label.setStyleSheet(style_text_gotham_b)
     current_time.label.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
 
-    top_bar.addWidget(textCity)
+    top_bar.addWidget(text_city)
     top_bar.addStretch()
     top_bar.addWidget(current_time)
     return top_bar

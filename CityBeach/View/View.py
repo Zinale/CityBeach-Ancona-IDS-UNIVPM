@@ -1,41 +1,33 @@
-import sys
-
 import PyQt6.QtCore
-from PyQt6.QtCore import Qt,QRect
-from PyQt6.QtWidgets import *
 from PyQt6.QtGui import QFont, QBrush, QColor
-from PyQt6.uic.Compiler.qtproxies import QtCore
-from PyQt6.QtGui import QFontDatabase
 
-
-from datetime import date
 from Controller.Controller import AppController
 from Model.Data import AppData
 from PyQt6.QtGui import QFontDatabase, QPixmap, QIcon,QGuiApplication
-from . import DateTimeLabel as dt
 
+from paths import image_path
 from .Dialogs import *
+from .Dipendenti_ui import view_dipendenti_ui_layout
 from .Login_ui import login_ui_layout
 from .Main_ui import main_ui_layout
 from .styles import *
 from .topBar import *
 import os
+
+
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
 
-        SRC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-        FONTS_DIR = os.path.join(SRC_DIR, "src","fonts")
-        font_path = os.path.join(FONTS_DIR, "GothamBook.ttf")
-        print(font_path)
-        print("Esiste il file?", os.path.exists(font_path))
+        font_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..","src","fonts","GothamBook.ttf"))
+        #print("Esiste il file:", os.path.exists(font_path))
         font_id = QFontDatabase.addApplicationFont(font_path)
         if font_id == -1:
             raise Exception("Errore nel caricamento del font Gotham")
-        fontfamilyGotham = QFontDatabase.applicationFontFamilies(font_id)[0]
-        print(f"Font caricato: {fontfamilyGotham}")  # debug utile
-        self.fontGotham = fontfamilyGotham
-        self.setWindowIcon(QIcon("src/img/logo.png"))
+        #fontfamilyGotham = QFontDatabase.applicationFontFamilies(font_id)[0]
+        #print(f"Font caricato: {fontfamilyGotham}")  # debug utile
+
+        self.setWindowIcon(QIcon(image_path("logo.png")))
         self.setWindowFlag(Qt.WindowType.Window)
         self.model = AppData.load_from_file("data.pkl")
         self.controller = AppController(self.model)
@@ -82,7 +74,6 @@ class MainWindow(QWidget):
         #Dipendenti
         def view_dipendenti():
             if self.controller.get_current_user().is_admin:
-                print("HELLO")
                 self.init_dipendenti_ui()
             else:
                 QMessageBox.warning(self, "Permesso negato", "Non sei amministratore")
@@ -91,7 +82,6 @@ class MainWindow(QWidget):
             dlg = edit_user_ui(self)
             if dlg.exec():
                 self.init_main_ui()
-
         main_layout, btn_campi, btn_pren,btn_gioc,btn_attspo,btn_dip,btn_rist,center_text,profile_btn,log_btn = main_ui_layout()
         if not self.controller.get_current_user().is_admin:
            center_text.setStyleSheet(style_text_red_on_white)
@@ -113,54 +103,10 @@ class MainWindow(QWidget):
         self.setMinimumSize(1280, 720)
         self.setMaximumSize(10000, 10000)
         self.selected_user = None
-        # self.showMaximized()
-
         self.setWindowTitle("CityBeach Ancona | Dipendenti")
         self.center_window()
 
-        # Layout verticale principale
-        main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(10, 10, 10, 10)
-        main_layout.setSpacing(10)
-        vLayout = QVBoxLayout()
-
-        # --- TOP BAR ------------------------------------------------------------------------------------
-        main_layout.addLayout(topBar())
-
-        print("ciao")
-        # --- Text + QTreeWidget + Add / ------------------------------------------------------------------------------------
-        contextText = QLabel("Lista Dipendenti:")
-        contextText.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        contextText.setStyleSheet("""font-family: Gotham; color: #000000;font-size: 20pt;""")
-        vLayout.addWidget(contextText)
-
-        tree = QTreeWidget()
-        tree.setHeaderLabels(["Nome", "Cognome", "id","Amministratore","Username","Data di Nascita","Sesso","Creato il","Creato da"])
-        for user in self.controller.get_all_users():
-            item = QTreeWidgetItem([
-                str(user.name),
-                str(user.surname),
-                str(user.id),
-                str(user.is_admin),
-                str(user.username),
-                str(user.birthday),
-                str(user.gender),
-                str(user.data_created),
-                str(user.added_by)
-            ])
-            if user.is_admin:
-                item.setBackground(0,QBrush(QColor("#E30613")))
-                item.setBackground(2,QBrush(QColor("#E30613")))
-                item.setForeground(0,QBrush(QColor("#ffffff")))
-                item.setForeground(2,QBrush(QColor("#ffffff")))
-                item.setBackground(3,QBrush(QColor("#E30613")))
-                item.setForeground(3,QBrush(QColor("#ffffff")))
-            tree.addTopLevelItem(item)
-        for i in range(50):
-            item = QTreeWidgetItem([str(i),str(i),str(i),str(i),str(i),str(i)])
-            tree.addTopLevelItem(item)
-        vLayout.addWidget(tree)
-        tree.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        main_layout, center_text, tree, dip_btn, del_dip_btn,back_btn = view_dipendenti_ui_layout(self.controller.get_all_users())
 
         def del_dipendente():
             if self.selected_user == None:
@@ -185,62 +131,16 @@ class MainWindow(QWidget):
 
         tree.itemSelectionChanged.connect(tree_on_item_selected)
 
-        hLayoutBtn = QHBoxLayout()
-        hLayoutBtn.addStretch(1)
-        # add Dipendente btn
-        dip_btn = QPushButton("Crea Dipendente")
-        dip_btn.setStyleSheet(style_QButton_white_18Gotham(font=self.fontGotham))
-        dip_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
         dip_btn.clicked.connect(self.show_add_dipendente_ui)
-        hLayoutBtn.addWidget(dip_btn,alignment=Qt.AlignmentFlag.AlignHCenter)
 
-        #delete Dipendente btn
-        del_dip_btn = QPushButton("Elimina Dipendente")
-        del_dip_btn.setStyleSheet(style_QButton_white_18Gotham(font=self.fontGotham))
-        del_dip_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
         del_dip_btn.clicked.connect(del_dipendente)
-        hLayoutBtn.addWidget(del_dip_btn,alignment=Qt.AlignmentFlag.AlignHCenter)
-
-        vLayout.addLayout(hLayoutBtn)
-        vLayout.setSpacing(15)
-        main_layout.addLayout(vLayout)
-
-        # --- BOTTOM BAR ------------------------------------------------------------------------------------
-        bottom_bar = QHBoxLayout()
-        bottom_bar.setContentsMargins(0, 0, 0, 0)
-
-        logo_label = QLabel()
-        try:
-            pixmap = QPixmap("src/img/logo.png")
-            if not pixmap.isNull():
-                logo_label.setPixmap(
-                    pixmap.scaledToHeight(60, Qt.TransformationMode.SmoothTransformation)
-                )
-        except Exception as e:
-            print(f"Errore caricamento immagine: {e}")
-
-        bottom_bar.addWidget(logo_label)
-        bottom_bar.addSpacing(10)
-
-        # mid text
-        center_text = QLabel(f"{self.controller.get_current_user().username}")
-        center_text.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        center_text.setText(f"{self.controller.get_current_user().username}")
         if not self.controller.get_current_user().is_admin:
             center_text.setStyleSheet(style_text_red_on_white)
         else:
             center_text.setStyleSheet(style_text_white_on_red)
 
-        bottom_bar.addStretch()
-        bottom_bar.addWidget(center_text)
-        bottom_bar.addStretch()
-
-        # right btn
-        back_btn = QPushButton("Indietro")
-        back_btn.setStyleSheet(style_QButton_red)
         back_btn.clicked.connect(self.init_main_ui)
-        bottom_bar.addWidget(back_btn)
-
-        main_layout.addLayout(bottom_bar)
         self.setLayout(main_layout)
 
     def register_user(self, name, surname, username, birthday, is_admin, gender):
@@ -261,17 +161,17 @@ class MainWindow(QWidget):
             QWidget().setLayout(self.layout())
 
     def closeEvent(self, event):
-        try:
-            reply = QMessageBox.question(
-                self,"Conferma uscita","Sei sicuro di voler uscire?",QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No  #highlighted
-            )
-            if reply == QMessageBox.StandardButton.Yes:
-                self.controller.logout()
-                event.accept()  # close the program
-            else:
-                event.ignore()  # cancel the request
-        finally:
+        reply = QMessageBox.question(
+            self, "Conferma uscita", "Sei sicuro di voler uscire?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No
+        )
+
+        if reply == QMessageBox.StandardButton.Yes:
+            self.controller.logout()
             sys.exit()
+        else:
+            event.ignore()
 
     def center_window(self):
         screen = QGuiApplication.primaryScreen()

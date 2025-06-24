@@ -1,5 +1,8 @@
-def style_input_bar_white()->str:
-    return """
+from PyQt6.QtCore import QUrl
+
+from paths import image_path
+
+style_input_bar_white = """
     QLineEdit {
         background-color: #FFFFFF;
         color: #444444;
@@ -48,20 +51,19 @@ style_QButton_white = """
         background-color: #EEEEEE;
     }
 """
-def style_QButton_white_18Gotham(font:str)->str:
-    return f"""
-    QPushButton {{
-        font-family: "{font}"; font-size: 18pt;
+style_QButton_white_18Gotham ="""
+    QPushButton {
+        font-family: Gotham; font-size: 18pt;
         background-color: #FFFFFF;
         color: #444444;
         border: 1px solid #E30613;
         border-radius: 14px;
         padding: 6px 20px;
-    }}
-    QPushButton:hover {{
+    }
+    QPushButton:hover {
         background-color: #EEEEEE;
         border: 2px solid #E30613;
-    }}
+    }
 """
 style_blackText = """
     QLabel, QFrame {
@@ -72,7 +74,7 @@ style_blackText = """
 style_text_gotham_b = """
         font-family: Gotham; color: #444444;font-size: 16pt;"""
 
-style_text_red_on_white = """
+style_text_red_on_white="""
         font-family: Gotham; color: #E30613;background-color:#ffffff; font-size: 16pt; border: 2px solid #E30613;
         padding: 6px 20px;
         border-radius: 14px;"""
@@ -83,21 +85,23 @@ style_text_white_on_red = """
         border-radius: 14px;"""
 
 # da fare per ogni button
-style_img1_bg = """
-    QPushButton {
+#img_babyTux_url = QUrl.fromLocalFile(image_path("Baby.tux.sit-800x800.png")).toString()
+#print(img_babyTux_url)
+def style_img1_bg(img:str):
+    return f"""
+    QPushButton {{
         border: 1px solid #000000;
         border-radius: 14px;
-        background-image: url(src/img/Baby.tux.sit-800x800.png);
+        background-image: url("src/img/{img}");
         background-repeat: no-repeat;
         background-position: center;
         background-size: contain;
-    }
-    QPushButton:hover {
+    }}
+    QPushButton:hover {{
         background-color: rgba(0, 0, 0, 30);
         border: 2px solid #3777FF;
-    }
+    }}
 """
-
 style_app_Dialogs = """
  
     QWidget {

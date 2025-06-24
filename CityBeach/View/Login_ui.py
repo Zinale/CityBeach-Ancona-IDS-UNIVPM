@@ -1,12 +1,15 @@
-from PyQt6.QtGui import QPixmap
-from PyQt6.QtWidgets import QVBoxLayout, QApplication, QPushButton, QHBoxLayout, QLabel, QLineEdit
-import sys
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap, QIcon
 from PyQt6.QtWidgets import QVBoxLayout, QApplication, QPushButton, QHBoxLayout, QLabel, QLineEdit, QSizePolicy, \
     QMessageBox, QGridLayout
+from PyQt6.QtGui import QPixmap, QIcon
+from PyQt6.QtWidgets import QVBoxLayout, QPushButton, QHBoxLayout, QLabel, QLineEdit, QSizePolicy, \
+    QMessageBox
 
-
+from View.styles import style_img1_bg, style_text_gotham_b, style_QButton_white, style_QButton_red, \
+    style_text_red_on_white, style_text_white_on_red, style_QButton_white_18Gotham
+from View.topBar import topBar
+from paths import image_path
 
 def login_ui_layout() -> QVBoxLayout() and QLineEdit() and QLineEdit() and QPushButton() and QPushButton():
     layoutMAIN = QVBoxLayout()
@@ -20,7 +23,7 @@ def login_ui_layout() -> QVBoxLayout() and QLineEdit() and QLineEdit() and QPush
 
     # image | LOGO
     imageLogo = QLabel()
-    pixmap = QPixmap("src/img/logo.png")
+    pixmap = QPixmap(image_path("logo.png"))
     resized_pixmap = pixmap.scaled(180, 180)  # larghezza, altezza
     imageLogo.setPixmap(resized_pixmap)
     imageLogo.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
@@ -36,8 +39,8 @@ def login_ui_layout() -> QVBoxLayout() and QLineEdit() and QLineEdit() and QPush
     pass_input.setPlaceholderText("Password")
     pass_input.setEchoMode(QLineEdit.EchoMode.Password)
 
-    user_input.setStyleSheet(style_input_bar_white())
-    pass_input.setStyleSheet(style_input_bar_white())
+    user_input.setStyleSheet(style_input_bar_white)
+    pass_input.setStyleSheet(style_input_bar_white)
 
     user_input.setFixedHeight(32)
     pass_input.setFixedHeight(32)
@@ -77,7 +80,7 @@ if __name__ == "__main__":
     from styles import *
     from DateTimeLabel import *
     app = QApplication(sys.argv)
-    window = init_login_ui()
+    window = login_ui_layout("Gotham")
     #window.resize(400, 300)
     window.exec()
 else:

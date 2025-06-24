@@ -8,6 +8,17 @@ from View.Dialogs import edit_user_ui
 from View.styles import style_img1_bg, style_text_gotham_b, style_QButton_white, style_QButton_red, \
     style_text_red_on_white, style_text_white_on_red
 from View.topBar import topBar
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QPixmap, QIcon, QBrush, QColor
+from PyQt6.QtWidgets import QVBoxLayout, QApplication, QPushButton, QHBoxLayout, QLabel, QLineEdit, QSizePolicy, \
+    QMessageBox, QGridLayout, QTreeWidget, QTreeWidgetItem
+
+import sys
+from View.Dialogs import edit_user_ui
+from View.styles import style_img1_bg, style_text_gotham_b, style_QButton_white, style_QButton_red, \
+    style_text_red_on_white, style_text_white_on_red, style_QButton_white_18Gotham
+from View.topBar import topBar
+from paths import image_path
 
 
 def main_ui_layout() -> QVBoxLayout() and QPushButton()and QPushButton()and QPushButton()and QPushButton()and QLabel()and QPushButton()and QPushButton():
@@ -15,10 +26,8 @@ def main_ui_layout() -> QVBoxLayout() and QPushButton()and QPushButton()and QPus
     main_layout = QVBoxLayout()
     main_layout.setContentsMargins(10, 10, 10, 10)
     main_layout.setSpacing(10)
-
     # --- TOP BAR ------------------------------------------------------------------------------------
     main_layout.addLayout(topBar())
-
     # --- Core: 2 row x 3 button with text ------------------------------------------------------------------------------------
     core_layout = QGridLayout()
     core_layout.setHorizontalSpacing(40)  # column space
@@ -30,20 +39,21 @@ def main_ui_layout() -> QVBoxLayout() and QPushButton()and QPushButton()and QPus
     vv4 = QVBoxLayout()
     vv5 = QVBoxLayout()
     vv6 = QVBoxLayout()
-
     # imgCampi = QIcon(QPixmap("src/img/Baby.tux.sit-800x800.png"))
-    imgPrenotazioni = QIcon(QPixmap("src/img/logo.png"))
-    imgGiocatori = QIcon(QPixmap("src/img/1-1.jpg"))
-    imgAttSpo = QIcon(QPixmap("src/img/1-1.png"))
-    imgDipend = QIcon(QPixmap("src/img/fullhd.jpg"))
-    imgRisto = QIcon(QPixmap("src/img/fullhd.jpg"))
-
+    try:
+        imgPrenotazioni = QIcon(QPixmap(image_path("1-1.jpg")))
+        imgGiocatori = QIcon(QPixmap(image_path("1-1.jpg")))
+        imgAttSpo = QIcon(QPixmap(image_path("1-1.jpg")))
+        imgDipend = QIcon(QPixmap(image_path("1-1.jpg")))
+        imgRisto = QIcon(QPixmap(image_path("1-1.jpg")))
+    except:
+        pass
     # CAMPI DA GIOCO
     btn_campi = QPushButton()
     btn_campi.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
     # btn_campi.setIcon(imgCampi)
     # btn_campi.setIconSize(btn_campi.size())
-    btn_campi.setStyleSheet(style_img1_bg)
+    btn_campi.setStyleSheet(style_img1_bg("Baby.tux.sit-800x800.png"))
     label_campi = QLabel("Campi da Gioco")
     label_campi.setStyleSheet(style_text_gotham_b)
     label_campi.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
@@ -51,11 +61,10 @@ def main_ui_layout() -> QVBoxLayout() and QPushButton()and QPushButton()and QPus
     vv1.addWidget(label_campi)
     vv1.setSpacing(6)
     core_layout.addLayout(vv1, 0, 0)
-
     # PRENOTAZIONE
     btn_pren = QPushButton()
     btn_pren.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-    btn_pren.setStyleSheet(style_img1_bg)
+    btn_pren.setStyleSheet(style_img1_bg("Baby.tux.sit-800x800.png"))
     label_pren = QLabel("Prenotazioni")
     label_pren.setAlignment(Qt.AlignmentFlag.AlignHCenter)
     label_pren.setStyleSheet(style_text_gotham_b)
@@ -63,11 +72,10 @@ def main_ui_layout() -> QVBoxLayout() and QPushButton()and QPushButton()and QPus
     vv2.addWidget(label_pren)
     vv2.setSpacing(6)
     core_layout.addLayout(vv2, 0, 1)
-
     # Profili Giocatori
     btn_gioc = QPushButton()
     btn_gioc.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-    btn_gioc.setStyleSheet(style_img1_bg)
+    btn_gioc.setStyleSheet(style_img1_bg("Baby.tux.sit-800x800.png"))
     label_gioc = QLabel("Profili Giocatori")
     label_gioc.setAlignment(Qt.AlignmentFlag.AlignHCenter)
     label_gioc.setStyleSheet(style_text_gotham_b)
@@ -79,7 +87,7 @@ def main_ui_layout() -> QVBoxLayout() and QPushButton()and QPushButton()and QPus
     # Att. Sportiva
     btn_attspo = QPushButton()
     btn_attspo.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-    btn_attspo.setStyleSheet(style_img1_bg)
+    btn_attspo.setStyleSheet(style_img1_bg("Baby.tux.sit-800x800.png"))
     label_attspo = QLabel("Attrezzatura Sportiva")
     label_attspo.setAlignment(Qt.AlignmentFlag.AlignHCenter)
     label_attspo.setStyleSheet(style_text_gotham_b)
@@ -90,7 +98,7 @@ def main_ui_layout() -> QVBoxLayout() and QPushButton()and QPushButton()and QPus
 
     btn_dip = QPushButton()
     btn_dip.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-    btn_dip.setStyleSheet(style_img1_bg)
+    btn_dip.setStyleSheet(style_img1_bg("Baby.tux.sit-800x800.png"))
     #btn_dip.clicked.connect(view_dipendenti)
     label_dip = QLabel("Dipendenti")
     label_dip.setAlignment(Qt.AlignmentFlag.AlignHCenter)
@@ -103,7 +111,7 @@ def main_ui_layout() -> QVBoxLayout() and QPushButton()and QPushButton()and QPus
     # Area Ristoro
     btn_rist = QPushButton()
     btn_rist.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-    btn_rist.setStyleSheet(style_img1_bg)
+    btn_rist.setStyleSheet(style_img1_bg("Baby.tux.sit-800x800.png"))
     label_rist = QLabel("Area ristoro")
     label_rist.setAlignment(Qt.AlignmentFlag.AlignHCenter)
     label_rist.setStyleSheet(style_text_gotham_b)
@@ -128,7 +136,7 @@ def main_ui_layout() -> QVBoxLayout() and QPushButton()and QPushButton()and QPus
     # DA FARE PER TUTTE LE IMMAGINI
     logo_label = QLabel()
     try:
-        pixmap = QPixmap("src/img/logo.png")
+        pixmap = QPixmap(image_path("logo.png"))
         if not pixmap.isNull():
             logo_label.setPixmap(
                 pixmap.scaledToHeight(60, Qt.TransformationMode.SmoothTransformation)
