@@ -36,8 +36,8 @@ def login_ui_layout() -> QVBoxLayout() and QLineEdit() and QLineEdit() and QPush
     pass_input.setPlaceholderText("Password")
     pass_input.setEchoMode(QLineEdit.EchoMode.Password)
 
-    user_input.setStyleSheet(style_input_bar_white)
-    pass_input.setStyleSheet(style_input_bar_white)
+    user_input.setStyleSheet(style_input_bar_white())
+    pass_input.setStyleSheet(style_input_bar_white())
 
     user_input.setFixedHeight(32)
     pass_input.setFixedHeight(32)

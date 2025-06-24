@@ -1,4 +1,5 @@
-style_input_bar_white = """
+def style_input_bar_white()->str:
+    return """
     QLineEdit {
         background-color: #FFFFFF;
         color: #444444;
@@ -47,19 +48,20 @@ style_QButton_white = """
         background-color: #EEEEEE;
     }
 """
-style_QButton_white_18Gotham = """
-    QPushButton {
-        font-family: Gotham; font-size: 18pt;
+def style_QButton_white_18Gotham(font:str)->str:
+    return f"""
+    QPushButton {{
+        font-family: "{font}"; font-size: 18pt;
         background-color: #FFFFFF;
         color: #444444;
         border: 1px solid #E30613;
         border-radius: 14px;
         padding: 6px 20px;
-    }
-    QPushButton:hover {
+    }}
+    QPushButton:hover {{
         background-color: #EEEEEE;
         border: 2px solid #E30613;
-    }
+    }}
 """
 style_blackText = """
     QLabel, QFrame {

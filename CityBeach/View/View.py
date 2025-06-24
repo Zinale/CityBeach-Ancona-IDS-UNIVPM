@@ -177,14 +177,14 @@ class MainWindow(QWidget):
         hLayoutBtn.addStretch(1)
         # add Dipendente btn
         dip_btn = QPushButton("Crea Dipendente")
-        dip_btn.setStyleSheet(style_QButton_white_18Gotham)
+        dip_btn.setStyleSheet(style_QButton_white_18Gotham())
         dip_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
         dip_btn.clicked.connect(self.show_add_dipendente_ui)
         hLayoutBtn.addWidget(dip_btn,alignment=Qt.AlignmentFlag.AlignHCenter)
 
         #delete Dipendente btn
         del_dip_btn = QPushButton("Elimina Dipendente")
-        del_dip_btn.setStyleSheet(style_QButton_white_18Gotham)
+        del_dip_btn.setStyleSheet(style_QButton_white_18Gotham())
         del_dip_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
         del_dip_btn.clicked.connect(del_dipendente)
         hLayoutBtn.addWidget(del_dip_btn,alignment=Qt.AlignmentFlag.AlignHCenter)
