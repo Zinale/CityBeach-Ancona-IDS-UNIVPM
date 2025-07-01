@@ -1,5 +1,5 @@
 from types import new_class
-from typing import List
+from typing import List, Dict
 
 import PyQt6.QtCore
 from Model.Data import AppData
@@ -7,15 +7,17 @@ from Model.Gender import Gender
 from Model.User import User
 
 class AppUsersController:
-    def __init__(self, model: AppData):
-        self.model = model
+    def __init__(self, users: Dict[int, User],id:int):
+        self.users = users
+        self.id = id
+        self.current_user = None
 
-    def login(self, username: str, password: str) -> bool:
+    def login(self, username: str, password: str):
         for user in self.get_all_users():
             if user.username == username and user.password == password:
-                self.model.current_user = user
-                return True
-        return False
+                self.current_user = user
+                return True, self.current_user
+        return False, None
 
     def register(self,name:str,surname:str,username:str,birthday,is_admin:bool,gender:Gender = Gender.OTHER,password:str = "") -> bool and int:
         try:
@@ -35,21 +37,20 @@ class AppUsersController:
             if PyQt6.QtCore.QDate(int(date[2]),int(date[1]),int(date[0])) >= PyQt6.QtCore.QDate.currentDate():
                 return False, 5
 
-            if self.get_current_user() != None:
-                addedBy = self.get_current_user().username
+            if self.current_user != None:
+                addedBy = self.current_user.username
             else:
-                addedBy = "admin"
-            self.model.users[self.model.users_next_id] = User(self.model.users_next_id,username, is_admin=is_admin,name=name,surname=surname,
+                addedBy = "root"
+            self.id+=1
+            self.users[self.id] = User(self.id,username, is_admin=is_admin,name=name,surname=surname,
                                               datebirth=birthday,gender=gender,added_by=addedBy,password=password)
-            self.model.users_next_id+=1
-            self.model.save_to_file("data.pkl")
             return True, 0
         except:
             return False, -1
 
     def delete_user(self,username:str)->bool and int:
         try:
-            current_user = self.model.current_user
+            current_user = self.current_user
             if not current_user or not current_user.is_admin:
                 return False, 2
             user_to_delete = self.get_user_by_username(username)
@@ -57,8 +58,7 @@ class AppUsersController:
                 return False, 1
             if user_to_delete:
                 id_to_delete = user_to_delete.id
-                del self.model.users[id_to_delete]
-                self.model.save_to_file("data.pkl")
+                del self.users[id_to_delete]
                 return True,0
         except:
             return False, 3
@@ -73,7 +73,7 @@ class AppUsersController:
             if not new_surname.isalnum():
                 return False, 2
             usernames = [p.username for p in self.get_all_users()]
-            if new_username in usernames and new_username!=self.get_current_user().username:
+            if new_username in usernames and new_username!=self.current_user.username:
                 return False, 3
             if not new_username.isalnum():
                 return False, 4
@@ -81,23 +81,21 @@ class AppUsersController:
             if PyQt6.QtCore.QDate(int(date[2]), int(date[1]), int(date[0])) >= PyQt6.QtCore.QDate.currentDate():
                 return False, 5
             #TODO: fare controllo di ogni Prenotazione/OggettoRistoro/AttSpo/Giocatore/Campo
-            current_id = self.model.current_user.id
+            current_id = self.current_user.id
             if current_id == 0:
                 return False, 6 #can't edit "admin" (root) profile
-            self.model.users[current_id].name = new_name
-            self.model.users[current_id].surname = new_surname
-            self.model.users[current_id].username = new_username
-            self.model.users[current_id].password = new_password
-            self.model.users[current_id].birthday = new_birthday
-            self.model.users[current_id].gender = new_gender
-            self.model.save_to_file('data.pkl')
+            self.users[current_id].name = new_name
+            self.users[current_id].surname = new_surname
+            self.users[current_id].username = new_username
+            self.users[current_id].password = new_password
+            self.users[current_id].birthday = new_birthday
+            self.users[current_id].gender = new_gender
             return True, 0
         except Exception:
             return False, 0
 
     def logout(self):
-        self.model.current_user = None
-        self.model.save_to_file("data.pkl")
+        self.current_user = None
 
 #    def add_article(self, title: str) -> bool:
 #        user = self.model.current_user
@@ -121,11 +119,11 @@ class AppUsersController:
    # def get_all_articles(self) -> List[Article]:
    #     return list(self.model.articles.values())
 
-    def get_current_user(self) -> User | None:
-        return self.model.current_user
-    def get_all_users(self) -> List[User] :
-        return list(self.model.users.values())
     def get_id_by_username(self,username:str)->int:
         return next(id for id, user in self.get_all_users() if user.username == username)
     def get_user_by_username(self,username:str)->User | None:
-        return next((user for user in self.get_all_users() if user.username == username),None)
+        return next((user for user in self.users if user.username == username),None)
+    def get_current_user(self):
+        return self.current_user
+    def get_all_users(self) -> List[User] :
+        return list(self.users.values())

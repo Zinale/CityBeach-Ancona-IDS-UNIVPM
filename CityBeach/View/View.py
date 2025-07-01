@@ -1,15 +1,15 @@
 import PyQt6.QtCore
 from PyQt6.QtGui import QFont, QBrush, QColor
+from PyQt6.QtWidgets import QWidget
 
 from Controller.UsersController import AppUsersController
 from Model.Data import AppData
 from PyQt6.QtGui import QFontDatabase, QPixmap, QIcon,QGuiApplication
 
 from paths import image_path
-from .Dialogs import *
-from .Dipendenti_ui import view_dipendenti_ui_layout
-from .Login_ui import login_ui_layout
-from .Main_ui import main_ui_layout
+from .Dipendenti_ui import *
+from .Login_ui import *
+from .Main_ui import *
 from .styles import *
 from .topBar import *
 import os
@@ -26,14 +26,15 @@ class MainWindow(QWidget):
             raise Exception("Errore nel caricamento del font Gotham")
         #fontfamilyGotham = QFontDatabase.applicationFontFamilies(font_id)[0]
         #print(f"Font caricato: {fontfamilyGotham}")  # debug utile
-
         self.setWindowIcon(QIcon(image_path("logo.png")))
         self.setWindowFlag(Qt.WindowType.Window)
         self.model = AppData.load_from_file("data.pkl")
-        self.users_controller = AppUsersController(self.model)
+        self.users_controller = AppUsersController(self.model.users,self.model.users_next_id)
         if (self.model.users.__len__() == 0):
             #"admin": "admin" is the first user to be created
-            self.users_controller.register("admin","admin","admin",PyQt6.QtCore.QDate(1,1,1).toString("dd/MM/yyyy"),is_admin = True,password="admin")
+            success = self.users_controller.register("admin","admin","admin",PyQt6.QtCore.QDate(1,1,1).toString("dd/MM/yyyy"),is_admin = True,password="admin")
+            if success:
+                self.model.save_to_file("data.pkl")
         self.init_login_ui()
 
     def init_login_ui(self):
@@ -46,7 +47,9 @@ class MainWindow(QWidget):
         self.resize(a,b)
 
         def login():
-            if self.users_controller.login(user_input.text(), pass_input.text()):
+            status, current_User = self.users_controller.login(user_input.text(), pass_input.text())
+            if status:
+                self.model.current_user = current_User
                 self.init_main_ui()
             else:
                 QMessageBox.warning(self, "Errore", "Credenziali non valide")
@@ -112,6 +115,7 @@ class MainWindow(QWidget):
                 return False
             status, err_id = self.users_controller.delete_user(self.selected_user.text(4))
             if status:
+                self.model.save_to_file("data.pkl")
                 self.model = AppData.load_from_file("data.pkl")
                 QMessageBox.information(self, "Rimosso", "Utente eliminato.")
                 self.init_dipendenti_ui()
@@ -206,6 +210,7 @@ class MainWindow(QWidget):
 
 
     def logout(self):
+        self.model.save_to_file("data.pkl")
         self.users_controller.logout()
         self.init_login_ui()
 

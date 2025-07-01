@@ -1,25 +1,16 @@
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QPixmap, QIcon
-from PyQt6.QtWidgets import QVBoxLayout, QApplication, QPushButton, QHBoxLayout, QLabel, QLineEdit, QSizePolicy, \
-    QMessageBox, QGridLayout
-
 import sys
-from View.Dialogs import edit_user_ui
-from View.styles import style_img1_bg, style_text_gotham_b, style_QButton_white, style_QButton_red, \
-    style_text_red_on_white, style_text_white_on_red
-from View.topBar import topBar
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QPixmap, QIcon, QBrush, QColor
-from PyQt6.QtWidgets import QVBoxLayout, QApplication, QPushButton, QHBoxLayout, QLabel, QLineEdit, QSizePolicy, \
-    QMessageBox, QGridLayout, QTreeWidget, QTreeWidgetItem
 
-import sys
-from View.Dialogs import edit_user_ui
-from View.styles import style_img1_bg, style_text_gotham_b, style_QButton_white, style_QButton_red, \
-    style_text_red_on_white, style_text_white_on_red, style_QButton_white_18Gotham
-from View.topBar import topBar
-from paths import image_path
+from PyQt6.QtCore import Qt, QDate
+from PyQt6.QtGui import QPixmap, QIcon, QBrush, QColor, QFont
+from PyQt6.QtWidgets import (
+    QApplication, QDialog, QLabel, QLineEdit, QPushButton, QSizePolicy,
+    QVBoxLayout, QHBoxLayout, QMessageBox, QTreeWidget, QTreeWidgetItem,
+    QDateEdit, QComboBox, QCheckBox, QFormLayout, QGridLayout
+)
 
+from View.styles import *
+from View.topBar import topBar
+from Model import Gender
 
 def main_ui_layout() -> QVBoxLayout() and QPushButton()and QPushButton()and QPushButton()and QPushButton()and QLabel()and QPushButton()and QPushButton():
     # Layout verticale principale
@@ -54,7 +45,7 @@ def main_ui_layout() -> QVBoxLayout() and QPushButton()and QPushButton()and QPus
     # btn_campi.setIcon(imgCampi)
     # btn_campi.setIconSize(btn_campi.size())
     btn_campi.setStyleSheet(style_img1_bg("Baby.tux.sit-800x800.png"))
-    label_campi = QLabel("Campi da Gioco")
+    label_campi = QLabel("Campi da Gioco - Spogliatoi")
     label_campi.setStyleSheet(style_text_gotham_b)
     label_campi.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
     vv1.addWidget(btn_campi)
@@ -170,3 +161,106 @@ def main_ui_layout() -> QVBoxLayout() and QPushButton()and QPushButton()and QPus
 
     main_layout.addLayout(bottom_bar)
     return main_layout, btn_campi, btn_pren,btn_gioc,btn_attspo,btn_dip,btn_rist,center_text,profile_btn,log_btn
+
+class edit_user_ui(QDialog):
+    def __init__(self,parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Modifica Utente")
+        self.setFixedSize(300, 300)
+        self.setStyleSheet(style_app_Dialogs)
+        self.setWindowIcon(QIcon("src/img/logo.png"))
+        self.current_user = self.parent().users_controller.get_current_user()
+        self.init_ui()
+
+    def init_ui(self):
+        layout = QFormLayout()
+        nameBar = QLineEdit()
+        nameBar.setText(self.current_user.name)
+        surnameBar = QLineEdit()
+        surnameBar.setText(self.current_user.surname)
+        usernameBar = QLineEdit()
+        usernameBar.setText(self.current_user.username)
+        passwordBar = QLineEdit()
+        passwordBar.setText(self.current_user.password)
+
+        date = self.current_user.birthday.split("/")
+        birth_day_sel = QDateEdit()
+        birth_day_sel.setDisplayFormat("dd/MM/yyyy")
+        birth_day_sel.setCalendarPopup(True)
+        birth_day_sel.setDate(QDate(int(date[2]),int(date[1]),int(date[0])))
+
+        flagAmministratore = QCheckBox("Amministratore")
+        flagAmministratore.setChecked(self.current_user.is_admin)
+        flagAmministratore.setEnabled(False)
+
+        genderCheck = QComboBox()
+        genderCheck.addItems(["Maschio", "Femmina", "Altro"])
+        genderCheck.setCurrentIndex(list(Gender.Gender).index(self.current_user.gender))
+
+        save_btn = QPushButton("Salva")
+        save_btn.setStyleSheet(style_QButton_red)
+
+        back_btn = QPushButton("Indietro")
+        back_btn.setStyleSheet(style_QButton_white)
+        back_btn.clicked.connect(self.close)
+
+        btn_layout = QHBoxLayout()
+        btn_layout.addStretch(1)
+        btn_layout.addWidget(back_btn)
+        btn_layout.addWidget(save_btn)
+
+        # Styling
+        font = QFont()
+        font.setPointSize(12)
+        self.setFont(font)
+
+        layout.addRow("Nome:", nameBar)
+        layout.addRow("Cognome:", surnameBar)
+        layout.addRow("Username:", usernameBar)
+        layout.addRow("Password:",passwordBar)
+        layout.addRow("Data di nascita:", birth_day_sel)
+        layout.addRow("Amministratore:", flagAmministratore)
+        layout.addRow("Sesso:", genderCheck)
+
+        main_layout = QVBoxLayout()
+        main_layout.addLayout(layout)
+        main_layout.addLayout(btn_layout)
+
+        def submit_data():
+            GENDER_MAP = {
+                "Maschio": Gender.Gender.MALE,
+                "Femmina": Gender.Gender.FEMALE
+            }
+            gender = GENDER_MAP.get(genderCheck.currentText(), Gender.Gender.OTHER)
+            if hasattr(self.parent().users_controller,"edit_user"):  # check if "self.register_dipendente" exists in 'MainWindow'"
+                success, err_id = self.parent().users_controller.edit_user(nameBar.text(), surnameBar.text(),
+                                                                 usernameBar.text(),
+                                                                 passwordBar.text(),
+                                                                 birth_day_sel.date().toString("dd/MM/yyyy"),
+                                                                 gender)
+                if success:
+                    self.parent().model.save_to_file("data.pkl")
+                    QMessageBox.information(self, "Successo", "Utente modificato.")
+                    self.accept()
+                else:
+                    # controller said: "no!"
+                    if err_id == 0:
+                        QMessageBox.critical(self, "Errore", "Errore")
+                    elif err_id == 1:
+                        QMessageBox.warning(self, "Errore", "Il Nome non può contenere caratteri speciali")
+                    elif err_id == 2:
+                        QMessageBox.warning(self, "Errore", "Il Cognome non può contenere caratteri speciali")
+                    elif err_id == 3:
+                        QMessageBox.warning(self, "Errore", "Username già in uso")
+                    elif err_id == 2:
+                        QMessageBox.warning(self, "Errore", "Username non può contenere caratteri speciali")
+                    elif err_id == 5:
+                        QMessageBox.warning(self, "Errore",
+                                            "Impossibile inserire una data pari o successiva alla corrente")
+                    elif err_id == 6:
+                        QMessageBox.warning(self, "Errore",
+                                            "Impossibile modificare l'account 'admin'")
+            else:
+                QMessageBox.critical(self, "Errore", "Controller non valido.")
+        save_btn.clicked.connect(submit_data)
+        self.setLayout(main_layout)
