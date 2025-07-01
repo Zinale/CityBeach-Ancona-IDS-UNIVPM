@@ -18,45 +18,44 @@ class add_Dipendete_ui(QDialog):
 
     def init_ui(self):
         layout = QFormLayout()
-        self.nameBar = QLineEdit()
-        self.surnameBar = QLineEdit()
-        self.usernameBar = QLineEdit()
+        nameBar = QLineEdit()
+        surnameBar = QLineEdit()
+        usernameBar = QLineEdit()
 
-        self.birth_day_sel = QDateEdit()
-        self.birth_day_sel.setDisplayFormat("dd/MM/yyyy")
-        self.birth_day_sel.setCalendarPopup(True)
-        self.birth_day_sel.setDate(QDate.currentDate())
+        birth_day_sel = QDateEdit()
+        birth_day_sel.setDisplayFormat("dd/MM/yyyy")
+        birth_day_sel.setCalendarPopup(True)
+        birth_day_sel.setDate(QDate.currentDate())
 
-        self.flagAmministratore = QCheckBox("Amministratore")
-        self.flagAmministratore.setChecked(False)
+        flagAmministratore = QCheckBox("Amministratore")
+        flagAmministratore.setChecked(False)
 
-        self.genderCheck = QComboBox()
-        self.genderCheck.addItems(["Maschio", "Femmina", "Altro"])
+        genderCheck = QComboBox()
+        genderCheck.addItems(["Maschio", "Femmina", "Altro"])
 
-        self.save_btn = QPushButton("Salva")
-        self.save_btn.setStyleSheet(style_QButton_red)
-        self.save_btn.clicked.connect(self.submit_data)
+        save_btn = QPushButton("Salva")
+        save_btn.setStyleSheet(style_QButton_red)
 
-        self.back_btn = QPushButton("Indietro")
-        self.back_btn.setStyleSheet(style_QButton_white)
-        self.back_btn.clicked.connect(self.close)
+        back_btn = QPushButton("Indietro")
+        back_btn.setStyleSheet(style_QButton_white)
+        back_btn.clicked.connect(self.close)
 
         btn_layout = QHBoxLayout()
         btn_layout.addStretch(1)
-        btn_layout.addWidget(self.back_btn)
-        btn_layout.addWidget(self.save_btn)
+        btn_layout.addWidget(back_btn)
+        btn_layout.addWidget(save_btn)
 
         # Styling
         font = QFont()
         font.setPointSize(12)
         self.setFont(font)
 
-        layout.addRow("Nome:", self.nameBar)
-        layout.addRow("Cognome:", self.surnameBar)
-        layout.addRow("Username:", self.usernameBar)
-        layout.addRow("Data di nascita:", self.birth_day_sel)
-        layout.addRow("Amministratore:", self.flagAmministratore)
-        layout.addRow("Sesso:", self.genderCheck)
+        layout.addRow("Nome:", nameBar)
+        layout.addRow("Cognome:", surnameBar)
+        layout.addRow("Username:", usernameBar)
+        layout.addRow("Data di nascita:", birth_day_sel)
+        layout.addRow("Amministratore:", flagAmministratore)
+        layout.addRow("Sesso:", genderCheck)
 
         main_layout = QVBoxLayout()
         main_layout.addLayout(layout)
@@ -64,46 +63,48 @@ class add_Dipendete_ui(QDialog):
 
         self.setLayout(main_layout)
 
-    def submit_data(self):
-        gender = Gender.Gender.OTHER
-        if self.genderCheck.currentText() == "Maschio":
-            gender = Gender.Gender.MALE
-        elif self.genderCheck.currentText() == "Femmina":
-            gender = Gender.Gender.FEMALE
-        data = {
-            "name": self.nameBar.text(),
-            "surname": self.surnameBar.text(),
-            "username": self.usernameBar.text(),
-            "birthday": self.birth_day_sel.date().toString("dd/MM/yyyy"),
-            "is_admin": self.flagAmministratore.isChecked(),
-            "gender": gender
-        }
-        # call his parent
-        if hasattr(self.parent().users_controller, "register"):      #check if "self.register_dipendente" exists in 'MainWindow'"
-            success, err_id = self.parent().users_controller.register(self.nameBar.text(),self.surnameBar.text(),self.usernameBar.text(),
-                                                     self.birth_day_sel.date().toString("dd/MM/yyyy"),self.flagAmministratore.isChecked(),
-                                                     gender)
-            if success:
-                self.data = data
-                QMessageBox.information(self, "Successo", "Dipendente aggiunto.")
-                #print("REGISTRATO: ",self.data)
-                self.accept()
+        def submit_data():
+            GENDER_MAP = {
+                "Maschio": Gender.Gender.MALE,
+                "Femmina": Gender.Gender.FEMALE
+            }
+            gender = GENDER_MAP.get(genderCheck.currentText(), Gender.Gender.OTHER)
+            data = {
+                "name": nameBar.text(),
+                "surname": surnameBar.text(),
+                "username": usernameBar.text(),
+                "birthday": birth_day_sel.date().toString("dd/MM/yyyy"),
+                "is_admin": flagAmministratore.isChecked(),
+                "gender": gender
+            }
+            # call his parent
+            if hasattr(self.parent().users_controller, "register"):      #check if "self.register_dipendente" exists in 'MainWindow'"
+                success, err_id = self.parent().users_controller.register(nameBar.text(),surnameBar.text(),usernameBar.text(),
+                                                         birth_day_sel.date().toString("dd/MM/yyyy"),flagAmministratore.isChecked(),
+                                                         gender)
+                if success:
+                    data = data
+                    QMessageBox.information(self, "Successo", "Dipendente aggiunto.")
+                    #print("REGISTRATO: ",data)
+                    self.accept()
+                else:
+                    # controller said: "no!"
+                    if err_id == 1:
+                        QMessageBox.warning(self, "Errore", "Il Nome non può contenere caratteri speciali")
+                    elif err_id == 2:
+                        QMessageBox.warning(self, "Errore", "Il Cognome non può contenere caratteri speciali")
+                    elif err_id == 3:
+                        QMessageBox.warning(self, "Errore", "Username già in uso")
+                    elif err_id == 2:
+                        QMessageBox.warning(self, "Errore", "Username non può contenere caratteri speciali")
+                    elif err_id == 5:
+                        QMessageBox.warning(self, "Errore", "Impossibile inserire una data pari o successiva alla corrente")
+                    elif err_id == -1:
+                        QMessageBox.critical(self, "Errore", "Errore")
             else:
-                # controller said: "no!"
-                if err_id == 1:
-                    QMessageBox.warning(self, "Errore", "Il Nome non può contenere caratteri speciali")
-                elif err_id == 2:
-                    QMessageBox.warning(self, "Errore", "Il Cognome non può contenere caratteri speciali")
-                elif err_id == 3:
-                    QMessageBox.warning(self, "Errore", "Username già in uso")
-                elif err_id == 2:
-                    QMessageBox.warning(self, "Errore", "Username non può contenere caratteri speciali")
-                elif err_id == 5:
-                    QMessageBox.warning(self, "Errore", "Impossibile inserire una data pari o successiva alla corrente")
-                elif err_id == -1:
-                    QMessageBox.critical(self, "Errore", "Errore")
-        else:
-            QMessageBox.critical(self, "Errore", "Controller non valido.")
+                QMessageBox.critical(self, "Errore", "Controller non valido.")
+        save_btn.clicked.connect(submit_data)
+        self.setLayout(main_layout)
 class edit_user_ui(QDialog):
 
     def __init__(self,parent=None):
@@ -138,6 +139,7 @@ class edit_user_ui(QDialog):
 
         genderCheck = QComboBox()
         genderCheck.addItems(["Maschio", "Femmina", "Altro"])
+        genderCheck.setCurrentIndex(list(Gender.Gender).index(self.current_user.gender))
 
         save_btn = QPushButton("Salva")
         save_btn.setStyleSheet(style_QButton_red)
@@ -169,12 +171,17 @@ class edit_user_ui(QDialog):
         main_layout.addLayout(btn_layout)
 
         def submit_data():
+            GENDER_MAP = {
+                "Maschio": Gender.Gender.MALE,
+                "Femmina": Gender.Gender.FEMALE
+            }
+            gender = GENDER_MAP.get(genderCheck.currentText(), Gender.Gender.OTHER)
             if hasattr(self.parent().users_controller,"edit_user"):  # check if "self.register_dipendente" exists in 'MainWindow'"
                 success, err_id = self.parent().users_controller.edit_user(nameBar.text(), surnameBar.text(),
                                                                  usernameBar.text(),
                                                                  passwordBar.text(),
                                                                  birth_day_sel.date().toString("dd/MM/yyyy"),
-                                                                 genderCheck.currentText())
+                                                                 gender)
                 if success:
                     QMessageBox.information(self, "Successo", "Utente modificato.")
                     self.accept()
