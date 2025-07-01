@@ -35,7 +35,7 @@ def view_dipendenti_ui_layout(lista_dipendenti):
             str(user.is_admin),
             str(user.username),
             str(user.birthday),
-            str(user.gender),
+            str(user.gender.value),
             str(user.data_created),
             str(user.added_by)
         ])

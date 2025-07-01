@@ -3,6 +3,7 @@ from typing import List
 
 import PyQt6.QtCore
 from Model.Data import AppData
+from Model.Gender import Gender
 from Model.User import User
 
 class AppUsersController:
@@ -16,7 +17,7 @@ class AppUsersController:
                 return True
         return False
 
-    def register(self,name:str,surname:str,username:str,birthday,is_admin:bool,gender:str,password:str = "") -> bool and int:
+    def register(self,name:str,surname:str,username:str,birthday,is_admin:bool,gender:Gender = Gender.OTHER,password:str = "") -> bool and int:
         try:
             name = name.strip()
             surname = surname.strip()

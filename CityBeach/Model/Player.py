@@ -1,17 +1,15 @@
 import datetime
 from typing import List
 
-from Model import Gender
 from Model.Article import Article
 import datetime
 
 
 class User:
-    def __init__(self, id:int,username: str, is_admin:bool = False,
-                 name:str = " ",surname:str=" ",datebirth:datetime.date | None=None,added_by: str = "admin",password: str="",gender:Gender.Gender = Gender.Gender.OTHER):
+    def __init__(self, id:int, is_admin:bool = False,
+                 name:str = " ",surname:str=" ",datebirth:datetime.date | None=None,
+                 gender:str = "M/F",added_by: str = "admin",password: str=""):
         self.id = id
-        self.username = username
-        self.password = password
         self.name = name
         self.surname = surname
         self.birthday = datebirth

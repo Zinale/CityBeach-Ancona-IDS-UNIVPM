@@ -4,6 +4,8 @@ from PyQt6.QtCore import QDate
 from PyQt6.QtGui import QIcon, QFont
 from PyQt6.QtWidgets import *
 
+from Model import Gender
+
 
 class add_Dipendete_ui(QDialog):
     def __init__(self,parent=None):
@@ -63,20 +65,24 @@ class add_Dipendete_ui(QDialog):
         self.setLayout(main_layout)
 
     def submit_data(self):
+        gender = Gender.Gender.OTHER
+        if self.genderCheck.currentText() == "Maschio":
+            gender = Gender.Gender.MALE
+        elif self.genderCheck.currentText() == "Femmina":
+            gender = Gender.Gender.FEMALE
         data = {
             "name": self.nameBar.text(),
             "surname": self.surnameBar.text(),
             "username": self.usernameBar.text(),
             "birthday": self.birth_day_sel.date().toString("dd/MM/yyyy"),
             "is_admin": self.flagAmministratore.isChecked(),
-            "gender": self.genderCheck.currentText()
+            "gender": gender
         }
         # call his parent
         if hasattr(self.parent().users_controller, "register"):      #check if "self.register_dipendente" exists in 'MainWindow'"
             success, err_id = self.parent().users_controller.register(self.nameBar.text(),self.surnameBar.text(),self.usernameBar.text(),
                                                      self.birth_day_sel.date().toString("dd/MM/yyyy"),self.flagAmministratore.isChecked(),
-                                                     self.genderCheck.currentText())
-            #print(err_id)
+                                                     gender)
             if success:
                 self.data = data
                 QMessageBox.information(self, "Successo", "Dipendente aggiunto.")
@@ -205,4 +211,5 @@ if __name__ == "__main__":
     window.exec()
 else:
     from Model import *
+    #from .Model import Gender
     from .styles import *

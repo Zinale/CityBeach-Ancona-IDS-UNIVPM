@@ -33,7 +33,7 @@ class MainWindow(QWidget):
         self.users_controller = AppUsersController(self.model)
         if (self.model.users.__len__() == 0):
             #"admin": "admin" is the first user to be created
-            self.users_controller.register("admin","admin","admin",PyQt6.QtCore.QDate(1,1,1).toString("dd/MM/yyyy"),is_admin = True,gender ="M",password="admin")
+            self.users_controller.register("admin","admin","admin",PyQt6.QtCore.QDate(1,1,1).toString("dd/MM/yyyy"),is_admin = True,password="admin")
         self.init_login_ui()
 
     def init_login_ui(self):
@@ -82,6 +82,7 @@ class MainWindow(QWidget):
             dlg = edit_user_ui(self)
             if dlg.exec():
                 self.init_main_ui()
+
         main_layout, btn_campi, btn_pren,btn_gioc,btn_attspo,btn_dip,btn_rist,center_text,profile_btn,log_btn = main_ui_layout()
         if not self.users_controller.get_current_user().is_admin:
            center_text.setStyleSheet(style_text_red_on_white)
@@ -127,9 +128,14 @@ class MainWindow(QWidget):
             if selected_user and selected_user.__len__() == 1:
                 self.selected_user = selected_user[0]  # it is an QTree Object
 
+        def show_add_dipendente_ui():
+            dlg = add_Dipendete_ui(self)
+            if dlg.exec():
+                self.init_dipendenti_ui()
+
         tree.itemSelectionChanged.connect(tree_on_item_selected)
 
-        dip_btn.clicked.connect(self.show_add_dipendente_ui)
+        dip_btn.clicked.connect(show_add_dipendente_ui)
 
         del_dip_btn.clicked.connect(del_dipendente)
         center_text.setText(f"{self.users_controller.get_current_user().username}")
@@ -140,6 +146,64 @@ class MainWindow(QWidget):
 
         back_btn.clicked.connect(self.init_main_ui)
         self.setLayout(main_layout)
+
+
+    def init_players_ui(self):
+        self.clear_layout()
+        self.setStyleSheet("background-color: #FFF0E6;")
+        self.setMinimumSize(1280, 720)
+        self.setMaximumSize(10000, 10000)
+        self.selected_player = None
+        self.setWindowTitle("CityBeach Ancona | Giocatori")
+        self.center_window()
+
+        main_layout, center_text, tree, dip_btn, del_dip_btn,back_btn = view_dipendenti_ui_layout(self.users_controller.get_all_users())
+
+        def del_dipendente():
+            if self.selected_user == None:
+                return False
+            status, err_id = self.users_controller.delete_user(self.selected_user.text(4))
+            if status:
+                self.model = AppData.load_from_file("data.pkl")
+                QMessageBox.information(self, "Rimosso", "Utente eliminato.")
+                self.init_dipendenti_ui()
+            else:
+                if err_id==1:
+                    QMessageBox.warning(self, "Errore", "Non puoi eliminare il tuo account.")
+                elif err_id==2:
+                    QMessageBox.critical(self, "Errore", "Errore")
+                elif err_id == 3:
+                    QMessageBox.warning(self, "Errore", "Si è verificato un problema durante l'operazione.")
+
+        def tree_on_item_selected():
+            selected_user = tree.selectedItems()
+            if selected_user and selected_user.__len__() == 1:
+                self.selected_user = selected_user[0]  # it is an QTree Object
+
+        def show_add_dipendente_ui():
+            dlg = add_Dipendete_ui(self)
+            if dlg.exec():
+                self.init_dipendenti_ui()
+
+        tree.itemSelectionChanged.connect(tree_on_item_selected)
+
+        dip_btn.clicked.connect(show_add_dipendente_ui)
+
+        del_dip_btn.clicked.connect(del_dipendente)
+        center_text.setText(f"{self.users_controller.get_current_user().username}")
+        if not self.users_controller.get_current_user().is_admin:
+            center_text.setStyleSheet(style_text_red_on_white)
+        else:
+            center_text.setStyleSheet(style_text_white_on_red)
+
+        back_btn.clicked.connect(self.init_main_ui)
+        self.setLayout(main_layout)
+
+
+
+
+
+
 
     def logout(self):
         self.users_controller.logout()
@@ -175,13 +239,6 @@ class MainWindow(QWidget):
         screen = QGuiApplication.primaryScreen()
         screen_geometry = screen.availableGeometry()
         window_geometry = self.frameGeometry()
-
         center_point = screen_geometry.center()
         window_geometry.moveCenter(center_point)
         self.move(window_geometry.topLeft())
-
-    def show_add_dipendente_ui(self):
-        dlg = add_Dipendete_ui(self)
-        if dlg.exec():
-            self.init_dipendenti_ui()
-
