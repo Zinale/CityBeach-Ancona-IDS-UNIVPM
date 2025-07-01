@@ -16,7 +16,6 @@ class add_Dipendete_ui(QDialog):
 
     def init_ui(self):
         layout = QFormLayout()
-
         self.nameBar = QLineEdit()
         self.surnameBar = QLineEdit()
         self.usernameBar = QLineEdit()
@@ -72,11 +71,9 @@ class add_Dipendete_ui(QDialog):
             "is_admin": self.flagAmministratore.isChecked(),
             "gender": self.genderCheck.currentText()
         }
-
-        # call is parent
-        controller = self.parent()
-        if hasattr(controller, "register_user"):      #check if "self.register_dipendente" exists in 'MainWindow'"
-            success, err_id = controller.register_user(self.nameBar.text(),self.surnameBar.text(),self.usernameBar.text(),
+        # call his parent
+        if hasattr(self.parent().users_controller, "register"):      #check if "self.register_dipendente" exists in 'MainWindow'"
+            success, err_id = self.parent().users_controller.register(self.nameBar.text(),self.surnameBar.text(),self.usernameBar.text(),
                                                      self.birth_day_sel.date().toString("dd/MM/yyyy"),self.flagAmministratore.isChecked(),
                                                      self.genderCheck.currentText())
             #print(err_id)
@@ -97,6 +94,8 @@ class add_Dipendete_ui(QDialog):
                     QMessageBox.warning(self, "Errore", "Username non può contenere caratteri speciali")
                 elif err_id == 5:
                     QMessageBox.warning(self, "Errore", "Impossibile inserire una data pari o successiva alla corrente")
+                elif err_id == -1:
+                    QMessageBox.critical(self, "Errore", "Errore")
         else:
             QMessageBox.critical(self, "Errore", "Controller non valido.")
 class edit_user_ui(QDialog):
@@ -107,12 +106,11 @@ class edit_user_ui(QDialog):
         self.setFixedSize(300, 300)
         self.setStyleSheet(style_app_Dialogs)
         self.setWindowIcon(QIcon("src/img/logo.png"))
-        self.current_user = self.parent().controller.get_current_user()
+        self.current_user = self.parent().users_controller.get_current_user()
         self.init_ui()
 
     def init_ui(self):
         layout = QFormLayout()
-
         nameBar = QLineEdit()
         nameBar.setText(self.current_user.name)
         surnameBar = QLineEdit()
@@ -165,8 +163,8 @@ class edit_user_ui(QDialog):
         main_layout.addLayout(btn_layout)
 
         def submit_data():
-            if hasattr(self.parent().controller,"edit_user"):  # check if "self.register_dipendente" exists in 'MainWindow'"
-                success, err_id = self.parent().controller.edit_user(nameBar.text(), surnameBar.text(),
+            if hasattr(self.parent().users_controller,"edit_user"):  # check if "self.register_dipendente" exists in 'MainWindow'"
+                success, err_id = self.parent().users_controller.edit_user(nameBar.text(), surnameBar.text(),
                                                                  usernameBar.text(),
                                                                  passwordBar.text(),
                                                                  birth_day_sel.date().toString("dd/MM/yyyy"),
@@ -189,6 +187,9 @@ class edit_user_ui(QDialog):
                     elif err_id == 5:
                         QMessageBox.warning(self, "Errore",
                                             "Impossibile inserire una data pari o successiva alla corrente")
+                    elif err_id == 6:
+                        QMessageBox.warning(self, "Errore",
+                                            "Impossibile modificare l'account 'admin'")
             else:
                 QMessageBox.critical(self, "Errore", "Controller non valido.")
         save_btn.clicked.connect(submit_data)

@@ -2,15 +2,12 @@ from types import new_class
 from typing import List
 
 import PyQt6.QtCore
-
-from Model.Article import Article
 from Model.Data import AppData
 from Model.User import User
 
-class AppController:
+class AppUsersController:
     def __init__(self, model: AppData):
         self.model = model
-        self.user_id = max(self.model.users.keys(), default=0)
 
     def login(self, username: str, password: str) -> bool:
         for user in self.get_all_users():
@@ -20,31 +17,34 @@ class AppController:
         return False
 
     def register(self,name:str,surname:str,username:str,birthday,is_admin:bool,gender:str,password:str = "") -> bool and int:
-        name = name.strip()
-        surname = surname.strip()
-        username = username.strip()
-        if not name.isalnum():
-            return False, 1
-        if not surname.isalnum():
-            return False, 2
-        usernames = [p.username for p in self.get_all_users()]
-        if username in usernames:
-            return False, 3
-        if not username.isalnum():
-            return False, 4
-        date= birthday.split("/")
-        if PyQt6.QtCore.QDate(int(date[2]),int(date[1]),int(date[0])) >= PyQt6.QtCore.QDate.currentDate():
-            return False, 5
+        try:
+            name = name.strip()
+            surname = surname.strip()
+            username = username.strip()
+            if not name.isalnum():
+                return False, 1
+            if not surname.isalnum():
+                return False, 2
+            usernames = [p.username for p in self.get_all_users()]
+            if username in usernames:
+                return False, 3
+            if not username.isalnum():
+                return False, 4
+            date= birthday.split("/")
+            if PyQt6.QtCore.QDate(int(date[2]),int(date[1]),int(date[0])) >= PyQt6.QtCore.QDate.currentDate():
+                return False, 5
 
-        self.user_id+=1
-        if self.get_current_user() != None:
-            addedBy = self.get_current_user().username
-        else:
-            addedBy = "admin"
-        self.model.users[self.user_id] = User(self.user_id,username, is_admin=is_admin,name=name,surname=surname,
-                                          datebirth=birthday,gender=gender,added_by=addedBy,password=password)
-        self.model.save_to_file("data.pkl")
-        return True, 0
+            if self.get_current_user() != None:
+                addedBy = self.get_current_user().username
+            else:
+                addedBy = "admin"
+            self.model.users[self.model.users_next_id] = User(self.model.users_next_id,username, is_admin=is_admin,name=name,surname=surname,
+                                              datebirth=birthday,gender=gender,added_by=addedBy,password=password)
+            self.model.users_next_id+=1
+            self.model.save_to_file("data.pkl")
+            return True, 0
+        except:
+            return False, -1
 
     def delete_user(self,username:str)->bool and int:
         try:
@@ -81,6 +81,8 @@ class AppController:
                 return False, 5
             #TODO: fare controllo di ogni Prenotazione/OggettoRistoro/AttSpo/Giocatore/Campo
             current_id = self.model.current_user.id
+            if current_id == 0:
+                return False, 6 #can't edit "admin" (root) profile
             self.model.users[current_id].name = new_name
             self.model.users[current_id].surname = new_surname
             self.model.users[current_id].username = new_username
@@ -96,29 +98,27 @@ class AppController:
         self.model.current_user = None
         self.model.save_to_file("data.pkl")
 
-    def add_article(self, title: str) -> bool:
-        user = self.model.current_user
-        if not user:
-            return False
-        article = Article(title, user.username)
-        self.model.articles[article.id] = article
-        user.article_ids.append(article.id)
-        return True
+#    def add_article(self, title: str) -> bool:
+#        user = self.model.current_user
+#        if not user:
+#            return False
+#        article = Article(title, user.username)
+#        self.model.articles[article.id] = article
+#        user.article_ids.append(article.id)
+#        return True
 
-    def delete_article(self, article_id: str) -> bool:
-        user = self.model.current_user
-        if not user:
-            return False
-        article = self.model.articles.get(article_id)
-        if article and user.can_delete(article):
-            del self.model.articles[article_id]
-            user.article_ids.remove(article_id)
-            return True
-        return False
-
-
-    def get_all_articles(self) -> List[Article]:
-        return list(self.model.articles.values())
+ #   def delete_article(self, article_id: str) -> bool:
+ #       user = self.model.current_user
+ #       if not user:
+ #           return False
+ #       article = self.model.articles.get(article_id)
+ #       if article and user.can_delete(article):
+ #           del self.model.articles[article_id]
+ #           user.article_ids.remove(article_id)
+ #           return True
+ #       return False
+   # def get_all_articles(self) -> List[Article]:
+   #     return list(self.model.articles.values())
 
     def get_current_user(self) -> User | None:
         return self.model.current_user

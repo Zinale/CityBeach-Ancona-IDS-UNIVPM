@@ -9,3 +9,5 @@ CityBeach/Model/__pycache__/Article.cpython-313.pyc
 CityBeach/Model/__pycache__/Article.cpython-312.pyc
 CityBeach/Controller/__pycache__/Controller.cpython-313.pyc
 CityBeach/Controller/__pycache__/Controller.cpython-312.pyc
+/CityBeach/__pycache__
+*.pyc

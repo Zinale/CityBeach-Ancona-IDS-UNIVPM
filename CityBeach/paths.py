@@ -1,7 +1,7 @@
 # paths.py
 import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
+print(BASE_DIR)
 SRC_DIR = os.path.join(BASE_DIR, "src")
 IMG_DIR = os.path.join(SRC_DIR, "img")
 FONTS_DIR = os.path.join(SRC_DIR, "fonts")

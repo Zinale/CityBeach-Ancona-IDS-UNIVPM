@@ -8,6 +8,7 @@ from Model.User import User
 class AppData:
     def __init__(self):
         self.users: Dict[int, User] = {}
+        self.users_next_id: int = 0
         self.articles: Dict[str, Article] = {}
         self.current_user: User | None = None
 
