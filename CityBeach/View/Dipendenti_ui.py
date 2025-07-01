@@ -189,6 +189,7 @@ class add_Dipendete_ui(QDialog):
                                                          gender)
                 if success:
                     data = data
+                    self.parent().model.users_next_id = self.parent().users_controller.user_id
                     self.parent().model.save_to_file("data.pkl")
                     QMessageBox.information(self, "Successo", "Dipendente aggiunto.")
                     #print("REGISTRATO: ",data)

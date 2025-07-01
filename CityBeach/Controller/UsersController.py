@@ -7,17 +7,12 @@ from Model.Gender import Gender
 from Model.User import User
 
 class AppUsersController:
-    def __init__(self, users: Dict[int, User],id:int):
+    def __init__(self, users: Dict[int, User],user_id:int):
+        print(users)
+        print(user_id)
         self.users = users
-        self.id = id
+        self.user_id = user_id
         self.current_user = None
-
-    def login(self, username: str, password: str):
-        for user in self.get_all_users():
-            if user.username == username and user.password == password:
-                self.current_user = user
-                return True, self.current_user
-        return False, None
 
     def register(self,name:str,surname:str,username:str,birthday,is_admin:bool,gender:Gender = Gender.OTHER,password:str = "") -> bool and int:
         try:
@@ -41,12 +36,19 @@ class AppUsersController:
                 addedBy = self.current_user.username
             else:
                 addedBy = "root"
-            self.id+=1
-            self.users[self.id] = User(self.id,username, is_admin=is_admin,name=name,surname=surname,
+            self.user_id+=1
+            self.users[self.user_id] = User(self.user_id,username, is_admin=is_admin,name=name,surname=surname,
                                               datebirth=birthday,gender=gender,added_by=addedBy,password=password)
             return True, 0
         except:
             return False, -1
+
+    def login(self, username: str, password: str):
+        for user in self.get_all_users():
+            if user.username == username and user.password == password:
+                self.current_user = user
+                return True, self.current_user
+        return False, None
 
     def delete_user(self,username:str)->bool and int:
         try:
@@ -122,7 +124,7 @@ class AppUsersController:
     def get_id_by_username(self,username:str)->int:
         return next(id for id, user in self.get_all_users() if user.username == username)
     def get_user_by_username(self,username:str)->User | None:
-        return next((user for user in self.users if user.username == username),None)
+        return next((user for user in self.get_all_users() if user.username == username),None)
     def get_current_user(self):
         return self.current_user
     def get_all_users(self) -> List[User] :

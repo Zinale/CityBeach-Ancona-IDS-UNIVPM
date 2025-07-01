@@ -32,8 +32,9 @@ class MainWindow(QWidget):
         self.users_controller = AppUsersController(self.model.users,self.model.users_next_id)
         if (self.model.users.__len__() == 0):
             #"admin": "admin" is the first user to be created
-            success = self.users_controller.register("admin","admin","admin",PyQt6.QtCore.QDate(1,1,1).toString("dd/MM/yyyy"),is_admin = True,password="admin")
+            success, status = self.users_controller.register("admin","admin","admin",PyQt6.QtCore.QDate(1,1,1).toString("dd/MM/yyyy"),is_admin = True,password="admin")
             if success:
+                self.model.users_next_id = self.users_controller.user_id
                 self.model.save_to_file("data.pkl")
         self.init_login_ui()
 
