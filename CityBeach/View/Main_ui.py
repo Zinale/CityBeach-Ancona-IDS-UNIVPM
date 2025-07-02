@@ -8,6 +8,7 @@ from PyQt6.QtWidgets import (
     QDateEdit, QComboBox, QCheckBox, QFormLayout, QGridLayout
 )
 
+from Model.User import User
 from View.styles import *
 from View.topBar import topBar
 from Model import Gender
@@ -163,39 +164,46 @@ def main_ui_layout() -> QVBoxLayout() and QPushButton()and QPushButton()and QPus
     return main_layout, btn_campi, btn_pren,btn_gioc,btn_attspo,btn_dip,btn_rist,center_text,profile_btn,log_btn
 
 class edit_user_ui(QDialog):
-    def __init__(self,parent=None):
+    def __init__(self,opener_id:int,user_to_edit:User=None,parent=None):
         super().__init__(parent)
         self.setWindowTitle("Modifica Utente")
         self.setFixedSize(300, 300)
         self.setStyleSheet(style_app_Dialogs)
         self.setWindowIcon(QIcon("src/img/logo.png"))
         self.current_user = self.parent().users_controller.get_current_user()
+        self.opener_is_admin = False
+        self.user_to_edit = self.current_user
+        if self.current_user.id != user_to_edit.id:
+            self.opener_is_admin = True
+            self.user_to_edit = user_to_edit
         self.init_ui()
 
     def init_ui(self):
         layout = QFormLayout()
         nameBar = QLineEdit()
-        nameBar.setText(self.current_user.name)
+        nameBar.setText(self.user_to_edit.name)
         surnameBar = QLineEdit()
-        surnameBar.setText(self.current_user.surname)
+        surnameBar.setText(self.user_to_edit.surname)
         usernameBar = QLineEdit()
-        usernameBar.setText(self.current_user.username)
-        passwordBar = QLineEdit()
-        passwordBar.setText(self.current_user.password)
+        usernameBar.setText(self.user_to_edit.username)
+        if self.opener_is_admin:
+            passwordBar = QCheckBox()
+        else:
+            passwordBar = QLineEdit()
 
-        date = self.current_user.birthday.split("/")
+        date = self.user_to_edit.birthday.split("/")
         birth_day_sel = QDateEdit()
         birth_day_sel.setDisplayFormat("dd/MM/yyyy")
         birth_day_sel.setCalendarPopup(True)
         birth_day_sel.setDate(QDate(int(date[2]),int(date[1]),int(date[0])))
 
         flagAmministratore = QCheckBox("Amministratore")
-        flagAmministratore.setChecked(self.current_user.is_admin)
+        flagAmministratore.setChecked(self.user_to_edit.is_admin)
         flagAmministratore.setEnabled(False)
 
         genderCheck = QComboBox()
         genderCheck.addItems(["Maschio", "Femmina", "Altro"])
-        genderCheck.setCurrentIndex(list(Gender.Gender).index(self.current_user.gender))
+        genderCheck.setCurrentIndex(list(Gender.Gender).index(self.user_to_edit.gender))
 
         save_btn = QPushButton("Salva")
         save_btn.setStyleSheet(style_QButton_red)
@@ -217,7 +225,10 @@ class edit_user_ui(QDialog):
         layout.addRow("Nome:", nameBar)
         layout.addRow("Cognome:", surnameBar)
         layout.addRow("Username:", usernameBar)
-        layout.addRow("Password:",passwordBar)
+        if self.opener_is_admin:
+            layout.addRow("Reset Password:",passwordBar)
+        else:
+            layout.addRow("Password:",passwordBar)
         layout.addRow("Data di nascita:", birth_day_sel)
         layout.addRow("Amministratore:", flagAmministratore)
         layout.addRow("Sesso:", genderCheck)
@@ -233,9 +244,13 @@ class edit_user_ui(QDialog):
             }
             gender = GENDER_MAP.get(genderCheck.currentText(), Gender.Gender.OTHER)
             if hasattr(self.parent().users_controller,"edit_user"):  # check if "self.register_dipendente" exists in 'MainWindow'"
-                success, err_id = self.parent().users_controller.edit_user(nameBar.text(), surnameBar.text(),
+                if self.opener_is_admin:
+                    passwordVal = passwordBar.isChecked()
+                else:
+                    passwordVal = passwordBar.text()
+                success, err_id = self.parent().users_controller.edit_user(self.user_to_edit.id,nameBar.text(), surnameBar.text(),
                                                                  usernameBar.text(),
-                                                                 passwordBar.text(),
+                                                                 passwordVal,
                                                                  birth_day_sel.date().toString("dd/MM/yyyy"),
                                                                  gender)
                 if success:

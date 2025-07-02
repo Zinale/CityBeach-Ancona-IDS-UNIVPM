@@ -14,7 +14,6 @@ from .styles import *
 from .topBar import *
 import os
 
-
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
@@ -81,9 +80,8 @@ class MainWindow(QWidget):
                 self.init_dipendenti_ui()
             else:
                 QMessageBox.warning(self, "Permesso negato", "Non sei amministratore")
-
         def show_edit_user_ui():
-            dlg = edit_user_ui(self)
+            dlg = edit_user_ui(parent=self,opener_id=self.users_controller.current_user.id)
             if dlg.exec():
                 self.init_main_ui()
 
@@ -110,7 +108,10 @@ class MainWindow(QWidget):
         self.center_window()
 
         main_layout, center_text, tree, dip_btn, del_dip_btn,back_btn = view_dipendenti_ui_layout(self.users_controller.get_all_users())
-
+        def show_edit_user_ui():
+            dlg = edit_user_ui(parent=self,opener_id=self.users_controller.current_user.id,user_to_edit=self.users_controller.get_user_by_username(self.selected_user.text(4)))
+            if dlg.exec():
+                self.init_dipendenti_ui()
         def del_dipendente():
             if self.selected_user == None:
                 return False
@@ -137,8 +138,9 @@ class MainWindow(QWidget):
             dlg = add_Dipendete_ui(self)
             if dlg.exec():
                 self.init_dipendenti_ui()
-
         tree.itemSelectionChanged.connect(tree_on_item_selected)
+
+        tree.itemDoubleClicked.connect(show_edit_user_ui)
 
         dip_btn.clicked.connect(show_add_dipendente_ui)
 

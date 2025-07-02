@@ -8,8 +8,6 @@ from Model.User import User
 
 class AppUsersController:
     def __init__(self, users: Dict[int, User],user_id:int):
-        print(users)
-        print(user_id)
         self.users = users
         self.user_id = user_id
         self.current_user = None
@@ -65,7 +63,7 @@ class AppUsersController:
         except:
             return False, 3
 
-    def edit_user(self,new_name,new_surname,new_username,new_password,new_birthday,new_gender) -> bool and int:
+    def edit_user(self,user_id,new_name,new_surname,new_username,new_password,new_birthday,new_gender) -> bool and int:
         try:
             new_name = new_name.strip()
             new_surname = new_surname.strip()
@@ -75,23 +73,25 @@ class AppUsersController:
             if not new_surname.isalnum():
                 return False, 2
             usernames = [p.username for p in self.get_all_users()]
-            if new_username in usernames and new_username!=self.current_user.username:
+            if new_username in usernames and new_username!=self.users[user_id].username:
                 return False, 3
             if not new_username.isalnum():
                 return False, 4
             date = new_birthday.split("/")
             if PyQt6.QtCore.QDate(int(date[2]), int(date[1]), int(date[0])) >= PyQt6.QtCore.QDate.currentDate():
                 return False, 5
-            #TODO: fare controllo di ogni Prenotazione/OggettoRistoro/AttSpo/Giocatore/Campo
-            current_id = self.current_user.id
-            if current_id == 0:
+            if user_id == 1:
                 return False, 6 #can't edit "admin" (root) profile
-            self.users[current_id].name = new_name
-            self.users[current_id].surname = new_surname
-            self.users[current_id].username = new_username
-            self.users[current_id].password = new_password
-            self.users[current_id].birthday = new_birthday
-            self.users[current_id].gender = new_gender
+            self.users[user_id].name = new_name
+            self.users[user_id].surname = new_surname
+            self.users[user_id].username = new_username
+            if type(new_password) == str:
+                self.users[user_id].password = new_password
+            elif type(new_password) == bool:
+                if new_password:
+                    self.users[user_id].password = ""
+            self.users[user_id].birthday = new_birthday
+            self.users[user_id].gender = new_gender
             return True, 0
         except Exception:
             return False, 0
