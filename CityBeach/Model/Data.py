@@ -3,7 +3,6 @@ from typing import Dict
 
 from Model.Article import Article
 from Model.User import User
-from Model.SportsEquipment import SportsEquipment
 
 
 class AppData:
@@ -12,8 +11,6 @@ class AppData:
         self.users_next_id: int = 0
         self.articles: Dict[str, Article] = {}
         self.current_user: User | None = None
-        self.equipment: Dict[int, SportsEquipment] = {}
-        self.equipment_next_id: int = 0
 
     def save_to_file(self, path: str):
         with open(path, 'wb') as f:

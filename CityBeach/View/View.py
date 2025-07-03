@@ -3,13 +3,11 @@ from PyQt6.QtGui import QFont, QBrush, QColor
 from PyQt6.QtWidgets import QWidget
 
 from Controller.UsersController import AppUsersController
-from Controller.AttrrezzaturaSportivaController import AppSportsEquipmentController
 from Model.Data import AppData
 from PyQt6.QtGui import QFontDatabase, QPixmap, QIcon,QGuiApplication
 
 from paths import image_path
 from .Dipendenti_ui import *
-from .AttrezzaturaSportiva_ui import *
 from .Login_ui import *
 from .Main_ui import *
 from .styles import *
@@ -31,7 +29,6 @@ class MainWindow(QWidget):
         self.setWindowFlag(Qt.WindowType.Window)
         self.model = AppData.load_from_file("data.pkl")
         self.users_controller = AppUsersController(self.model.users,self.model.users_next_id)
-        self.attrezzatura_sportiva_controller = AppSportsEquipmentController(self.model.equipment, self.model.equipment_next_id)
         if (self.model.users.__len__() == 0):
             #"admin": "admin" is the first user to be created
             success, status = self.users_controller.register("admin","admin","admin",PyQt6.QtCore.QDate(1,1,1).toString("dd/MM/yyyy"),is_admin = True,password="admin")
@@ -94,7 +91,6 @@ class MainWindow(QWidget):
         else:
             center_text.setStyleSheet(style_text_white_on_red)
         btn_dip.clicked.connect(view_dipendenti)
-        btn_attspo.clicked.connect(self.attrezzatura_sportiva_ui)
         # Testo centrale
         center_text.setText(f"{self.users_controller.get_current_user().username}")
         profile_btn.clicked.connect(show_edit_user_ui)
@@ -158,19 +154,6 @@ class MainWindow(QWidget):
         back_btn.clicked.connect(self.init_main_ui)
         self.setLayout(main_layout)
 
-    def attrezzatura_sportiva_ui(self):
-        self.clear_layout()
-        self.setStyleSheet("background-color: #FFF0E6;")
-        self.setMinimumSize(1280, 720)
-        self.setMaximumSize(10000, 10000)
-        self.selected_player = None
-        self.setWindowTitle("CityBeach Ancona | Attrezzatura Sportiva")
-        self.center_window()
-
-        main_layout, back_btn, att_btn, tree, center_text = view_attrezzaturaSportiva_ui_layout(self.attrezzatura_sportiva_controller.get_all_equipment())
-
-        back_btn.clicked.connect(self.init_main_ui)
-        self.setLayout(main_layout)
 
     def init_players_ui(self):
         self.clear_layout()
