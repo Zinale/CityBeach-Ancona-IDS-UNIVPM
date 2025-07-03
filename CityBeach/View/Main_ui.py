@@ -173,7 +173,7 @@ class edit_user_ui(QDialog):
         self.current_user = self.parent().users_controller.get_current_user()
         self.opener_is_admin = False
         self.user_to_edit = self.current_user
-        if self.current_user.id != user_to_edit.id:
+        if user_to_edit!=None and self.current_user.id != user_to_edit.id:
             self.opener_is_admin = True
             self.user_to_edit = user_to_edit
         self.init_ui()

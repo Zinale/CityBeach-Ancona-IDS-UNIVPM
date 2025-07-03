@@ -12,3 +12,10 @@ CityBeach/Controller/__pycache__/Controller.cpython-312.pyc
 /CityBeach/__pycache__
 *.pyc
 *.pyc
+*.pyc
+CityBeach/View/__pycache__/DateTimeLabel.cpython-313.pyc
+CityBeach/View/__pycache__/Dipendenti_ui.cpython-313.pyc
+CityBeach/View/__pycache__/Login_ui.cpython-313.pyc
+CityBeach/View/__pycache__/Main_ui.cpython-313.pyc
+CityBeach/View/__pycache__/styles.cpython-313.pyc
+CityBeach/View/__pycache__/topBar.cpython-313.pyc
