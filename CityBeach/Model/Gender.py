@@ -3,4 +3,4 @@ from enum import Enum
 class Gender(Enum):
     MALE = "M"
     FEMALE = "F"
-    OTHER = "altro"
+    OTHER = "Altro"
