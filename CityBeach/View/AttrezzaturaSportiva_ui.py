@@ -34,8 +34,8 @@ def view_attrezzaturaSportiva_ui_layout(lista_attrezzatura):
     for attrezzatura in lista_attrezzatura:
         item = QTreeWidgetItem([
             str(attrezzatura.name),
-            str(attrezzatura.sport),
-            str(attrezzatura.availability)
+            str(attrezzatura.sport_type),
+            str(attrezzatura.quantity)
         ])
         tree.addTopLevelItem(item)
     for i in range(50):
@@ -138,33 +138,27 @@ class add_Attrezzatura_ui(QDialog):
         save_button.setStyleSheet(style_QButton_white_18Gotham)
         button_layout.addWidget(save_button)
         def submit_data():
-            name = self.name_input.text().strip()
-            sport = self.sport_input.text().strip()
-            quantity_text = self.quantity_input.text().strip()
-
-            if not name:
-                QMessageBox.warning(self, "Errore", "Il campo 'Nome' non può essere vuoto.")
-                return
-            
-            if not sport:
-                QMessageBox.warning(self, "Errore", "Il campo 'Sport' non può essere vuoto.")
-                return
-            
-            if not quantity_text.isdigit():
-                QMessageBox.warning(self, "Errore", "Il campo 'Disponibilità' deve essere un numero intero.")
-                return
-            
-            try:
-                quantity = int(quantity_text)
-                if quantity < 0:
-                    QMessageBox.warning(self, "Errore", "La quantità non può essere negativa.")
-                    return
-            except ValueError:
-                QMessageBox.warning(self, "Errore", "La quantità deve essere un numero intero valido.")
-                return
-            
-            # Salvataggio dei dati
-    
+            if hasattr(self.parent().attrezzatura_sportiva_controller, 'add_equipment'):
+                name = self.name_input.text().strip()
+                sport = self.sport_input.text().strip()
+                quantity = int(self.quantity_input.text().strip())
+                
+                success, error_code = self.parent().attrezzatura_sportiva_controller.add_equipment(name, sport, quantity)
+                
+                if success:
+                    self.parent().model.equipment_next_id = self.parent().attrezzatura_sportiva_controller.equipment_id
+                    self.parent().model.save_to_file("data.pkl")
+                    QMessageBox.information(self, "Successo", "Attrezzatura aggiunta con successo!")
+                    self.accept()
+                else:
+                    error_messages = {
+                        1: "Nome non valido.",
+                        2: "Sport non valido.",
+                        3: "Quantità deve essere maggiore di zero."
+                    }
+                    QMessageBox.warning(self, "Errore", error_messages.get(error_code, "Errore sconosciuto."))
+            else:
+                QMessageBox.warning(self, "Errore", "Controller non disponibile.")
 
         save_button.clicked.connect(submit_data)
         

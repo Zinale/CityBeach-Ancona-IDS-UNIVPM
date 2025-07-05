@@ -170,7 +170,6 @@ class MainWindow(QWidget):
         def show_add_attrezzatura_ui():
             dlg = add_Attrezzatura_ui(self)
             if dlg.exec():
-                self.attrezzatura_sportiva_controller.save_to_file("data.pkl")
                 self.init_attrezzatura_sportiva_ui()
 
         att_btn.clicked.connect(show_add_attrezzatura_ui)
