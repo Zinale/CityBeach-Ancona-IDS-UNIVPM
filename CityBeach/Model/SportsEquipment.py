@@ -1,13 +1,14 @@
 import datetime
+from Model import EquipmentType
 
 class SportsEquipment:
-    def __init__(self, id: int, name: str, sport_type: str, quantity: int):
+    def __init__(self, id: int, name: str, equipmentType: EquipmentType, quantity: int):
         self.name = name
-        self.sport_type = sport_type
+        self.equipmentType = equipmentType
         self.quantity = quantity
         self.date_added = datetime.datetime.now()
 
     def __str__(self):
-        return f"Name: '{self.name}', Sport Type: '{self.sport_type}', Quantity: {self.quantity}, Date Added: {self.date_added}"
+        return f"Name: '{self.name}', Equipment Type: '{self.equipmentType}', Quantity: {self.quantity}, Date Added: {self.date_added}"
     def __repr__(self):
-        return f"SportsEquipment(name='{self.name}', sport_type='{self.sport_type}', quantity={self.quantity}, date_added={self.date_added})"
+        return f"SportsEquipment(name='{self.name}', equipment_type='{self.equipmentType}', quantity={self.quantity}, date_added={self.date_added})"

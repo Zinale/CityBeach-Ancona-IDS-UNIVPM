@@ -30,11 +30,11 @@ def view_attrezzaturaSportiva_ui_layout(lista_attrezzatura):
 
     tree = QTreeWidget()
     tree.setHeaderLabels(
-        ["Nome", "Sport", "Disponibilità"])
+        ["Nome", "Tipo", "Disponibilità"])
     for attrezzatura in lista_attrezzatura:
         item = QTreeWidgetItem([
             str(attrezzatura.name),
-            str(attrezzatura.sport_type),
+            str(attrezzatura.equipmentType),
             str(attrezzatura.quantity)
         ])
         tree.addTopLevelItem(item)
@@ -106,11 +106,11 @@ class add_Attrezzatura_ui(QDialog):
         self.name_input = QLineEdit()
         self.name_input.setStyleSheet(style_blackText)
 
-        # Sport
-        sport_label = QLabel("Sport:")
-        sport_label.setStyleSheet(style_text_gotham_b)
-        self.sport_input = QLineEdit()
-        self.sport_input.setStyleSheet(style_blackText)
+        # Tipo Attrezzatura
+        equipmentType_label = QLabel("Tipo Attrezzatura:")
+        equipmentType_label.setStyleSheet(style_text_gotham_b)
+        self.equipmentType_input = QLineEdit()
+        self.equipmentType_input.setStyleSheet(style_blackText)
 
         # Disponibilità
         quantity_label = QLabel("Quantità:")
@@ -124,8 +124,8 @@ class add_Attrezzatura_ui(QDialog):
         grid_layout = QGridLayout()
         grid_layout.addWidget(name_label, 0, 0)
         grid_layout.addWidget(self.name_input, 0, 1)
-        grid_layout.addWidget(sport_label, 1, 0)
-        grid_layout.addWidget(self.sport_input, 1, 1)
+        grid_layout.addWidget(equipmentType_label, 1, 0)
+        grid_layout.addWidget(self.equipmentType_input, 1, 1)
         grid_layout.addWidget(quantity_label, 2, 0)
         grid_layout.addWidget(self.quantity_input, 2, 1)
 
@@ -140,10 +140,10 @@ class add_Attrezzatura_ui(QDialog):
         def submit_data():
             if hasattr(self.parent().attrezzatura_sportiva_controller, 'add_equipment'):
                 name = self.name_input.text().strip()
-                sport = self.sport_input.text().strip()
+                equipmentType = self.equipmentType_input.text().strip()
                 quantity = int(self.quantity_input.text().strip())
                 
-                success, error_code = self.parent().attrezzatura_sportiva_controller.add_equipment(name, sport, quantity)
+                success, error_code = self.parent().attrezzatura_sportiva_controller.add_equipment(name, equipmentType, quantity)
                 
                 if success:
                     self.parent().model.equipment_next_id = self.parent().attrezzatura_sportiva_controller.equipment_id
@@ -153,7 +153,7 @@ class add_Attrezzatura_ui(QDialog):
                 else:
                     error_messages = {
                         1: "Nome non valido.",
-                        2: "Sport non valido.",
+                        2: "Tipo Attrezzatura non valido.",
                         3: "Quantità deve essere maggiore di zero."
                     }
                     QMessageBox.warning(self, "Errore", error_messages.get(error_code, "Errore sconosciuto."))
