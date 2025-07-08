@@ -4,6 +4,7 @@ from typing import List, Dict
 import PyQt6.QtCore
 from Model.Data import AppData
 from Model.SportsEquipment import SportsEquipment
+from Model.EquipmentType import EquipmentType
 
 class AppSportsEquipmentController:
     def __init__(self, equipment: Dict[int, SportsEquipment], equipment_id: int):
@@ -13,13 +14,13 @@ class AppSportsEquipmentController:
     def get_all_equipment(self) -> List[SportsEquipment]:
         return list(self.equipment.values())
     
-    def add_equipment(self, name: str, equipmentType: str, quantity: int) -> bool and int:
+    def add_equipment(self, name: str, equipmentType: EquipmentType, quantity: int) -> bool and int:
         try:
             name = name.strip()
             equipmentType = equipmentType.strip()
             if not name.isalnum():
                 return False, 1
-            if not equipmentType.isalnum():
+            if isinstance(equipmentType, EquipmentType):
                 return False, 2
             if quantity <= 0:
                 return False, 3

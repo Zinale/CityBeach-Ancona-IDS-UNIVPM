@@ -2,7 +2,7 @@ import sys
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap, QIcon, QBrush, QColor, QIntValidator
 from PyQt6.QtWidgets import QVBoxLayout, QApplication, QPushButton, QHBoxLayout, QLabel, QLineEdit, QSizePolicy, \
-    QMessageBox, QGridLayout, QTreeWidget, QTreeWidgetItem, QDialog
+    QMessageBox, QGridLayout, QTreeWidget, QTreeWidgetItem, QDialog, QComboBox
 
 from View.styles import (
     style_app_Dialogs,
@@ -13,6 +13,7 @@ from View.styles import (
 )
 from View.topBar import topBar
 from Model import Data
+from Model.EquipmentType import EquipmentType
 
 def view_attrezzaturaSportiva_ui_layout(lista_attrezzatura):
     # Layout verticale principale
@@ -109,8 +110,10 @@ class add_Attrezzatura_ui(QDialog):
         # Tipo Attrezzatura
         equipmentType_label = QLabel("Tipo Attrezzatura:")
         equipmentType_label.setStyleSheet(style_text_gotham_b)
-        self.equipmentType_input = QLineEdit()
-        self.equipmentType_input.setStyleSheet(style_blackText)
+        self.equipmentType_comboBox = QComboBox()
+        for equipmentType in EquipmentType:
+            self.equipmentType_comboBox.addItem(equipmentType.value, equipmentType.name)
+        # self.equipmentType_comboBox.setStyleSheet(style_blackText)
 
         # Disponibilità
         quantity_label = QLabel("Quantità:")
@@ -125,7 +128,7 @@ class add_Attrezzatura_ui(QDialog):
         grid_layout.addWidget(name_label, 0, 0)
         grid_layout.addWidget(self.name_input, 0, 1)
         grid_layout.addWidget(equipmentType_label, 1, 0)
-        grid_layout.addWidget(self.equipmentType_input, 1, 1)
+        grid_layout.addWidget(self.equipmentType_comboBox, 1, 1)
         grid_layout.addWidget(quantity_label, 2, 0)
         grid_layout.addWidget(self.quantity_input, 2, 1)
 
@@ -140,7 +143,8 @@ class add_Attrezzatura_ui(QDialog):
         def submit_data():
             if hasattr(self.parent().attrezzatura_sportiva_controller, 'add_equipment'):
                 name = self.name_input.text().strip()
-                equipmentType = self.equipmentType_input.text().strip()
+                equipmentType = self.equipmentType_comboBox.currentData()   # Ottiene il valore selezionato dalla ComboBox
+                # print("Equipment Type:", equipmentType)
                 quantity = int(self.quantity_input.text().strip())
                 
                 success, error_code = self.parent().attrezzatura_sportiva_controller.add_equipment(name, equipmentType, quantity)

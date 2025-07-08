@@ -2,7 +2,7 @@ import datetime
 from Model import EquipmentType
 
 class SportsEquipment:
-    def __init__(self, id: int, name: str, equipmentType: EquipmentType, quantity: int):
+    def __init__(self, id: int, name: str, equipmentType: EquipmentType.EquipmentType, quantity: int):
         self.name = name
         self.equipmentType = equipmentType
         self.quantity = quantity
