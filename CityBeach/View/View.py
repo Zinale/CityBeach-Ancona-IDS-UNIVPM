@@ -3,10 +3,9 @@ from PyQt6.QtGui import QFont, QBrush, QColor
 from PyQt6.QtWidgets import QWidget
 
 from Controller.UsersController import AppUsersController
+from Controller.AttrrezzaturaSportivaController import AppSportsEquipmentController
 from Model.Data import AppData
 from PyQt6.QtGui import QFontDatabase, QPixmap, QIcon,QGuiApplication
-
-from Controller.AttrrezzaturaSportivaController import AppSportsEquipmentController
 
 from paths import image_path
 from .Dipendenti_ui import *
@@ -95,7 +94,7 @@ class MainWindow(QWidget):
         else:
             center_text.setStyleSheet(style_text_white_on_red)
         btn_dip.clicked.connect(view_dipendenti)
-        btn_attspo.clicked.connect(self.sport_equipment_ui)
+        btn_attspo.clicked.connect(self.init_sport_equipment_ui)
         # Testo centrale
         center_text.setText(f"{self.users_controller.get_current_user().username}")
         profile_btn.clicked.connect(show_edit_user_ui)
@@ -159,7 +158,7 @@ class MainWindow(QWidget):
         back_btn.clicked.connect(self.init_main_ui)
         self.setLayout(main_layout)
 
-    def sport_equipment_ui(self):
+    def init_sport_equipment_ui(self):
         self.clear_layout()
         self.setStyleSheet("background-color: #FFF0E6;")
         self.setMinimumSize(1280, 720)
@@ -170,6 +169,12 @@ class MainWindow(QWidget):
 
         main_layout, back_btn, att_btn, tree, center_text = view_attrezzaturaSportiva_ui_layout(self.sport_equipment_controller.get_all_equipment())
 
+        def show_add_attrezzatura_ui():
+            dlg = add_Attrezzatura_ui(self)
+            if dlg.exec():
+                self.init_sport_equipment_ui()
+
+        att_btn.clicked.connect(show_add_attrezzatura_ui)
         back_btn.clicked.connect(self.init_main_ui)
         self.setLayout(main_layout)
 

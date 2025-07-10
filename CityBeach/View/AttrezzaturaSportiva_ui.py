@@ -141,16 +141,16 @@ class add_Attrezzatura_ui(QDialog):
         save_button.setStyleSheet(style_QButton_white_18Gotham)
         button_layout.addWidget(save_button)
         def submit_data():
-            if hasattr(self.parent().attrezzatura_sportiva_controller, 'add_equipment'):
+            if hasattr(self.parent().sport_equipment_controller, 'add_equipment'):
                 name = self.name_input.text().strip()
                 equipmentType = self.equipmentType_comboBox.currentData()   # Ottiene il valore selezionato dalla ComboBox
                 # print("Equipment Type:", equipmentType)
                 quantity = int(self.quantity_input.text().strip())
                 
-                success, error_code = self.parent().attrezzatura_sportiva_controller.add_equipment(name, equipmentType, quantity)
+                success, error_code = self.parent().sport_equipment_controller.add_equipment(name, equipmentType, quantity)
                 
                 if success:
-                    self.parent().model.equipment_next_id = self.parent().attrezzatura_sportiva_controller.equipment_id
+                    self.parent().model.equipment_next_id = self.parent().sport_equipment_controller.equipment_id
                     self.parent().model.save_to_file("data.pkl")
                     QMessageBox.information(self, "Successo", "Attrezzatura aggiunta con successo!")
                     self.accept()
