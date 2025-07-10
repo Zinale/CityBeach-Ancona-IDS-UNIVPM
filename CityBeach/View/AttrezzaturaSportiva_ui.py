@@ -9,11 +9,14 @@ from View.styles import (
     style_blackText,
     style_text_gotham_b,
     style_QButton_red,
-    style_QButton_white_18Gotham
+    style_QButton_white_18Gotham,
+    style_QButton_enabled,
+    style_QButton_disabled,
 )
 from View.topBar import topBar
 from Model import Data
 from Model.EquipmentType import EquipmentType
+from Model.SportsCategory import SportsCategory
 
 def view_attrezzaturaSportiva_ui_layout(lista_attrezzatura):
     # Layout verticale principale
@@ -30,27 +33,64 @@ def view_attrezzaturaSportiva_ui_layout(lista_attrezzatura):
     vLayout.addWidget(contextText)
 
     tree = QTreeWidget()
-    tree.setHeaderLabels(
-        ["Nome", "Tipo", "Disponibilità"])
-    for attrezzatura in lista_attrezzatura:
-        item = QTreeWidgetItem([
-            str(attrezzatura.name),
-            str(attrezzatura.equipmentType),
-            str(attrezzatura.quantity)
-        ])
-        tree.addTopLevelItem(item)
-    for i in range(50):
-        item = QTreeWidgetItem([str(i), str(i), str(i)])
-        tree.addTopLevelItem(item)
+    tree.setHeaderLabels(["Nome", "Tipo", "Disponibilità"])
+    
+    # Funzione per popolare il QTreeWidget
+    def populate_tree():
+        tree.clear()
+
+        # Dizionario per la visualizzazione delle attrezzature divise in categorie
+        attrezzature = {
+            SportsCategory.PADEL: [EquipmentType.PADEL_RACKETS, EquipmentType.PADEL_BALLS],
+            SportsCategory.BEACH_VOLLEY: [EquipmentType.BEACH_VOLLEYBALLS],
+            SportsCategory.BEACH_TENNIS: [EquipmentType.BEACH_TENNIS_RACKETS, EquipmentType.BEACH_TENNIS_BALLS],
+        }
+
+        for sport in attrezzature:
+            sport_item = QTreeWidgetItem([sport.value.title()])
+            tree.addTopLevelItem(sport_item)
+            sport_item.setExpanded(True)
+
+            for att in attrezzature[sport]:
+                att_item = QTreeWidgetItem(sport_item)
+                att_item.setText(0, att.name.replace("_", " ").title())
+                att_item.setText(1, att.value.replace("_", " ").title())
+                
+                # Trova l'attrezzatura nella lista e ottieni la quantità
+                for equipment in lista_attrezzatura:
+                    if equipment.equipmentType == att and equipment.name == att.name:
+                        att_item.setText(2, str(equipment.quantity))
+                        break
+                else:
+                    att_item.setText(2, "0")
+    
     vLayout.addWidget(tree)
     tree.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+
+    populate_tree()
 
     hLayoutBtn = QHBoxLayout()
     hLayoutBtn.addStretch(1)
 
+    # Funzione per aggiornare lo stato del pulsante "Aggiungi Attrezzatura"
+    def update_btn():
+        selected = tree.selectedItems()
+        if selected:    # controlla se c'è un elemento foglia dell'albero selezionato e abilita il pulsante in caso affermativo
+            item = selected[0]
+            is_leaf = item.childCount() == 0    
+            has_parent = item.parent() is not None
+            att_btn.setEnabled(is_leaf and has_parent)
+            att_btn.setStyleSheet(style_QButton_enabled if is_leaf and has_parent else style_QButton_white_18Gotham)
+        else:
+            att_btn.setEnabled(False)
+            att_btn.setStyleSheet(style_QButton_disabled)
+
+
     # Attrezzatura btn
     att_btn = QPushButton("Aggiungi Attrezzatura")
-    att_btn.setStyleSheet(style_QButton_white_18Gotham)
+    att_btn.setStyleSheet(style_QButton_disabled)
+    att_btn.setEnabled(False)
+    tree.itemSelectionChanged.connect(update_btn)
     att_btn.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
     hLayoutBtn.addWidget(att_btn, alignment=Qt.AlignmentFlag.AlignRight)
     

@@ -65,6 +65,32 @@ style_QButton_white_18Gotham ="""
         border: 2px solid #E30613;
     }
 """
+style_QButton_enabled = """
+    QPushButton {
+        font-family: Gotham; font-size: 18pt;
+        background-color: #E53935;
+        color: #FFFFFF;                 
+        border: 1px solid #B71C1C;      
+        border-radius: 14px;
+        padding: 6px 20px;
+    }
+    QPushButton:hover {
+        background-color: #B20510;
+    }
+"""
+style_QButton_disabled = """
+    QPushButton {
+        font-family: Gotham; font-size: 18pt;
+        background-color: #FFFFFF;
+        color: #444444;
+        border: 1px solid #CCCCCC;
+        border-radius: 14px;
+        padding: 6px 20px;
+    }
+    QPushButton:hover {
+        background-color: #EEEEEE;
+    }
+"""
 style_blackText = """
     QLabel, QFrame {
         color: #000000;
