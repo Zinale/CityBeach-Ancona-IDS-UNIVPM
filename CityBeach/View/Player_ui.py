@@ -36,7 +36,7 @@ def view_players_ui_layout(player_list: List[Player]):
     # ----------------- TREE WIDGET ----------------
     tree = QTreeWidget()
     tree.setHeaderLabels(
-        ["Nome", "Cognome", "Data di Nascita", "Sesso", "Email", "Telefono"])
+        ["Nome", "Cognome", "Data di Nascita", "Sesso", "Email", "Telefono","Id"])
     for player in player_list:
         item = QTreeWidgetItem([
             str(player.name),
@@ -44,10 +44,13 @@ def view_players_ui_layout(player_list: List[Player]):
             str(player.birthday),
             str(player.gender.value),
             str(player.email),
-            str(player.phone)
+            str(player.phone),
+            str(player.id)
         ])
         tree.addTopLevelItem(item)
     tree.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+    tree.setMaximumWidth(750)
+    tree.setMinimumWidth(750)
     hSplitter.addWidget(tree)
     #-------------------------------------------------------
     #--------------Player Stats------------------------------
@@ -57,12 +60,15 @@ def view_players_ui_layout(player_list: List[Player]):
     stats_layout.setContentsMargins(10, 10, 10, 10)
 
     label_name = QLabel("Nome")
-    label_name.setStyleSheet("""font-family: Gotham; color: #000000;font-size: 20pt;""")
+    label_name.setStyleSheet("""font-family: Gotham; color: #000000;font-size: 20pt;font-weight: bold;""")
     label_surname = QLabel("Cognome")
-    label_surname.setStyleSheet("""font-family: Gotham; color: #E30613;font-size: 20pt;""")
+    label_surname.setStyleSheet("""font-family: Gotham; color: #E30613;font-size: 20pt;font-weight: bold;""")
     # Etichette vuote che verranno aggiornate dinamicamente
-    label_created = QLabel("Registrato il: -")
-    label_created.setStyleSheet(style_text_gotham_b)
+    label_created_when = QLabel("Registrato il: -")
+    label_created_when.setStyleSheet(style_text_gotham_b)
+
+    label_created_by = QLabel("Registrato da: -")
+    label_created_by.setStyleSheet(style_text_gotham_b)
 
     label_city = QLabel("Città: -")
     label_city.setStyleSheet(style_text_gotham_b)
@@ -82,23 +88,23 @@ def view_players_ui_layout(player_list: List[Player]):
     # Aggiungi al layout
     stats_layout.addWidget(label_name)
     stats_layout.addWidget(label_surname)
-    stats_layout.addWidget(label_created)
+    stats_layout.addWidget(label_created_when)
+    stats_layout.addWidget(label_created_by)
     stats_layout.addWidget(label_city)
     stats_layout.addWidget(label_eta)
     stats_layout.addWidget(label_time)
     stats_layout.addWidget(label_sport)
     stats_layout.addWidget(label_avg_n_player)
-    stats_layout.setSpacing(15)
+    stats_layout.setSpacing(12)
     stats_layout.addStretch()
 
     hSplitter.addWidget(stats_widget)
     # -------------------------------------------------------
     hSplitter.setCollapsible(0,False)
-    hSplitter.setStretchFactor(0,1)
+    hSplitter.setStretchFactor(0,0)
     hSplitter.setStretchFactor(1,1)
     hSplitter.handle(1).setEnabled(False)
     vLayout.addWidget(hSplitter)
-    tree.setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
     hLayoutBtn = QHBoxLayout()
     hLayoutBtn.addStretch(1)
@@ -155,7 +161,7 @@ def view_players_ui_layout(player_list: List[Player]):
     #back_btn.clicked.connect(self.init_main_ui)
     bottom_bar.addWidget(back_btn)
     main_layout.addLayout(bottom_bar)
-    return main_layout, center_text, tree, label_name,label_surname,label_created,label_city,label_eta,label_time,label_sport,label_avg_n_player,add_play_btn, del_play_btn,back_btn
+    return main_layout, center_text, tree, label_name,label_surname,label_created_when,label_created_by,label_city,label_eta,label_time,label_sport,label_avg_n_player,add_play_btn, del_play_btn,back_btn
 
 class add_Player_ui(QDialog):
     def __init__(self,parent=None):

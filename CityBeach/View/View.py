@@ -193,29 +193,46 @@ class MainWindow(QWidget):
         self.setWindowTitle("CityBeach Ancona | Giocatori")
         self.center_window()
 
-        (main_layout, center_text, tree, label_name, label_surname, label_created, label_city,label_eta, label_time,
+        (main_layout, center_text, tree, label_name, label_surname, label_created_when,label_created_by, label_city,label_eta, label_time,
          label_sport, label_avg_n_player, add_play_btn, del_play_btn, back_btn)= view_players_ui_layout(self.players_controller.players.values())
-
+        labels = (label_name,label_surname,label_created_when,label_created_by,label_city,label_eta,label_time,label_sport,label_avg_n_player)
+        for lab in labels:
+            lab.setText("")
         def del_player():
             if self.selected_player == None:
                 return False
-            status, err_id = self.players_controller.delete_user(self.selected_player)
+            status, err_id = self.players_controller.delete_player(self.selected_player)
             if status:
+                self.model.save_to_file("data.pkl")
                 self.model = AppData.load_from_file("data.pkl")
-                QMessageBox.information(self, "Rimosso", "Utente eliminato.")
+                QMessageBox.information(self, "Rimosso", f"Il profilo di {self.selected_player.name} {self.selected_player.surname} è stato rimosso")
                 self.init_players_ui()
             else:
                 if err_id==1:
-                    QMessageBox.warning(self, "Errore", "Non puoi eliminare il tuo account.")
-                elif err_id==2:
                     QMessageBox.critical(self, "Errore", "Errore")
-                elif err_id == 3:
+                elif err_id == 2:
                     QMessageBox.warning(self, "Errore", "Si è verificato un problema durante l'operazione.")
 
+
         def tree_on_item_selected():
+            #@TODO: add EDIT function (double-click) and search (+filter) function
             selected_player = tree.selectedItems()
             if selected_player and selected_player.__len__() == 1:
-                self.selected_player = selected_player[0]  # it is an QTree Object
+                self.selected_player = self.players_controller.findByEmail(selected_player[0].text(4)) #find by email
+                del_play_btn.setStyleSheet(style_QButton_white_18Gotham)
+                del_play_btn.setEnabled(True)
+                #UPDATE STATS
+                label_name.setText(self.selected_player.name.upper())
+                label_surname.setText(self.selected_player.surname.upper())
+                label_created_when.setText(f"Registrato il: {self.selected_player.data_created.date()}")
+                label_created_by.setText(f"Registrato da: {self.selected_player.added_by}")
+                label_city.setText(f"Città: {self.selected_player.residence}")
+            else:
+                self.selected_player = None
+                del_play_btn.setStyleSheet(style_QButton_disabled)
+                del_play_btn.setEnabled(False)
+                for lab in labels:
+                    lab.setText("")
 
         def show_add_dipendente_ui():
             dlg = add_Player_ui(self)

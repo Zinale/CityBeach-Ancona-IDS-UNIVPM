@@ -40,8 +40,23 @@ class AppPlayersController:
         except:
             return False,-1
 
+    def delete_player(self,player:Player)->bool and int:
+        try:
+            if player:
+                del self.players[player.id]
+                return True,0
+            else:
+                return False,2
+        except:
+            return False, 1
+
+
     def checkPhone(self,phone:str):
         return any(getattr(player, "phone", None) == phone for player in self.players)
 
     def checkEmail(self,email:str):
         return any(getattr(player, "email", None) == email for player in self.players)
+
+    def findByEmail(self,emaiL:str)->Player:
+        return next((player for player in self.players.values() if player.email == emaiL), None)
+
