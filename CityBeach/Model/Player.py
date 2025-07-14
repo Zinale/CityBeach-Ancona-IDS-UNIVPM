@@ -6,18 +6,17 @@ from Model.Gender import Gender
 class Player:
     def __init__(self, id:int,name:str = " ",surname:str=" ",phone:str ="+39 333 333 3333",
                  email:str="example@invalid.com",datebirth:datetime.date | None=None,
-                 gender:Gender.Gender = "M/F",added_by: str = "admin",password: str=""):
+                 gender:Gender = Gender.OTHER,added_by: str = "admin",residence:str=""):
         self.id = id
         self.name = name
         self.surname = surname
         self.birthday = datebirth
         self.phone = phone
         self.email = email
-        if datebirth is None:
-            self.birthday = datetime.date.today()
         self.gender = gender
         self.data_created = datetime.datetime.now()
         self.added_by = added_by
+        self.residence = residence
 
     def __str__(self):
         return f"Player: '{self.name}'\t'{self.surname}'\tid:{self.id}"

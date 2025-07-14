@@ -2,6 +2,7 @@ import pickle
 from typing import Dict
 
 from Model.Article import Article
+from Model.Player import Player
 from Model.User import User
 from Model.SportsEquipment import SportsEquipment
 
@@ -13,7 +14,10 @@ class AppData:
         self.articles: Dict[str, Article] = {}
         self.current_user: User | None = None
         self.equipment:Dict[int,SportsEquipment] = {}
+        #id->
         self.equipment_next_it: int = 0
+        self.players:Dict[int,Player] = {}
+        self.players_next_id:int = 0
 
     def save_to_file(self, path: str):
         with open(path, 'wb') as f:

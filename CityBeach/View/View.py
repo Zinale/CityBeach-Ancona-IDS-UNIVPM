@@ -2,6 +2,7 @@ import PyQt6.QtCore
 from PyQt6.QtGui import QFont, QBrush, QColor
 from PyQt6.QtWidgets import QWidget
 
+from Controller.PlayersController import AppPlayersController
 from Controller.UsersController import AppUsersController
 from Controller.AttrrezzaturaSportivaController import AppSportsEquipmentController
 from Model.Data import AppData
@@ -11,6 +12,7 @@ from paths import image_path
 from .Dipendenti_ui import *
 from .Login_ui import *
 from .Main_ui import *
+from .Player_ui import *
 from .styles import *
 from .AttrezzaturaSportiva_ui import *
 from .topBar import *
@@ -32,6 +34,7 @@ class MainWindow(QWidget):
         self.model = AppData.load_from_file("data.pkl")
         self.users_controller = AppUsersController(self.model.users,self.model.users_next_id)
         self.sport_equipment_controller = AppSportsEquipmentController(self.model.equipment,self.model.equipment_next_it)
+        self.players_controller = AppPlayersController(self.model.players,self.model.players_next_id)
         if (self.model.users.__len__() == 0):
             #"admin": "admin" is the first user to be created
             success, status = self.users_controller.register("admin","admin","admin",PyQt6.QtCore.QDate(1,1,1).toString("dd/MM/yyyy"),is_admin = True,password="admin")
@@ -74,6 +77,7 @@ class MainWindow(QWidget):
         self.setMinimumSize(1280, 720)
         self.setMaximumSize(10000,10000)
         self.selected_user = None
+        self.selected_player = None
         #self.showMaximized()
         self.setWindowTitle("CityBeach Ancona | Menù")
         self.center_window()
@@ -88,13 +92,14 @@ class MainWindow(QWidget):
             if dlg.exec():
                 self.init_main_ui()
 
-        main_layout, btn_campi, btn_pren,btn_gioc,btn_attspo,btn_dip,btn_rist,center_text,profile_btn,log_btn = main_ui_layout()
+        main_layout, btn_campi, btn_pren,btn_play,btn_attspo,btn_dip,btn_rist,center_text,profile_btn,log_btn = main_ui_layout()
         if not self.users_controller.get_current_user().is_admin:
            center_text.setStyleSheet(style_text_red_on_white)
         else:
             center_text.setStyleSheet(style_text_white_on_red)
         btn_dip.clicked.connect(view_dipendenti)
         btn_attspo.clicked.connect(self.init_sport_equipment_ui)
+        btn_play.clicked.connect(self.init_players_ui)
         # Testo centrale
         center_text.setText(f"{self.users_controller.get_current_user().username}")
         profile_btn.clicked.connect(show_edit_user_ui)
@@ -163,7 +168,6 @@ class MainWindow(QWidget):
         self.setStyleSheet("background-color: #FFF0E6;")
         self.setMinimumSize(1280, 720)
         self.setMaximumSize(10000, 10000)
-        self.selected_player = None
         self.setWindowTitle("CityBeach Ancona | Attrezzatura Sportiva")
         self.center_window()
 
@@ -185,19 +189,21 @@ class MainWindow(QWidget):
         self.setMinimumSize(1280, 720)
         self.setMaximumSize(10000, 10000)
         self.selected_player = None
+        self.selected_player = None
         self.setWindowTitle("CityBeach Ancona | Giocatori")
         self.center_window()
 
-        main_layout, center_text, tree, dip_btn, del_dip_btn,back_btn = view_dipendenti_ui_layout(self.users_controller.get_all_users())
+        (main_layout, center_text, tree, label_name, label_surname, label_created, label_city,label_eta, label_time,
+         label_sport, label_avg_n_player, add_play_btn, del_play_btn, back_btn)= view_players_ui_layout(self.players_controller.players.values())
 
-        def del_dipendente():
-            if self.selected_user == None:
+        def del_player():
+            if self.selected_player == None:
                 return False
-            status, err_id = self.users_controller.delete_user(self.selected_user.text(4))
+            status, err_id = self.players_controller.delete_user(self.selected_player)
             if status:
                 self.model = AppData.load_from_file("data.pkl")
                 QMessageBox.information(self, "Rimosso", "Utente eliminato.")
-                self.init_dipendenti_ui()
+                self.init_players_ui()
             else:
                 if err_id==1:
                     QMessageBox.warning(self, "Errore", "Non puoi eliminare il tuo account.")
@@ -207,26 +213,25 @@ class MainWindow(QWidget):
                     QMessageBox.warning(self, "Errore", "Si è verificato un problema durante l'operazione.")
 
         def tree_on_item_selected():
-            selected_user = tree.selectedItems()
-            if selected_user and selected_user.__len__() == 1:
-                self.selected_user = selected_user[0]  # it is an QTree Object
+            selected_player = tree.selectedItems()
+            if selected_player and selected_player.__len__() == 1:
+                self.selected_player = selected_player[0]  # it is an QTree Object
 
         def show_add_dipendente_ui():
-            dlg = add_Dipendete_ui(self)
+            dlg = add_Player_ui(self)
             if dlg.exec():
-                self.init_dipendenti_ui()
+                self.init_players_ui()
 
         tree.itemSelectionChanged.connect(tree_on_item_selected)
 
-        dip_btn.clicked.connect(show_add_dipendente_ui)
+        add_play_btn.clicked.connect(show_add_dipendente_ui)
 
-        del_dip_btn.clicked.connect(del_dipendente)
+        del_play_btn.clicked.connect(del_player)
         center_text.setText(f"{self.users_controller.get_current_user().username}")
         if not self.users_controller.get_current_user().is_admin:
             center_text.setStyleSheet(style_text_red_on_white)
         else:
             center_text.setStyleSheet(style_text_white_on_red)
-
         back_btn.clicked.connect(self.init_main_ui)
         self.setLayout(main_layout)
 
@@ -241,11 +246,11 @@ class MainWindow(QWidget):
         self.users_controller.logout()
         self.init_login_ui()
 
-    def add_article(self):
-        title, ok = QInputDialog.getText(self, "Nuovo Articolo", "Titolo articolo:")
-        if ok and title:
-            self.users_controller.add_article(title)
-            QMessageBox.information(self, "Successo", "Articolo aggiunto.")
+#    def add_article(self):
+#        title, ok = QInputDialog.getText(self, "Nuovo Articolo", "Titolo articolo:")
+#        if ok and title:
+#            self.users_controller.add_article(title)
+#            QMessageBox.information(self, "Successo", "Articolo aggiunto.")
 
     def clear_layout(self):
         if self.layout():

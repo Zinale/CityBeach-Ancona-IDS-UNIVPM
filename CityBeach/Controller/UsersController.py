@@ -1,8 +1,6 @@
-from types import new_class
 from typing import List, Dict
 
 import PyQt6.QtCore
-from Model.Data import AppData
 from Model.Gender import Gender
 from Model.User import User
 

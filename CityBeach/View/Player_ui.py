@@ -1,0 +1,272 @@
+import sys
+from turtledemo.sorting_animate import start_ssort
+from typing import List
+
+from PyQt6.QtCore import Qt, QDate
+from PyQt6.QtGui import QPixmap, QIcon, QBrush, QColor, QFont
+from PyQt6.QtWidgets import (
+    QApplication, QDialog, QLabel, QLineEdit, QPushButton, QSizePolicy,
+    QVBoxLayout, QHBoxLayout, QMessageBox, QTreeWidget, QTreeWidgetItem,
+    QDateEdit, QComboBox, QCheckBox, QFormLayout, QSplitter, QWidget
+)
+from View.styles import *
+from View.topBar import topBar
+from Model import Gender
+from Model import Player
+
+def view_players_ui_layout(player_list: List[Player]):
+    # Layout verticale principale
+    main_layout = QVBoxLayout()
+    main_layout.setContentsMargins(10, 10, 10, 10)
+    main_layout.setSpacing(10)
+    vLayout = QVBoxLayout()
+    # --- TOP BAR ------------------------------------------------------------------------------------
+    top_bar_widget = QWidget()
+    top_bar_widget.setFixedHeight(60)
+    top_bar_widget.setLayout(topBar())
+    main_layout.addWidget(top_bar_widget)
+    # --- Text + QTreeWidget + Add / ------------------------------------------------------------------------------------
+    contextText = QLabel("Lista Giocatori:")
+    contextText.setAlignment(Qt.AlignmentFlag.AlignCenter)
+    contextText.setFixedHeight(23)
+    contextText.setStyleSheet("""font-family: Gotham; color: #000000;font-size: 20pt;""")
+    vLayout.addWidget(contextText)
+    hSplitter = QSplitter(Qt.Orientation.Horizontal)
+
+    # ----------------- TREE WIDGET ----------------
+    tree = QTreeWidget()
+    tree.setHeaderLabels(
+        ["Nome", "Cognome", "Data di Nascita", "Sesso", "Email", "Telefono"])
+    for player in player_list:
+        item = QTreeWidgetItem([
+            str(player.name),
+            str(player.surname),
+            str(player.birthday),
+            str(player.gender.value),
+            str(player.email),
+            str(player.phone)
+        ])
+        tree.addTopLevelItem(item)
+    tree.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+    hSplitter.addWidget(tree)
+    #-------------------------------------------------------
+    #--------------Player Stats------------------------------
+    stats_widget = QWidget()
+    stats_layout = QVBoxLayout(stats_widget)
+    stats_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+    stats_layout.setContentsMargins(10, 10, 10, 10)
+
+    label_name = QLabel("Nome")
+    label_name.setStyleSheet("""font-family: Gotham; color: #000000;font-size: 20pt;""")
+    label_surname = QLabel("Cognome")
+    label_surname.setStyleSheet("""font-family: Gotham; color: #E30613;font-size: 20pt;""")
+    # Etichette vuote che verranno aggiornate dinamicamente
+    label_created = QLabel("Registrato il: -")
+    label_created.setStyleSheet(style_text_gotham_b)
+
+    label_city = QLabel("Città: -")
+    label_city.setStyleSheet(style_text_gotham_b)
+
+    label_eta = QLabel("Prenotazioni: -")
+    label_eta.setStyleSheet(style_text_gotham_b)
+
+    label_time = QLabel("Orario Pref.: -")
+    label_time.setStyleSheet(style_text_gotham_b)
+
+    label_sport = QLabel("Sport Pref.: -")
+    label_sport.setStyleSheet(style_text_gotham_b)
+
+    label_avg_n_player = QLabel("Media pers/pren: -")
+    label_avg_n_player.setStyleSheet(style_text_gotham_b)
+
+    # Aggiungi al layout
+    stats_layout.addWidget(label_name)
+    stats_layout.addWidget(label_surname)
+    stats_layout.addWidget(label_created)
+    stats_layout.addWidget(label_city)
+    stats_layout.addWidget(label_eta)
+    stats_layout.addWidget(label_time)
+    stats_layout.addWidget(label_sport)
+    stats_layout.addWidget(label_avg_n_player)
+    stats_layout.setSpacing(15)
+    stats_layout.addStretch()
+
+    hSplitter.addWidget(stats_widget)
+    # -------------------------------------------------------
+    hSplitter.setCollapsible(0,False)
+    hSplitter.setStretchFactor(0,1)
+    hSplitter.setStretchFactor(1,1)
+    hSplitter.handle(1).setEnabled(False)
+    vLayout.addWidget(hSplitter)
+    tree.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+
+    hLayoutBtn = QHBoxLayout()
+    hLayoutBtn.addStretch(1)
+    #--------------------- Search, Add, Del section-------------------------------------------------------
+    btn_bar_widget = QWidget()
+    btn_bar_widget.setFixedHeight(60)
+    # add Player btn
+    add_play_btn = QPushButton("Crea Giocatore")
+    add_play_btn.setStyleSheet(style_QButton_white_18Gotham)
+    add_play_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
+    hLayoutBtn.addWidget(add_play_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
+
+    del_play_btn = QPushButton("Elimina Giocatore")
+    del_play_btn.setStyleSheet(style_QButton_disabled)
+    del_play_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
+    del_play_btn.setEnabled(False)
+    hLayoutBtn.addWidget(del_play_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
+    btn_bar_widget.setLayout(hLayoutBtn)
+    #----------------------------------------------------------------------------
+
+    vLayout.addWidget(btn_bar_widget)
+    vLayout.setSpacing(15)
+    main_layout.addLayout(vLayout)
+
+    # --- BOTTOM BAR ------------------------------------------------------------------------------------
+    bottom_bar = QHBoxLayout()
+    bottom_bar.setContentsMargins(0, 0, 0, 0)
+
+    logo_label = QLabel()
+    try:
+        pixmap = QPixmap("src/img/logo.png")
+        if not pixmap.isNull():
+            logo_label.setPixmap(
+                pixmap.scaledToHeight(60, Qt.TransformationMode.SmoothTransformation)
+            )
+    except Exception as e:
+        print(f"Errore caricamento immagine: {e}")
+
+    bottom_bar.addWidget(logo_label)
+    bottom_bar.addSpacing(10)
+
+    # mid text
+    #f"{self.controller.get_current_user().username}"
+    center_text = QLabel()
+    center_text.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+    bottom_bar.addStretch()
+    bottom_bar.addWidget(center_text)
+    bottom_bar.addStretch()
+
+    # right btn
+    back_btn = QPushButton("Indietro")
+    back_btn.setStyleSheet(style_QButton_red)
+    #back_btn.clicked.connect(self.init_main_ui)
+    bottom_bar.addWidget(back_btn)
+    main_layout.addLayout(bottom_bar)
+    return main_layout, center_text, tree, label_name,label_surname,label_created,label_city,label_eta,label_time,label_sport,label_avg_n_player,add_play_btn, del_play_btn,back_btn
+
+class add_Player_ui(QDialog):
+    def __init__(self,parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Aggiungi Giocatore")
+        self.setFixedSize(300, 320)
+        self.setStyleSheet(style_app_Dialogs)
+        self.setWindowIcon(QIcon("src/img/logo.png"))
+        self.init_ui()
+
+    def init_ui(self):
+        layout = QFormLayout()
+        nameBar = QLineEdit()
+        surnameBar = QLineEdit()
+
+        birth_day_sel = QDateEdit()
+        birth_day_sel.setDisplayFormat("dd/MM/yyyy")
+        birth_day_sel.setCalendarPopup(True)
+        birth_day_sel.setDate(QDate.currentDate())
+
+        genderCheck = QComboBox()
+        genderCheck.addItems(["Maschio", "Femmina", "Altro"])
+
+        emailBar = QLineEdit()
+        emailBar.setPlaceholderText("prova@esempio.it")
+        cityBar = QLineEdit()
+
+        phone_widget = QWidget()
+        phone_layout = QHBoxLayout()
+        phone_layout.setContentsMargins(0, 0, 0, 0)
+        prefix_label = QLineEdit("+39")
+        prefix_label.setPlaceholderText("+39")
+        prefix_label.setMaximumWidth(40)
+        phoneBar = QLineEdit()
+        phoneBar.setInputMask("999 999 9999;_")
+        phone_layout.addWidget(prefix_label)
+        phone_layout.addWidget(phoneBar)
+        phone_widget.setLayout(phone_layout)
+
+        save_btn = QPushButton("Salva")
+        save_btn.setStyleSheet(style_QButton_red)
+
+        back_btn = QPushButton("Indietro")
+        back_btn.setStyleSheet(style_QButton_white)
+        back_btn.clicked.connect(self.close)
+
+        btn_layout = QHBoxLayout()
+        btn_layout.addStretch(1)
+        btn_layout.addWidget(back_btn)
+        btn_layout.addWidget(save_btn)
+
+        # Styling
+        font = QFont()
+        font.setPointSize(12)
+        self.setFont(font)
+
+        layout.addRow("Nome:", nameBar)
+        layout.addRow("Cognome:", surnameBar)
+        layout.addRow("Data di nascita:", birth_day_sel)
+        layout.addRow("Sesso:", genderCheck)
+        layout.addRow("Telefono: ",phone_widget)
+        layout.addRow("Email: ",emailBar)
+        layout.addRow("Città: ",cityBar)
+
+        main_layout = QVBoxLayout()
+        main_layout.addLayout(layout)
+        main_layout.addLayout(btn_layout)
+
+        self.setLayout(main_layout)
+
+        def submit_data():
+            GENDER_MAP = {
+                "Maschio": Gender.Gender.MALE,
+                "Femmina": Gender.Gender.FEMALE
+            }
+            gender = GENDER_MAP.get(genderCheck.currentText(), Gender.Gender.OTHER)
+            data = {
+                "name": nameBar.text(),
+                "surname": surnameBar.text(),
+                "birthday": birth_day_sel.date().toString("dd/MM/yyyy"),
+                "gender": gender,
+                "phone":str(prefix_label.text())+str(phoneBar.text()),
+                "email":emailBar.text(),
+                "city":cityBar.text()
+            }
+            # call his parent
+            if hasattr(self.parent().players_controller, "register"):      #check if "self.register_dipendente" exists in 'MainWindow'"
+                success, err_id = self.parent().players_controller.register(list(data.values()),self.parent().users_controller.current_user)
+                if success:
+                    self.parent().model.players_next_id = self.parent().players_controller.player_id
+                    self.parent().model.save_to_file("data.pkl")
+                    QMessageBox.information(self, "Successo", "Giocatore aggiunto.")
+                    self.accept()
+                else:
+                    # controller said: "no!"
+                    if err_id == 1:
+                        QMessageBox.warning(self, "Errore", "Impossibile inserire una data pari o successiva alla corrente")
+                    elif err_id == 2:
+                        QMessageBox.warning(self, "Errore", "Nessuno sta utilizzando il programma")
+                    elif err_id == 3:
+                        QMessageBox.warning(self, "Errore", "Email non vaida")
+                    elif err_id == 4:
+                        QMessageBox.warning(self, "Errore", "Email già usata")
+                    elif err_id == 5:
+                        QMessageBox.warning(self, "Errore", "Numero di telefono già usato")
+                    elif err_id == -1:
+                        QMessageBox.critical(self, "Errore", "Errore")
+            else:
+                QMessageBox.critical(self, "Errore", "Controller non valido/ha riscontrato un errore.")
+        save_btn.clicked.connect(submit_data)
+        self.setLayout(main_layout)
+
+if __name__ != "__main__":
+    from .styles import *

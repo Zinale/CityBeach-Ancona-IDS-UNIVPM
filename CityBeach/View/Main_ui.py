@@ -67,7 +67,7 @@ def main_ui_layout() -> QVBoxLayout() and QPushButton()and QPushButton()and QPus
     # Profili Giocatori
     btn_gioc = QPushButton()
     btn_gioc.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-    btn_gioc.setStyleSheet(style_img1_bg("Baby.tux.sit-800x800.png"))
+    btn_gioc.setStyleSheet(style_img1_bg("players.png"))
     label_gioc = QLabel("Profili Giocatori")
     label_gioc.setAlignment(Qt.AlignmentFlag.AlignHCenter)
     label_gioc.setStyleSheet(style_text_gotham_b)
@@ -79,7 +79,7 @@ def main_ui_layout() -> QVBoxLayout() and QPushButton()and QPushButton()and QPus
     # Att. Sportiva
     btn_attspo = QPushButton()
     btn_attspo.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-    btn_attspo.setStyleSheet(style_img1_bg("Baby.tux.sit-800x800.png"))
+    btn_attspo.setStyleSheet(style_img1_bg("sports_equip.png"))
     label_attspo = QLabel("Attrezzatura Sportiva")
     label_attspo.setAlignment(Qt.AlignmentFlag.AlignHCenter)
     label_attspo.setStyleSheet(style_text_gotham_b)
@@ -90,7 +90,7 @@ def main_ui_layout() -> QVBoxLayout() and QPushButton()and QPushButton()and QPus
 
     btn_dip = QPushButton()
     btn_dip.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-    btn_dip.setStyleSheet(style_img1_bg("Baby.tux.sit-800x800.png"))
+    btn_dip.setStyleSheet(style_img1_bg("staff.png"))
     #btn_dip.clicked.connect(view_dipendenti)
     label_dip = QLabel("Dipendenti")
     label_dip.setAlignment(Qt.AlignmentFlag.AlignHCenter)
