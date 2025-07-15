@@ -163,10 +163,17 @@ def view_players_ui_layout(player_list: List[Player]):
     main_layout.addLayout(bottom_bar)
     return main_layout, center_text, tree, label_name,label_surname,label_created_when,label_created_by,label_city,label_eta,label_time,label_sport,label_avg_n_player,add_play_btn, del_play_btn,back_btn
 
-class add_Player_ui(QDialog):
-    def __init__(self,parent=None):
+class info_Player_ui(QDialog):
+    def __init__(self,phase:int,player_to_edit:Player=None,parent=None):
+        #value = 0 -> to register new Player
+        #value = 1 -> to edit an existing Player
         super().__init__(parent)
-        self.setWindowTitle("Aggiungi Giocatore")
+        self.phase = phase
+        self.player_to_edit = player_to_edit
+        if phase==0:
+            self.setWindowTitle("Aggiungi Giocatore")
+        else:
+            self.setWindowTitle(f"Modifica {player_to_edit.name} {player_to_edit.surname}")
         self.setFixedSize(300, 320)
         self.setStyleSheet(style_app_Dialogs)
         self.setWindowIcon(QIcon("src/img/logo.png"))
@@ -226,6 +233,18 @@ class add_Player_ui(QDialog):
         layout.addRow("Email: ",emailBar)
         layout.addRow("Città: ",cityBar)
 
+        if self.phase == 1:
+            nameBar.setText(f"{self.player_to_edit.name}")
+            surnameBar.setText(f"{self.player_to_edit.surname}")
+            date = self.player_to_edit.birthday.split("/")
+            birth_day_sel.setDate(QDate(int(date[2]), int(date[1]), int(date[0])))
+            genderCheck.setCurrentIndex(list(Gender.Gender).index(self.player_to_edit.gender))
+            phone_number = self.player_to_edit.phone
+            prefix_label.setText(phone_number[:2])
+            phoneBar.setText(phone_number[3:])
+            emailBar.setText(self.player_to_edit.email)
+            cityBar.setText(self.player_to_edit.residence)
+
         main_layout = QVBoxLayout()
         main_layout.addLayout(layout)
         main_layout.addLayout(btn_layout)
@@ -248,29 +267,51 @@ class add_Player_ui(QDialog):
                 "city":cityBar.text()
             }
             # call his parent
-            if hasattr(self.parent().players_controller, "register"):      #check if "self.register_dipendente" exists in 'MainWindow'"
-                success, err_id = self.parent().players_controller.register(list(data.values()),self.parent().users_controller.current_user)
-                if success:
-                    self.parent().model.players_next_id = self.parent().players_controller.player_id
-                    self.parent().model.save_to_file("data.pkl")
-                    QMessageBox.information(self, "Successo", "Giocatore aggiunto.")
-                    self.accept()
+            if self.phase==0:
+                #REGISTER NEW PLAYER
+                if hasattr(self.parent().players_controller, "register_player"):      #check if "self.register_dipendente" exists in 'MainWindow'"
+                    success, err_id = self.parent().players_controller.register_player(list(data.values()),self.parent().users_controller.current_user)
+                    if success:
+                        self.parent().model.players_next_id = self.parent().players_controller.player_id
+                        self.parent().model.save_to_file("data.pkl")
+                        QMessageBox.information(self, "Successo", "Giocatore aggiunto.")
+                        self.accept()
+                    else:
+                        # controller said: "no!"
+                        if err_id == 1:
+                            QMessageBox.warning(self, "Errore", "Impossibile inserire una data pari o successiva alla corrente")
+                        elif err_id == 2:
+                            QMessageBox.warning(self, "Errore", "Nessuno sta utilizzando il programma")
+                        elif err_id == 3:
+                            QMessageBox.warning(self, "Errore", "Email non vaida")
+                        elif err_id == 4:
+                            QMessageBox.warning(self, "Errore", "Email già usata")
+                        elif err_id == 5:
+                            QMessageBox.warning(self, "Errore", "Numero di telefono già usato")
+                        elif err_id == -1:
+                            QMessageBox.critical(self, "Errore", "Errore")
                 else:
-                    # controller said: "no!"
-                    if err_id == 1:
-                        QMessageBox.warning(self, "Errore", "Impossibile inserire una data pari o successiva alla corrente")
-                    elif err_id == 2:
-                        QMessageBox.warning(self, "Errore", "Nessuno sta utilizzando il programma")
-                    elif err_id == 3:
-                        QMessageBox.warning(self, "Errore", "Email non vaida")
-                    elif err_id == 4:
-                        QMessageBox.warning(self, "Errore", "Email già usata")
-                    elif err_id == 5:
-                        QMessageBox.warning(self, "Errore", "Numero di telefono già usato")
-                    elif err_id == -1:
-                        QMessageBox.critical(self, "Errore", "Errore")
-            else:
-                QMessageBox.critical(self, "Errore", "Controller non valido/ha riscontrato un errore.")
+                    QMessageBox.critical(self, "Errore", "Controller non valido/ha riscontrato un errore.")
+            elif self.phase==1:
+                #EDIT PLAYER
+                if hasattr(self.parent().players_controller,"edit_player"):
+                    success, err_id = self.parent().players_controller.edit_player(list(data.values()),self.player_to_edit.id)
+                    if success:
+                        self.parent().model.save_to_file("data.pkl")
+                        QMessageBox.information(self, "Successo", f"Profilo di {self.player_to_edit.name} {self.player_to_edit.surname} modificato.")
+                        self.accept()
+                    else:
+                        # controller said: "no!"
+                        if err_id == 1:
+                            QMessageBox.warning(self, "Errore", "Impossibile inserire una data pari o successiva alla corrente")
+                        elif err_id == 2:
+                            QMessageBox.warning(self, "Errore", "Email non vaida")
+                        elif err_id == 3:
+                            QMessageBox.warning(self, "Errore", "Email già usata")
+                        elif err_id == 4:
+                            QMessageBox.warning(self, "Errore", "Numero di telefono già usato")
+                        elif err_id == -1:
+                            QMessageBox.critical(self, "Errore", "Errore")
         save_btn.clicked.connect(submit_data)
         self.setLayout(main_layout)
 

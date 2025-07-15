@@ -116,16 +116,16 @@ style_text_white_on_red = """
 def style_img1_bg(img:str):
     return f"""
     QPushButton {{
-        border: 1px solid #000000;
+        border: 2px solid #000000;
         border-radius: 14px;
-        background-image: url("src/img/{img}");
+        border-image: url("src/img/{img}") 0 0 0 0 stretch stretch;
         background-repeat: no-repeat;
         background-position: center;
-        background-size: contain;
+        background-size: cover;
     }}
     QPushButton:hover {{
-        background-color: rgba(0, 0, 0, 30);
-        border: 2px solid #3777FF;
+        background-color: rgba(55,119,255,0.5);
+        border: 8px solid #3777FF;
     }}
 """
 style_app_Dialogs = """

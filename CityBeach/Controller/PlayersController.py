@@ -11,7 +11,7 @@ class AppPlayersController:
         self.player_id = player_id
         self.current_user = None
 
-    def register(self,data,current_user) -> bool and int:
+    def register_player(self,data,current_user) -> bool and int:
         try:
             name = data[0]
             surname = data[1]
@@ -50,6 +50,34 @@ class AppPlayersController:
         except:
             return False, 1
 
+    def edit_player(self,data,id_player_to_edit:int)-> bool and int:
+        try:
+            name = data[0]
+            surname = data[1]
+            birthday = data[2]
+            date = birthday.strip().split("/")
+            if PyQt6.QtCore.QDate(int(date[2]),int(date[1]),int(date[0])) >= PyQt6.QtCore.QDate.currentDate():
+                return False,1
+            gender = data[3]
+            phone = data[4]
+            email = data[5]
+            city = data[6]
+            if "@" not in email:
+                return False, 2
+            if self.checkEmail(email):
+                return False, 3
+            if self.checkPhone(phone):
+                return False,4
+            self.players[id_player_to_edit].name = name
+            self.players[id_player_to_edit].surname = surname
+            self.players[id_player_to_edit].birthday = birthday
+            self.players[id_player_to_edit].gender = gender
+            self.players[id_player_to_edit].phone = phone
+            self.players[id_player_to_edit].email = email
+            self.players[id_player_to_edit].residence = city
+            return True,0
+        except:
+            return False,-1
 
     def checkPhone(self,phone:str):
         return any(getattr(player, "phone", None) == phone for player in self.players)

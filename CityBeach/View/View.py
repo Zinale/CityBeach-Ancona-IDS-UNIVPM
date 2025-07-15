@@ -21,7 +21,6 @@ import os
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
-
         font_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..","src","fonts","GothamBook.ttf"))
         #print("Esiste il file:", os.path.exists(font_path))
         font_id = QFontDatabase.addApplicationFont(font_path)
@@ -41,6 +40,8 @@ class MainWindow(QWidget):
             if success:
                 self.model.users_next_id = self.users_controller.user_id
                 self.model.save_to_file("data.pkl")
+        self.selected_user = None
+        self.selected_player = None
         self.init_login_ui()
 
     def init_login_ui(self):
@@ -184,6 +185,7 @@ class MainWindow(QWidget):
 
 
     def init_players_ui(self):
+        #@TODO: fix EDIT function (double-click) and search (+filter) function
         self.clear_layout()
         self.setStyleSheet("background-color: #FFF0E6;")
         self.setMinimumSize(1280, 720)
@@ -194,28 +196,32 @@ class MainWindow(QWidget):
         self.center_window()
 
         (main_layout, center_text, tree, label_name, label_surname, label_created_when,label_created_by, label_city,label_eta, label_time,
-         label_sport, label_avg_n_player, add_play_btn, del_play_btn, back_btn)= view_players_ui_layout(self.players_controller.players.values())
+         label_sport, label_avg_n_player, add_play_btn, del_play_btn, back_btn)= view_players_ui_layout(list(self.players_controller.players.values()))
         labels = (label_name,label_surname,label_created_when,label_created_by,label_city,label_eta,label_time,label_sport,label_avg_n_player)
         for lab in labels:
             lab.setText("")
+
         def del_player():
             if self.selected_player == None:
                 return False
-            status, err_id = self.players_controller.delete_player(self.selected_player)
-            if status:
-                self.model.save_to_file("data.pkl")
-                self.model = AppData.load_from_file("data.pkl")
-                QMessageBox.information(self, "Rimosso", f"Il profilo di {self.selected_player.name} {self.selected_player.surname} è stato rimosso")
+            confirm = self.confirmDeletePlayer()
+            if confirm:
+                status, err_id = self.players_controller.delete_player(self.selected_player)
+                if status:
+                    self.model.save_to_file("data.pkl")
+                    self.model = AppData.load_from_file("data.pkl")
+                    QMessageBox.information(self, "Rimosso", f"Il profilo di {self.selected_player.name} {self.selected_player.surname} è stato rimosso")
+                    self.init_players_ui()
+                else:
+                    if err_id==1:
+                        QMessageBox.critical(self, "Errore", "Errore")
+                    elif err_id == 2:
+                        QMessageBox.warning(self, "Errore", "Si è verificato un problema durante l'operazione.")
+        def show_edit_player_ui():
+            dlg = info_Player_ui(parent=self,phase=1,player_to_edit = self.selected_player)
+            if dlg.exec():
                 self.init_players_ui()
-            else:
-                if err_id==1:
-                    QMessageBox.critical(self, "Errore", "Errore")
-                elif err_id == 2:
-                    QMessageBox.warning(self, "Errore", "Si è verificato un problema durante l'operazione.")
-
-
         def tree_on_item_selected():
-            #@TODO: add EDIT function (double-click) and search (+filter) function
             selected_player = tree.selectedItems()
             if selected_player and selected_player.__len__() == 1:
                 self.selected_player = self.players_controller.findByEmail(selected_player[0].text(4)) #find by email
@@ -235,11 +241,12 @@ class MainWindow(QWidget):
                     lab.setText("")
 
         def show_add_dipendente_ui():
-            dlg = add_Player_ui(self)
+            dlg = info_Player_ui(parent=self,phase=0)
             if dlg.exec():
                 self.init_players_ui()
 
         tree.itemSelectionChanged.connect(tree_on_item_selected)
+        tree.itemDoubleClicked.connect(show_edit_player_ui)
 
         add_play_btn.clicked.connect(show_add_dipendente_ui)
 
@@ -272,6 +279,15 @@ class MainWindow(QWidget):
     def clear_layout(self):
         if self.layout():
             QWidget().setLayout(self.layout())
+
+    def confirmDeletePlayer(self)-> bool | None:
+        reply = QMessageBox.question(self,"Elimina Giocatore", f"Sei sicuro di voler eliminare il profilo di {self.selected_player.name} {self.selected_player.surname}?",
+                                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.Yes)
+        if reply == QMessageBox.StandardButton.Yes:
+            return True
+        elif reply == QMessageBox.StandardButton.No:
+            return False
+        return None
 
     def closeEvent(self, event):
         reply = QMessageBox.question(
