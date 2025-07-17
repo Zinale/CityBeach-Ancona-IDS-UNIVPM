@@ -31,20 +31,9 @@ def main_ui_layout() -> QVBoxLayout() and QPushButton()and QPushButton()and QPus
     vv4 = QVBoxLayout()
     vv5 = QVBoxLayout()
     vv6 = QVBoxLayout()
-    # imgCampi = QIcon(QPixmap("src/img/Baby.tux.sit-800x800.png"))
-    try:
-        imgPrenotazioni = QIcon(QPixmap(image_path("1-1.jpg")))
-        imgGiocatori = QIcon(QPixmap(image_path("1-1.jpg")))
-        imgAttSpo = QIcon(QPixmap(image_path("1-1.jpg")))
-        imgDipend = QIcon(QPixmap(image_path("1-1.jpg")))
-        imgRisto = QIcon(QPixmap(image_path("1-1.jpg")))
-    except:
-        pass
     # CAMPI DA GIOCO
     btn_campi = QPushButton()
     btn_campi.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-    # btn_campi.setIcon(imgCampi)
-    # btn_campi.setIconSize(btn_campi.size())
     btn_campi.setStyleSheet(style_img1_bg("Baby.tux.sit-800x800.png"))
     label_campi = QLabel("Campi da Gioco - Spogliatoi")
     label_campi.setStyleSheet(style_text_gotham_b)

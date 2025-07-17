@@ -55,9 +55,7 @@ def view_dipendenti_ui_layout(lista_dipendenti):
             item.setBackground(3, QBrush(QColor("#E30613")))
             item.setForeground(3, QBrush(QColor("#ffffff")))
         tree.addTopLevelItem(item)
-    for i in range(50):
-        item = QTreeWidgetItem([str(i), str(i), str(i), str(i), str(i), str(i)])
-        tree.addTopLevelItem(item)
+
     vLayout.addWidget(tree)
     tree.setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
@@ -195,7 +193,7 @@ class add_Dipendete_ui(QDialog):
                     #print("REGISTRATO: ",data)
                     self.accept()
                 else:
-                    # controller said: "no!"
+                    # the controller said: "no!"
                     if err_id == 1:
                         QMessageBox.warning(self, "Errore", "Il Nome non può contenere caratteri speciali")
                     elif err_id == 2:

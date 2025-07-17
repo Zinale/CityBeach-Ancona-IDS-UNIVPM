@@ -185,7 +185,7 @@ class MainWindow(QWidget):
 
 
     def init_players_ui(self):
-        #@TODO: fix EDIT function (double-click) and search (+filter) function
+        #@TODO: search (+filter) function
         self.clear_layout()
         self.setStyleSheet("background-color: #FFF0E6;")
         self.setMinimumSize(1280, 720)

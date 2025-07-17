@@ -64,9 +64,9 @@ class AppPlayersController:
             city = data[6]
             if "@" not in email:
                 return False, 2
-            if self.checkEmail(email):
+            if self.checkEmail(email,id_player=id_player_to_edit):
                 return False, 3
-            if self.checkPhone(phone):
+            if self.checkPhone(phone,id_player=id_player_to_edit):
                 return False,4
             self.players[id_player_to_edit].name = name
             self.players[id_player_to_edit].surname = surname
@@ -79,11 +79,11 @@ class AppPlayersController:
         except:
             return False,-1
 
-    def checkPhone(self,phone:str):
-        return any(getattr(player, "phone", None) == phone for player in self.players)
+    def checkPhone(self,phone:str,id_player:int=-1):
+        return any((getattr(player, "phone", None) == phone and getattr(player,"phone",None)!=id_player)for player in list(self.players.values()))
 
-    def checkEmail(self,email:str):
-        return any(getattr(player, "email", None) == email for player in self.players)
+    def checkEmail(self,email:str,id_player:int=-1):
+        return any((getattr(player, "email", None) == email and getattr(player,"id",None)!=id_player) for player in list(self.players.values()))
 
     def findByEmail(self,emaiL:str)->Player:
         return next((player for player in self.players.values() if player.email == emaiL), None)

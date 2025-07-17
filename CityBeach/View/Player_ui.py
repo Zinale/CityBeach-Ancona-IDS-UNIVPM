@@ -1,4 +1,5 @@
 import sys
+from operator import concat
 from turtledemo.sorting_animate import start_ssort
 from typing import List
 
@@ -22,7 +23,7 @@ def view_players_ui_layout(player_list: List[Player]):
     vLayout = QVBoxLayout()
     # --- TOP BAR ------------------------------------------------------------------------------------
     top_bar_widget = QWidget()
-    top_bar_widget.setFixedHeight(60)
+    top_bar_widget.setFixedHeight(21)
     top_bar_widget.setLayout(topBar())
     main_layout.addWidget(top_bar_widget)
     # --- Text + QTreeWidget + Add / ------------------------------------------------------------------------------------
@@ -239,9 +240,9 @@ class info_Player_ui(QDialog):
             date = self.player_to_edit.birthday.split("/")
             birth_day_sel.setDate(QDate(int(date[2]), int(date[1]), int(date[0])))
             genderCheck.setCurrentIndex(list(Gender.Gender).index(self.player_to_edit.gender))
-            phone_number = self.player_to_edit.phone
-            prefix_label.setText(phone_number[:2])
-            phoneBar.setText(phone_number[3:])
+            phone_number = self.player_to_edit.phone.split(" ")
+            prefix_label.setText(phone_number[0])
+            phoneBar.setText("".join(phone_number[1:]))
             emailBar.setText(self.player_to_edit.email)
             cityBar.setText(self.player_to_edit.residence)
 
@@ -262,7 +263,7 @@ class info_Player_ui(QDialog):
                 "surname": surnameBar.text(),
                 "birthday": birth_day_sel.date().toString("dd/MM/yyyy"),
                 "gender": gender,
-                "phone":str(prefix_label.text())+str(phoneBar.text()),
+                "phone":str(prefix_label.text())+" "+str(phoneBar.text()),
                 "email":emailBar.text(),
                 "city":cityBar.text()
             }
