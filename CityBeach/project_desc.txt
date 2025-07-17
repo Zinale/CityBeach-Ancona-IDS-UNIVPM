@@ -21,18 +21,24 @@ Directory structure:
     │   ├── SportsEquipment.py
     │   └── User.py
     ├── src/
-    │   └── fonts/
-    │       ├── Gotham-Black.otf
-    │       ├── Gotham-Thin.otf
-    │       ├── Gotham-ThinItalic.otf
-    │       ├── Gotham-UltraItalic.otf
-    │       ├── GothamBold.ttf
-    │       ├── GothamBoldItalic.ttf
-    │       ├── GothamBook.ttf
-    │       ├── GothamBookItalic.ttf
-    │       ├── GothamLight.ttf
-    │       ├── GothamLightItalic.ttf
-    │       └── GothamMediumItalic.ttf
+    │   ├── fonts/
+    │   │   ├── Gotham-Black.otf
+    │   │   ├── Gotham-Thin.otf
+    │   │   ├── Gotham-ThinItalic.otf
+    │   │   ├── Gotham-UltraItalic.otf
+    │   │   ├── GothamBold.ttf
+    │   │   ├── GothamBoldItalic.ttf
+    │   │   ├── GothamBook.ttf
+    │   │   ├── GothamBookItalic.ttf
+    │   │   ├── GothamLight.ttf
+    │   │   ├── GothamLightItalic.ttf
+    │   │   └── GothamMediumItalic.ttf
+    │   └── img/
+    │       ├── Baby.tux.sit-800x800.png
+    │       ├── logo.png
+    │       ├── players.png
+    │       ├── sports_equip.png
+    │       └── staff.png
     └── View/
         ├── AttrezzaturaSportiva_ui.py
         ├── DateTimeLabel.py
@@ -1628,7 +1634,7 @@ def view_players_ui_layout(player_list: List[Player]):
     vLayout = QVBoxLayout()
     # --- TOP BAR ------------------------------------------------------------------------------------
     top_bar_widget = QWidget()
-    top_bar_widget.setFixedHeight(60)
+    top_bar_widget.setFixedHeight(21)
     top_bar_widget.setLayout(topBar())
     main_layout.addWidget(top_bar_widget)
     # --- Text + QTreeWidget + Add / ------------------------------------------------------------------------------------
@@ -2322,7 +2328,7 @@ class MainWindow(QWidget):
 
 
     def init_players_ui(self):
-        #@TODO: fix EDIT function (double-click) and search (+filter) function
+        #@TODO: search (+filter) function
         self.clear_layout()
         self.setStyleSheet("background-color: #FFF0E6;")
         self.setMinimumSize(1280, 720)
