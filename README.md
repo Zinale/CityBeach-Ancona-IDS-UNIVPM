@@ -32,7 +32,7 @@ The software is being developed as a course project and is not yet ready for pro
 - **Object-Oriented Programming**
 - **MVC Architecture**
 - **Custom Fonts (Gotham)**
-- **Custom Images (Freepik License)
+- **Custom Images (Freepik License)**
 
 > Note: No database integration is present yet. Data is handled in-memory or through static Python objects.
 
@@ -41,7 +41,7 @@ The software is being developed as a course project and is not yet ready for pro
 ## 🗂️ Project Structure
 ```
 Directory structure:
-└── sf_CityBeach/
+└── CityBeach/
     ├── main.py
     ├── paths.py
     ├── requirements.txt
