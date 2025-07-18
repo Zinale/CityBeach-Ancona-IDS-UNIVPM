@@ -65,6 +65,20 @@ style_QButton_white_18Gotham ="""
         border: 2px solid #E30613;
     }
 """
+style_QButton_white_16Gotham ="""
+    QPushButton {
+        font-family: Gotham; font-size: 16pt;
+        background-color: #FFFFFF;
+        color: #444444;
+        border: 1px solid #E30613;
+        border-radius: 14px;
+        padding: 6px 20px;
+    }
+    QPushButton:hover {
+        background-color: #EEEEEE;
+        border: 2px solid #E30613;
+    }
+"""
 style_QButton_enabled = """
     QPushButton {
         font-family: Gotham; font-size: 18pt;
@@ -81,6 +95,19 @@ style_QButton_enabled = """
 style_QButton_disabled = """
     QPushButton {
         font-family: Gotham; font-size: 18pt;
+        background-color: #FFFFFF;
+        color: #444444;
+        border: 1px solid #CCCCCC;
+        border-radius: 14px;
+        padding: 6px 20px;
+    }
+    QPushButton:hover {
+        background-color: #EEEEEE;
+    }
+"""
+style_QButton_disabled_16 = """
+    QPushButton {
+        font-family: Gotham; font-size: 16pt;
         background-color: #FFFFFF;
         color: #444444;
         border: 1px solid #CCCCCC;
@@ -117,13 +144,14 @@ def style_img1_bg(img:str):
     return f"""
     QPushButton {{
         border: 2px solid #000000;
-        border-radius: 14px;
+        border-radius: 20px;
         border-image: url("src/img/{img}") 0 0 0 0 stretch stretch;
         background-repeat: no-repeat;
         background-position: center;
         background-size: cover;
     }}
     QPushButton:hover {{
+        border-radius: 20px;
         background-color: rgba(55,119,255,0.5);
         border: 8px solid #3777FF;
     }}

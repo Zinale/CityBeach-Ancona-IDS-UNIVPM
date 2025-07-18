@@ -1,15 +1,15 @@
 import PyQt6.QtCore
-from PyQt6.QtGui import QFont, QBrush, QColor
-from PyQt6.QtWidgets import QWidget
 
+from Controller.FieldsController import AppFieldsController
+from Controller.LockersController import AppLockersController
 from Controller.PlayersController import AppPlayersController
 from Controller.UsersController import AppUsersController
 from Controller.AttrrezzaturaSportivaController import AppSportsEquipmentController
 from Model.Data import AppData
-from PyQt6.QtGui import QFontDatabase, QPixmap, QIcon,QGuiApplication
+from PyQt6.QtGui import QFontDatabase,QGuiApplication
 
-from paths import image_path
 from .Dipendenti_ui import *
+from .Fields_Locker_ui import view_fields_lockers_static_ui_layout
 from .Login_ui import *
 from .Main_ui import *
 from .Player_ui import *
@@ -22,18 +22,20 @@ class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
         font_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..","src","fonts","GothamBook.ttf"))
-        #print("Esiste il file:", os.path.exists(font_path))
         font_id = QFontDatabase.addApplicationFont(font_path)
         if font_id == -1:
             raise Exception("Errore nel caricamento del font Gotham")
-        #fontfamilyGotham = QFontDatabase.applicationFontFamilies(font_id)[0]
-        #print(f"Font caricato: {fontfamilyGotham}")  # debug utile
         self.setWindowIcon(QIcon(image_path("logo.png")))
         self.setWindowFlag(Qt.WindowType.Window)
+
+        #CONTROLLERS
         self.model = AppData.load_from_file("data.pkl")
         self.users_controller = AppUsersController(self.model.users,self.model.users_next_id)
-        self.sport_equipment_controller = AppSportsEquipmentController(self.model.equipment,self.model.equipment_next_it)
+        self.sport_equipment_controller = AppSportsEquipmentController(self.model.equipment,self.model.equipment_next_id)
         self.players_controller = AppPlayersController(self.model.players,self.model.players_next_id)
+        self.fields_controller = AppFieldsController(self.model.fields,self.model.fields_next_id)
+        self.lockers_controller = AppLockersController(self.model.lockers,self.model.lockers_next_id)
+
         if (self.model.users.__len__() == 0):
             #"admin": "admin" is the first user to be created
             success, status = self.users_controller.register("admin","admin","admin",PyQt6.QtCore.QDate(1,1,1).toString("dd/MM/yyyy"),is_admin = True,password="admin")
@@ -79,7 +81,6 @@ class MainWindow(QWidget):
         self.setMaximumSize(10000,10000)
         self.selected_user = None
         self.selected_player = None
-        #self.showMaximized()
         self.setWindowTitle("CityBeach Ancona | Menù")
         self.center_window()
         #Dipendenti
@@ -93,11 +94,12 @@ class MainWindow(QWidget):
             if dlg.exec():
                 self.init_main_ui()
 
-        main_layout, btn_campi, btn_pren,btn_play,btn_attspo,btn_dip,btn_rist,center_text,profile_btn,log_btn = main_ui_layout()
+        main_layout, btn_fields_locks, btn_pren,btn_play,btn_attspo,btn_dip,btn_rist,center_text,profile_btn,log_btn = main_ui_layout()
         if not self.users_controller.get_current_user().is_admin:
            center_text.setStyleSheet(style_text_red_on_white)
         else:
             center_text.setStyleSheet(style_text_white_on_red)
+        btn_fields_locks.clicked.connect(self.init_fields_lockers_static_ui)
         btn_dip.clicked.connect(view_dipendenti)
         btn_attspo.clicked.connect(self.init_sport_equipment_ui)
         btn_play.clicked.connect(self.init_players_ui)
@@ -183,7 +185,6 @@ class MainWindow(QWidget):
         back_btn.clicked.connect(self.init_main_ui)
         self.setLayout(main_layout)
 
-
     def init_players_ui(self):
         #@TODO: search (+filter) function
         self.clear_layout()
@@ -259,6 +260,59 @@ class MainWindow(QWidget):
         back_btn.clicked.connect(self.init_main_ui)
         self.setLayout(main_layout)
 
+    def init_fields_lockers_static_ui(self):
+        self.clear_layout()
+        self.setStyleSheet("background-color: #FFF0E6;")
+        self.setMinimumSize(1280, 720)
+        self.setMaximumSize(10000, 10000)
+        self.setWindowTitle("CityBeach Ancona | Campi e Spogliatoi")
+        self.center_window()
+
+        (main_layout, usr_center_text, stat_btn, dyna_btn, treeFields, treeLocks,
+         label_name, label_surname, label_created_when, label_created_by, label_city,
+         label_eta, label_time, label_sport, label_avg_n_player, add_field_btn, del_field_btn,
+         add_lock_btn, del_lock_btn, back_btn) = view_fields_lockers_static_ui_layout(list(self.fields_controller.fields.values()),list(self.lockers_controller.lockers.values()))
+        print("layout")
+        def del_player():
+            if self.selected_player == None:
+                return False
+            confirm = self.confirmDeletePlayer()
+            if confirm:
+                status, err_id = self.players_controller.delete_player(self.selected_player)
+                if status:
+                    self.model.save_to_file("data.pkl")
+                    self.model = AppData.load_from_file("data.pkl")
+                    QMessageBox.information(self, "Rimosso", f"Il profilo di {self.selected_player.name} {self.selected_player.surname} è stato rimosso")
+                    self.init_players_ui()
+                else:
+                    if err_id==1:
+                        QMessageBox.critical(self, "Errore", "Errore")
+                    elif err_id == 2:
+                        QMessageBox.warning(self, "Errore", "Si è verificato un problema durante l'operazione.")
+        def show_edit_player_ui():
+            dlg = info_Player_ui(parent=self,phase=1,player_to_edit = self.selected_player)
+            if dlg.exec():
+                self.init_players_ui()
+
+        def show_add_dipendente_ui():
+            dlg = info_Player_ui(parent=self,phase=0)
+            if dlg.exec():
+                self.init_players_ui()
+
+        #tree.itemSelectionChanged.connect(tree_on_item_selected)
+        #tree.itemDoubleClicked.connect(show_edit_player_ui)
+
+        #add_play_btn.clicked.connect(show_add_dipendente_ui)
+        #del_play_btn.clicked.connect(del_player)
+
+        usr_center_text.setText(f"{self.users_controller.get_current_user().username}")
+        if not self.users_controller.get_current_user().is_admin:
+            usr_center_text.setStyleSheet(style_text_red_on_white)
+        else:
+            usr_center_text.setStyleSheet(style_text_white_on_red)
+        back_btn.clicked.connect(self.init_main_ui)
+        self.setLayout(main_layout)
+
 
 
 
@@ -269,12 +323,6 @@ class MainWindow(QWidget):
         self.model.save_to_file("data.pkl")
         self.users_controller.logout()
         self.init_login_ui()
-
-#    def add_article(self):
-#        title, ok = QInputDialog.getText(self, "Nuovo Articolo", "Titolo articolo:")
-#        if ok and title:
-#            self.users_controller.add_article(title)
-#            QMessageBox.information(self, "Successo", "Articolo aggiunto.")
 
     def clear_layout(self):
         if self.layout():
@@ -295,7 +343,6 @@ class MainWindow(QWidget):
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No
         )
-
         if reply == QMessageBox.StandardButton.Yes:
             self.users_controller.logout()
             sys.exit()

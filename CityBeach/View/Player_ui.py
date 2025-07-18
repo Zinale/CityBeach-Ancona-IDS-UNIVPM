@@ -1,14 +1,11 @@
-import sys
-from operator import concat
-from turtledemo.sorting_animate import start_ssort
 from typing import List
 
 from PyQt6.QtCore import Qt, QDate
-from PyQt6.QtGui import QPixmap, QIcon, QBrush, QColor, QFont
+from PyQt6.QtGui import QPixmap, QIcon, QFont
 from PyQt6.QtWidgets import (
-    QApplication, QDialog, QLabel, QLineEdit, QPushButton, QSizePolicy,
+    QDialog, QLabel, QLineEdit, QPushButton, QSizePolicy,
     QVBoxLayout, QHBoxLayout, QMessageBox, QTreeWidget, QTreeWidgetItem,
-    QDateEdit, QComboBox, QCheckBox, QFormLayout, QSplitter, QWidget
+    QDateEdit, QComboBox, QFormLayout, QSplitter, QWidget
 )
 from View.styles import *
 from View.topBar import topBar

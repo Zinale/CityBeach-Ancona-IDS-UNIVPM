@@ -34,7 +34,7 @@ def main_ui_layout() -> QVBoxLayout() and QPushButton()and QPushButton()and QPus
     # CAMPI DA GIOCO
     btn_campi = QPushButton()
     btn_campi.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-    btn_campi.setStyleSheet(style_img1_bg("Baby.tux.sit-800x800.png"))
+    btn_campi.setStyleSheet(style_img1_bg("field.png"))
     label_campi = QLabel("Campi da Gioco - Spogliatoi")
     label_campi.setStyleSheet(style_text_gotham_b)
     label_campi.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
