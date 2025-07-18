@@ -9,7 +9,7 @@ from Model.Data import AppData
 from PyQt6.QtGui import QFontDatabase,QGuiApplication
 
 from .Dipendenti_ui import *
-from .Fields_Locker_ui import view_fields_lockers_static_ui_layout
+from .Fields_Locker_ui import *
 from .Login_ui import *
 from .Main_ui import *
 from .Player_ui import *
@@ -44,6 +44,8 @@ class MainWindow(QWidget):
                 self.model.save_to_file("data.pkl")
         self.selected_user = None
         self.selected_player = None
+        self.selected_field = None
+        self.selected_locker = None
         self.init_login_ui()
 
     def init_login_ui(self):
@@ -219,6 +221,8 @@ class MainWindow(QWidget):
                     elif err_id == 2:
                         QMessageBox.warning(self, "Errore", "Si è verificato un problema durante l'operazione.")
         def show_edit_player_ui():
+            #phase = 0 -> register
+            #phase = 1 -> edit player
             dlg = info_Player_ui(parent=self,phase=1,player_to_edit = self.selected_player)
             if dlg.exec():
                 self.init_players_ui()
@@ -267,44 +271,103 @@ class MainWindow(QWidget):
         self.setMaximumSize(10000, 10000)
         self.setWindowTitle("CityBeach Ancona | Campi e Spogliatoi")
         self.center_window()
+        self.selected_field = None
+        self.selected_locker = None
 
         (main_layout, usr_center_text, stat_btn, dyna_btn, treeFields, treeLocks,
          label_name, label_surname, label_created_when, label_created_by, label_city,
          label_eta, label_time, label_sport, label_avg_n_player, add_field_btn, del_field_btn,
          add_lock_btn, del_lock_btn, back_btn) = view_fields_lockers_static_ui_layout(list(self.fields_controller.fields.values()),list(self.lockers_controller.lockers.values()))
-        print("layout")
-        def del_player():
-            if self.selected_player == None:
+        labels = (label_name,label_surname,label_created_when,label_created_by,label_city,label_eta
+                  ,label_time,label_sport,label_avg_n_player)
+        def del_field():
+            if self.selected_field == None:
                 return False
-            confirm = self.confirmDeletePlayer()
+            confirm = self.confirmDeleteField()
             if confirm:
-                status, err_id = self.players_controller.delete_player(self.selected_player)
+                status, err_id = self.fields_controller.delete_field(self.selected_field)
                 if status:
                     self.model.save_to_file("data.pkl")
                     self.model = AppData.load_from_file("data.pkl")
-                    QMessageBox.information(self, "Rimosso", f"Il profilo di {self.selected_player.name} {self.selected_player.surname} è stato rimosso")
-                    self.init_players_ui()
+                    QMessageBox.information(self, "Rimosso", f"Il Campo da gioco '{self.selected_field.name}' è stato rimosso")
+                    self.init_fields_lockers_static_ui()
                 else:
                     if err_id==1:
                         QMessageBox.critical(self, "Errore", "Errore")
                     elif err_id == 2:
                         QMessageBox.warning(self, "Errore", "Si è verificato un problema durante l'operazione.")
-        def show_edit_player_ui():
-            dlg = info_Player_ui(parent=self,phase=1,player_to_edit = self.selected_player)
+        def del_lock():
+            if self.selected_locker == None:
+                return False
+            confirm = self.confirmDeleteLocker()
+            if confirm:
+                status, err_id = self.lockers_controller.delete_locker(self.selected_locker)
+                if status:
+                    self.model.save_to_file("data.pkl")
+                    self.model = AppData.load_from_file("data.pkl")
+                    QMessageBox.information(self, "Rimosso", f"Lo spogliatoio '{self.selected_locker.name}' è stato rimosso")
+                    self.init_fields_lockers_static_ui()
+                else:
+                    if err_id==1:
+                        QMessageBox.critical(self, "Errore", "Errore")
+                    elif err_id == 2:
+                        QMessageBox.warning(self, "Errore", "Si è verificato un problema durante l'operazione.")
+
+        def show_add_field_ui():
+            dlg = add_field_ui(parent=self)
             if dlg.exec():
-                self.init_players_ui()
-
-        def show_add_dipendente_ui():
-            dlg = info_Player_ui(parent=self,phase=0)
+                self.init_fields_lockers_static_ui()
+        def show_add_locker_ui():
+            dlg = info_locker_ui(parent=self)
             if dlg.exec():
-                self.init_players_ui()
+                self.init_fields_lockers_static_ui()
+        def show_edit_locker_ui():
+            dlg = info_locker_ui(phase=1,locker_to_edit=self.selected_locker,parent=self)
+            if dlg.exec():
+                self.init_fields_lockers_static_ui()
 
-        #tree.itemSelectionChanged.connect(tree_on_item_selected)
-        #tree.itemDoubleClicked.connect(show_edit_player_ui)
+        def item_on_tree_field_selected():
+            selected_field = treeFields.selectedItems()
+            if selected_field and selected_field.__len__() == 1:
+                self.selected_field = self.fields_controller.fields[int(selected_field[0].text(1))]
+                del_field_btn.setStyleSheet(style_QButton_white_16Gotham)
+                del_field_btn.setEnabled(True)
+                treeLocks.clearSelection()
+                del_lock_btn.setStyleSheet(style_QButton_disabled_16)
+                del_lock_btn.setEnabled(False)
+                self.selected_locker = None
+                #MOSTRARE STATS CAMPO
+            else:
+                self.selected_field = None
+                del_field_btn.setStyleSheet(style_QButton_disabled_16)
+                del_field_btn.setEnabled(False)
+                for lab in labels:
+                    lab.setText("")
+        def item_on_tree_lockers_selected():
+            selected_locker = treeLocks.selectedItems()
+            if selected_locker and selected_locker.__len__() == 1:
+                self.selected_locker = self.lockers_controller.lockers[int(selected_locker[0].text(1))]
+                del_lock_btn.setStyleSheet(style_QButton_white_16Gotham)
+                del_lock_btn.setEnabled(True)
+                treeFields.clearSelection()
+                del_field_btn.setStyleSheet(style_QButton_disabled_16)
+                del_field_btn.setEnabled(False)
+                self.selected_field = None
+                # MOSTRARE STATS SPOGLIATOIO
+            else:
+                self.selected_locker = None
+                del_lock_btn.setStyleSheet(style_QButton_disabled_16)
+                del_lock_btn.setEnabled(False)
+                for lab in labels:
+                    lab.setText("")
 
-        #add_play_btn.clicked.connect(show_add_dipendente_ui)
-        #del_play_btn.clicked.connect(del_player)
-
+        treeFields.itemSelectionChanged.connect(item_on_tree_field_selected)
+        treeLocks.itemSelectionChanged.connect(item_on_tree_lockers_selected)
+        add_field_btn.clicked.connect(show_add_field_ui)
+        add_lock_btn.clicked.connect(show_add_locker_ui)
+        treeLocks.itemDoubleClicked.connect(show_edit_locker_ui)
+        del_field_btn.clicked.connect(del_field)
+        del_lock_btn.clicked.connect(del_lock)
         usr_center_text.setText(f"{self.users_controller.get_current_user().username}")
         if not self.users_controller.get_current_user().is_admin:
             usr_center_text.setStyleSheet(style_text_red_on_white)
@@ -330,6 +393,22 @@ class MainWindow(QWidget):
 
     def confirmDeletePlayer(self)-> bool | None:
         reply = QMessageBox.question(self,"Elimina Giocatore", f"Sei sicuro di voler eliminare il profilo di {self.selected_player.name} {self.selected_player.surname}?",
+                                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.Yes)
+        if reply == QMessageBox.StandardButton.Yes:
+            return True
+        elif reply == QMessageBox.StandardButton.No:
+            return False
+        return None
+    def confirmDeleteField(self)-> bool | None:
+        reply = QMessageBox.question(self,"Rimuovi Campo da Gioco", f"Sei sicuro di voler rimuovere il campo da gioco '{self.selected_field.name}'?",
+                                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.Yes)
+        if reply == QMessageBox.StandardButton.Yes:
+            return True
+        elif reply == QMessageBox.StandardButton.No:
+            return False
+        return None
+    def confirmDeleteLocker(self)-> bool | None:
+        reply = QMessageBox.question(self,"Rimuovi Spogliatoio", f"Sei sicuro di voler rimuovere lo spogliatoio '{self.selected_locker.name}'?",
                                      QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.Yes)
         if reply == QMessageBox.StandardButton.Yes:
             return True

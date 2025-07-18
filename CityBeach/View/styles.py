@@ -164,7 +164,7 @@ style_app_Dialogs = """
         font-size: 10pt;
     }
 
-    QLineEdit, QDateEdit, QComboBox {
+    QLineEdit, QDateEdit, QComboBox,QSpinBox {
         background-color: white;
         border: 1px solid #ccc;
         padding: 4px;
@@ -174,6 +174,7 @@ style_app_Dialogs = """
     QCheckBox {
         padding-left: 5px;
     }
+
         
     QCalendarWidget QToolButton {
         background-color: #ffffff;

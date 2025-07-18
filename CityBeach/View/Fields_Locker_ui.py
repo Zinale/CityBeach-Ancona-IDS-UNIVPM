@@ -1,14 +1,18 @@
 from typing import List
 
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QPixmap
+from PyQt6.QtGui import QPixmap, QIcon, QFont
 from PyQt6.QtWidgets import (QLabel, QPushButton, QSizePolicy,
-    QVBoxLayout, QHBoxLayout, QTreeWidget, QTreeWidgetItem, QSplitter, QWidget
-)
+                             QVBoxLayout, QHBoxLayout, QTreeWidget, QTreeWidgetItem, QSplitter, QWidget, QDialog,
+                             QFormLayout, QLineEdit, QComboBox, QMessageBox, QSpinBox
+                             )
+
+from Model.SportsCategory import SportsCategory
 from View.styles import *
 from View.topBar import topBar
 from Model.Locker import Locker
 from Model.Field import Field
+from Model.Gender import Gender
 
 def view_fields_lockers_static_ui_layout(field_list: List[Field],locker_list:List[Locker]):
     # Layout verticale principale
@@ -81,7 +85,7 @@ def view_fields_lockers_static_ui_layout(field_list: List[Field],locker_list:Lis
         item = QTreeWidgetItem([
             str(lock.name),
             str(lock.id),
-            str(lock.gender.value),
+            str(lock.gender),
             str(lock.capacity),
             str(lock.added_by),
             str(lock.data_created.date())
@@ -213,3 +217,175 @@ def view_fields_lockers_static_ui_layout(field_list: List[Field],locker_list:Lis
             label_name,label_surname,label_created_when,label_created_by,label_city,
             label_eta,label_time,label_sport,label_avg_n_player,add_field_btn,del_field_btn,
             add_lock_btn, del_lock_btn,back_btn)
+
+class add_field_ui(QDialog):
+    def __init__(self,parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Aggiungi Dipendente")
+        self.setFixedSize(300, 160)
+        self.setStyleSheet(style_app_Dialogs)
+        self.setWindowIcon(QIcon("src/img/logo.png"))
+        self.init_ui()
+
+    def init_ui(self):
+        layout = QFormLayout()
+        nameBar = QLineEdit()
+        sportBar = QComboBox()
+        sportBar.addItems([sport.value for sport in SportsCategory])
+
+        save_btn = QPushButton("Salva")
+        save_btn.setStyleSheet(style_QButton_red)
+
+        back_btn = QPushButton("Indietro")
+        back_btn.setStyleSheet(style_QButton_white)
+        back_btn.clicked.connect(self.close)
+
+        btn_layout = QHBoxLayout()
+        btn_layout.addStretch(1)
+        btn_layout.addWidget(back_btn)
+        btn_layout.addWidget(save_btn)
+
+        # Styling
+        font = QFont()
+        font.setPointSize(12)
+        self.setFont(font)
+
+        layout.addRow("Nome:", nameBar)
+        layout.addRow("Sport:", sportBar)
+
+        main_layout = QVBoxLayout()
+        main_layout.addLayout(layout)
+        main_layout.addLayout(btn_layout)
+
+        self.setLayout(main_layout)
+
+        def submit_data():
+            data = {
+                "name": nameBar.text(),
+                "sport": SportsCategory(sportBar.currentText())
+            }
+            # call his parent
+            if hasattr(self.parent().fields_controller, "register_field"):      #check if "self.register_dipendente" exists in 'MainWindow'"
+                success, err_id = self.parent().fields_controller.register_field(data,self.parent().users_controller.current_user.username)
+                if success:
+                    self.parent().model.fields_next_id = self.parent().fields_controller.field_id
+                    self.parent().model.save_to_file("data.pkl")
+                    QMessageBox.information(self, "Successo", "Campo da Gioco aggiunto.")
+                    self.accept()
+                else:
+                    # the controller said: "no!"
+                    if err_id == 1:
+                        QMessageBox.warning(self, "Errore", "Utente in uso non riconosciuto")
+                    elif err_id == 2:
+                        QMessageBox.warning(self, "Errore", "Sport non valido")
+                    elif err_id == 3:
+                        QMessageBox.warning(self, "Errore", "Nome non valido")
+                    elif err_id == -1:
+                        QMessageBox.critical(self, "Errore", "Errore")
+            else:
+                QMessageBox.critical(self, "Errore", "Controller non valido.")
+        save_btn.clicked.connect(submit_data)
+        self.setLayout(main_layout)
+
+class info_locker_ui(QDialog):
+    def __init__(self,parent=None,phase:int=0,locker_to_edit:Locker=None):
+        #phase = 0 -> to register new Player
+        #phase = 1 -> to edit an existing Player
+        super().__init__(parent)
+        self.phase = phase
+        self.locker_to_edit = locker_to_edit
+        if phase==0:
+            self.setWindowTitle("Aggiungi Spogliatoio")
+        else:
+            self.setWindowTitle(f"Modifica Spogliatoio: {locker_to_edit.name}")
+        self.setFixedSize(300, 200)
+        self.setStyleSheet(style_app_Dialogs)
+        self.setWindowIcon(QIcon("src/img/logo.png"))
+        self.init_ui()
+
+    def init_ui(self):
+        layout = QFormLayout()
+        nameBar = QLineEdit()
+        genderCheck = QComboBox()
+        genderCheck.addItems([gen.value for gen in Gender])
+        capacityBar = QSpinBox()
+        capacityBar.setMinimum(1)
+
+        save_btn = QPushButton("Salva")
+        save_btn.setStyleSheet(style_QButton_red)
+
+        back_btn = QPushButton("Indietro")
+        back_btn.setStyleSheet(style_QButton_white)
+        back_btn.clicked.connect(self.close)
+
+        btn_layout = QHBoxLayout()
+        btn_layout.addStretch(1)
+        btn_layout.addWidget(back_btn)
+        btn_layout.addWidget(save_btn)
+
+        # Styling
+        font = QFont()
+        font.setPointSize(12)
+        self.setFont(font)
+
+        layout.addRow("Nome:", nameBar)
+        layout.addRow("Capacità:", capacityBar)
+        layout.addRow("Genere:", genderCheck)
+
+        try:
+            if self.phase == 1:
+                nameBar.setText(f"{self.locker_to_edit.name}")
+                genderCheck.setCurrentIndex([gen.value for gen in Gender].index(self.locker_to_edit.gender))
+                capacityBar.setValue(self.locker_to_edit.capacity)
+        except:
+            self.close()
+
+        main_layout = QVBoxLayout()
+        main_layout.addLayout(layout)
+        main_layout.addLayout(btn_layout)
+
+        self.setLayout(main_layout)
+
+        def submit_data():
+            data = {
+                "name": nameBar.text(),
+                "gender": Gender(genderCheck.currentText()),
+                "capacity":capacityBar.value()
+            }
+            # call his parent
+            if self.phase==0:
+                #REGISTER NEW PLAYER
+                if hasattr(self.parent().lockers_controller, "register_locker"):
+                    success, err_id = self.parent().lockers_controller.register_locker(data,self.parent().users_controller.current_user.username)
+                    if success:
+                        self.parent().model.lockers_next_id = self.parent().lockers_controller.locker_id
+                        self.parent().model.save_to_file("data.pkl")
+                        QMessageBox.information(self, "Successo", "Spogliatoio aggiunto.")
+                        self.accept()
+                    else:
+                        # the controller said: "no!"
+                        if err_id == 1:
+                            QMessageBox.warning(self, "Errore", "Nome non valido")
+                        elif err_id == 2:
+                            QMessageBox.warning(self, "Errore", "Nessuno sta utilizzando il programma")
+                        elif err_id == -1:
+                            QMessageBox.critical(self, "Errore", "Errore")
+                else:
+                    QMessageBox.critical(self, "Errore", "Controller non valido/ha riscontrato un errore.")
+            elif self.phase==1:
+                #EDIT PLAYER
+                if hasattr(self.parent().lockers_controller,"edit_locker"):
+                    success, err_id = self.parent().lockers_controller.edit_locker(data,self.locker_to_edit.id)
+                    if success:
+                        self.parent().model.save_to_file("data.pkl")
+                        QMessageBox.information(self, "Successo", f"Spogliatoio '{self.locker_to_edit.name} aggiornato.")
+                        self.accept()
+                    else:
+                        # the controller said: "no!"
+                        if err_id == 1:
+                            QMessageBox.information(self, "Errore", "Errore nome")
+                        elif err_id == -1:
+                            QMessageBox.critical(self, "Errore", "Errore")
+        save_btn.clicked.connect(submit_data)
+        self.setLayout(main_layout)
+

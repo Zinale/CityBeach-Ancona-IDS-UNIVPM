@@ -163,8 +163,8 @@ def view_players_ui_layout(player_list: List[Player]):
 
 class info_Player_ui(QDialog):
     def __init__(self,phase:int,player_to_edit:Player=None,parent=None):
-        #value = 0 -> to register new Player
-        #value = 1 -> to edit an existing Player
+        #phase = 0 -> to register new Player
+        #phase = 1 -> to edit an existing Player
         super().__init__(parent)
         self.phase = phase
         self.player_to_edit = player_to_edit
@@ -236,6 +236,7 @@ class info_Player_ui(QDialog):
             surnameBar.setText(f"{self.player_to_edit.surname}")
             date = self.player_to_edit.birthday.split("/")
             birth_day_sel.setDate(QDate(int(date[2]), int(date[1]), int(date[0])))
+            print(type(self.player_to_edit.gender))
             genderCheck.setCurrentIndex(list(Gender.Gender).index(self.player_to_edit.gender))
             phone_number = self.player_to_edit.phone.split(" ")
             prefix_label.setText(phone_number[0])
@@ -252,7 +253,8 @@ class info_Player_ui(QDialog):
         def submit_data():
             GENDER_MAP = {
                 "Maschio": Gender.Gender.MALE,
-                "Femmina": Gender.Gender.FEMALE
+                "Femmina": Gender.Gender.FEMALE,
+                "Altro": Gender.Gender.OTHER
             }
             gender = GENDER_MAP.get(genderCheck.currentText(), Gender.Gender.OTHER)
             data = {
