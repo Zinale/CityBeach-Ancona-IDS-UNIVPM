@@ -96,7 +96,7 @@ style_QButton_disabled = """
     QPushButton {
         font-family: Gotham; font-size: 18pt;
         background-color: #FFFFFF;
-        color: #444444;
+        color: #9e9e9e;
         border: 1px solid #CCCCCC;
         border-radius: 14px;
         padding: 6px 20px;

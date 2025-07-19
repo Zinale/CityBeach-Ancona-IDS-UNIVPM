@@ -2,7 +2,7 @@ import sys
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap, QIcon, QBrush, QColor, QIntValidator
 from PyQt6.QtWidgets import QVBoxLayout, QApplication, QPushButton, QHBoxLayout, QLabel, QLineEdit, QSizePolicy, \
-    QMessageBox, QGridLayout, QTreeWidget, QTreeWidgetItem, QDialog, QComboBox
+    QMessageBox, QGridLayout, QTreeWidget, QTreeWidgetItem, QDialog, QComboBox, QSpinBox
 
 from View.styles import (
     style_app_Dialogs,
@@ -17,6 +17,7 @@ from View.topBar import topBar
 from Model import Data
 from Model.EquipmentType import EquipmentType
 from Model.SportsCategory import SportsCategory
+from Model.SportsEquipment import SportsEquipment
 
 def view_attrezzaturaSportiva_ui_layout(lista_attrezzatura):
     # Layout verticale principale
@@ -33,36 +34,25 @@ def view_attrezzaturaSportiva_ui_layout(lista_attrezzatura):
     vLayout.addWidget(contextText)
 
     tree = QTreeWidget()
-    tree.setHeaderLabels(["Nome", "Tipo", "Disponibilità"])
+    tree.setHeaderLabels(["ID", "Nome", "Tipo", "Disponibilità"])
     
     # Funzione per popolare il QTreeWidget
     def populate_tree():
         tree.clear()
 
-        # Dizionario per la visualizzazione delle attrezzature divise in categorie
-        attrezzature = {
-            SportsCategory.PADEL: [EquipmentType.PADEL_RACKETS, EquipmentType.PADEL_BALLS],
-            SportsCategory.BEACH_VOLLEY: [EquipmentType.BEACH_VOLLEYBALLS],
-            SportsCategory.BEACH_TENNIS: [EquipmentType.BEACH_TENNIS_RACKETS, EquipmentType.BEACH_TENNIS_BALLS],
-        }
-
-        for sport in attrezzature:
+        for sport in SportsCategory:
             sport_item = QTreeWidgetItem([sport.value.title()])
             tree.addTopLevelItem(sport_item)
             sport_item.setExpanded(True)
 
-            for att in attrezzature[sport]:
-                att_item = QTreeWidgetItem(sport_item)
-                att_item.setText(0, att.name.replace("_", " ").title())
-                att_item.setText(1, att.value.replace("_", " ").title())
-                
-                # Trova l'attrezzatura nella lista e ottieni la quantità
-                for equipment in lista_attrezzatura:
-                    if equipment.equipmentType == att and equipment.name == att.name:
-                        att_item.setText(2, str(equipment.quantity))
-                        break
-                else:
-                    att_item.setText(2, "0")
+            for att in lista_attrezzatura:
+                if att.sportCategory == sport:
+                    att_item = QTreeWidgetItem(sport_item)
+                    att_item.setText(0, str(att.id))
+                    att_item.setText(1, att.name.replace("_", " ").title())
+                    att_item.setText(2, att.equipmentType.value.replace("_", " ").title())
+                    att_item.setText(3, str(att.quantity))
+                    sport_item.addChild(att_item)
     
     vLayout.addWidget(tree)
     tree.setFocusPolicy(Qt.FocusPolicy.NoFocus)
@@ -73,30 +63,39 @@ def view_attrezzaturaSportiva_ui_layout(lista_attrezzatura):
     hLayoutBtn.addStretch(1)
 
     # Funzione per aggiornare lo stato del pulsante "Aggiungi Attrezzatura"
-    def update_btn():
+    def update_btn(btn):
         selected = tree.selectedItems()
         if selected:    # controlla se c'è un elemento foglia dell'albero selezionato e abilita il pulsante in caso affermativo
             item = selected[0]
             is_leaf = item.childCount() == 0    
             has_parent = item.parent() is not None
-            att_btn.setEnabled(is_leaf and has_parent)
-            att_btn.setStyleSheet(style_QButton_enabled if is_leaf and has_parent else style_QButton_white_18Gotham)
+            btn.setEnabled(is_leaf and has_parent)
+            btn.setStyleSheet(style_QButton_enabled if is_leaf and has_parent else style_QButton_disabled)
         else:
-            att_btn.setEnabled(False)
-            att_btn.setStyleSheet(style_QButton_disabled)
+            btn.setEnabled(False)
+            btn.setStyleSheet(style_QButton_disabled)
 
 
     # Attrezzatura btn
     att_btn = QPushButton("Aggiungi Attrezzatura")
     att_btn.setStyleSheet(style_QButton_disabled)
     att_btn.setEnabled(False)
-    tree.itemSelectionChanged.connect(update_btn)
+    tree.itemSelectionChanged.connect(lambda: update_btn(att_btn))
     att_btn.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
     hLayoutBtn.addWidget(att_btn, alignment=Qt.AlignmentFlag.AlignRight)
     
     vLayout.addLayout(hLayoutBtn)
     vLayout.setSpacing(15)
     main_layout.addLayout(vLayout)
+
+    # Modifica quantità btn
+    qty_btn = QPushButton("Modifica Quantità")
+    qty_btn.setStyleSheet(style_QButton_disabled)
+    qty_btn.setEnabled(False)
+    tree.itemSelectionChanged.connect(lambda: update_btn(qty_btn))
+    qty_btn.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+    hLayoutBtn.addWidget(qty_btn, alignment=Qt.AlignmentFlag.AlignRight)
+
 
     # --- BOTTOM BAR ------------------------------------------------------------------------------------
     bottom_bar = QHBoxLayout()
@@ -126,7 +125,7 @@ def view_attrezzaturaSportiva_ui_layout(lista_attrezzatura):
     back_btn.setStyleSheet(style_QButton_red)
     bottom_bar.addWidget(back_btn)
     main_layout.addLayout(bottom_bar)
-    return main_layout, back_btn, att_btn, tree, center_text
+    return main_layout, back_btn, att_btn, qty_btn, tree, center_text
 
 
 class add_Attrezzatura_ui(QDialog):
@@ -198,7 +197,8 @@ class add_Attrezzatura_ui(QDialog):
                     error_messages = {
                         1: "Nome non valido.",
                         2: "Tipo Attrezzatura non valido.",
-                        3: "Quantità deve essere maggiore di zero."
+                        3: "Categoria Sportiva non valida.",
+                        4: "Quantità deve essere maggiore di zero."
                     }
                     QMessageBox.warning(self, "Errore", error_messages.get(error_code, "Errore sconosciuto."))
             else:
@@ -215,4 +215,43 @@ class add_Attrezzatura_ui(QDialog):
 
         self.setLayout(layout)
 
+    
+class modify_quantity_ui(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Modifica Quantità Attrezzatura Sportiva")
+        self.setFixedSize(300, 200)
+        self.setStyleSheet(style_app_Dialogs)
+        self.setWindowIcon(QIcon("src/img/logo.png"))
+        self.init_ui()
+
+    def init_ui(self):
+        layout = QVBoxLayout()
+
+        # Quantità
+        quantity_label = QLabel("Quantità:")
+        quantity_label.setStyleSheet(style_text_gotham_b)
+        self.quantity_input = QSpinBox()
+        self.quantity_input.setStyleSheet(style_blackText)
+        self.quantity_input.setMinimum(0)    
+
+        layout.addWidget(quantity_label)
+        layout.addWidget(self.quantity_input)
+
+        # Pulsanti
+        button_layout = QHBoxLayout()
         
+        save_button = QPushButton("Salva")
+        save_button.setStyleSheet(style_QButton_white_18Gotham)
+        button_layout.addWidget(save_button)
+
+        #save_button.clicked.connect(submit_data)
+        
+        cancel_button = QPushButton("Annulla")
+        cancel_button.setStyleSheet(style_QButton_red)
+        button_layout.addWidget(cancel_button)
+        cancel_button.clicked.connect(self.close)
+
+        layout.addLayout(button_layout)
+
+        self.setLayout(layout)
