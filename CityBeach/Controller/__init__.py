@@ -1,0 +1,6 @@
+from .AttrrezzaturaSportivaController import AppSportsEquipmentController
+from .BookingsController import AppBookingsController
+from .FieldsController import AppFieldsController
+from .LockersController import AppLockersController
+from .PlayersController import AppPlayersController
+from .UsersController import AppUsersController

@@ -1,13 +1,10 @@
 import PyQt6.QtCore
 
-from Controller.FieldsController import AppFieldsController
-from Controller.LockersController import AppLockersController
-from Controller.PlayersController import AppPlayersController
-from Controller.UsersController import AppUsersController
-from Controller.AttrrezzaturaSportivaController import AppSportsEquipmentController
+from Controller import *
 from Model.Data import AppData
 from PyQt6.QtGui import QFontDatabase,QGuiApplication
 
+from .Booking_ui import view_booking_ui_layout
 from .Dipendenti_ui import *
 from .Fields_Locker_ui import *
 from .Login_ui import *
@@ -35,17 +32,13 @@ class MainWindow(QWidget):
         self.players_controller = AppPlayersController(self.model.players,self.model.players_next_id)
         self.fields_controller = AppFieldsController(self.model.fields,self.model.fields_next_id)
         self.lockers_controller = AppLockersController(self.model.lockers,self.model.lockers_next_id)
-
+        self.bookings_controller = AppBookingsController(self.model.bookings,self.model.bookings_next_id)
         if (self.model.users.__len__() == 0):
             #"admin": "admin" is the first user to be created
             success, status = self.users_controller.register("admin","admin","admin",PyQt6.QtCore.QDate(1,1,1).toString("dd/MM/yyyy"),is_admin = True,password="admin")
             if success:
                 self.model.users_next_id = self.users_controller.user_id
                 self.model.save_to_file("data.pkl")
-        self.selected_user = None
-        self.selected_player = None
-        self.selected_field = None
-        self.selected_locker = None
         self.init_login_ui()
 
     def init_login_ui(self):
@@ -83,6 +76,9 @@ class MainWindow(QWidget):
         self.setMaximumSize(10000,10000)
         self.selected_user = None
         self.selected_player = None
+        self.selected_locker = None
+        self.selected_field = None
+        self.selected_booking = None
         self.setWindowTitle("CityBeach Ancona | Menù")
         self.center_window()
         #Dipendenti
@@ -102,6 +98,7 @@ class MainWindow(QWidget):
         else:
             center_text.setStyleSheet(style_text_white_on_red)
         btn_fields_locks.clicked.connect(self.init_fields_lockers_static_ui)
+        btn_pren.clicked.connect(self.init_bookings_ui)
         btn_dip.clicked.connect(view_dipendenti)
         btn_attspo.clicked.connect(self.init_sport_equipment_ui)
         btn_play.clicked.connect(self.init_players_ui)
@@ -379,6 +376,60 @@ class MainWindow(QWidget):
             usr_center_text.setStyleSheet(style_text_red_on_white)
         else:
             usr_center_text.setStyleSheet(style_text_white_on_red)
+        back_btn.clicked.connect(self.init_main_ui)
+        self.setLayout(main_layout)
+
+    def init_bookings_ui(self):
+        self.clear_layout()
+        self.setStyleSheet("background-color: #FFF0E6;")
+        self.setMinimumSize(1280, 720)
+        self.setMaximumSize(10000, 10000)
+        self.selected_booking = None
+        self.setWindowTitle("CityBeach Ancona | Dipendenti")
+        self.center_window()
+
+        main_layout, center_text, tree, book_btn, del_book_btn,back_btn = view_booking_ui_layout(list(self.bookings_controller.bookings.values()))
+        def show_edit_user_ui():
+            dlg = edit_user_ui(parent=self,opener_id=self.users_controller.current_user.id,user_to_edit=self.users_controller.get_user_by_username(self.selected_user.text(4)))
+            if dlg.exec():
+                self.init_dipendenti_ui()
+        def del_dipendente():
+            if self.selected_user == None:
+                return False
+            status, err_id = self.users_controller.delete_user(self.selected_user.text(4))
+            if status:
+                self.model.save_to_file("data.pkl")
+                self.model = AppData.load_from_file("data.pkl")
+                QMessageBox.information(self, "Rimosso", "Utente eliminato.")
+                self.init_dipendenti_ui()
+            else:
+                if err_id==1:
+                    QMessageBox.warning(self, "Errore", "Non puoi eliminare il tuo account.")
+                elif err_id==2:
+                    QMessageBox.critical(self, "Errore", "Errore")
+                elif err_id == 3:
+                    QMessageBox.warning(self, "Errore", "Si è verificato un problema durante l'operazione.")
+
+        def tree_on_item_selected():
+            selected_user = tree.selectedItems()
+            if selected_user and selected_user.__len__() == 1:
+                self.selected_user = selected_user[0]  # it is an QTree Object
+
+        def show_add_dipendente_ui():
+            dlg = add_Dipendete_ui(self)
+            if dlg.exec():
+                self.init_dipendenti_ui()
+        #tree.itemSelectionChanged.connect(tree_on_item_selected)
+        #tree.itemDoubleClicked.connect(show_edit_user_ui)
+
+        #book_btn.clicked.connect(show_add_dipendente_ui)
+        #del_book_btn.clicked.connect(del_dipendente)
+        center_text.setText(f"{self.users_controller.get_current_user().username}")
+        if not self.users_controller.get_current_user().is_admin:
+            center_text.setStyleSheet(style_text_red_on_white)
+        else:
+            center_text.setStyleSheet(style_text_white_on_red)
+
         back_btn.clicked.connect(self.init_main_ui)
         self.setLayout(main_layout)
 

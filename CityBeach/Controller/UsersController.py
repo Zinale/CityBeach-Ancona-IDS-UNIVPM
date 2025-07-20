@@ -9,7 +9,8 @@ class AppUsersController:
         self.users = users
         self.user_id = user_id
         self.current_user = None
-
+    def __str__(self):
+        return f"AppUsersController, utente attivo:{self.current_user.username}"
     def register(self,name:str,surname:str,username:str,birthday,is_admin:bool,gender:Gender = Gender.OTHER,password:str = "") -> bool and int:
         try:
             name = name.strip()

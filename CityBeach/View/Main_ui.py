@@ -45,7 +45,7 @@ def main_ui_layout() -> QVBoxLayout() and QPushButton()and QPushButton()and QPus
     # PRENOTAZIONE
     btn_pren = QPushButton()
     btn_pren.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-    btn_pren.setStyleSheet(style_img1_bg("Baby.tux.sit-800x800.png"))
+    btn_pren.setStyleSheet(style_img1_bg("booking.png"))
     label_pren = QLabel("Prenotazioni")
     label_pren.setAlignment(Qt.AlignmentFlag.AlignHCenter)
     label_pren.setStyleSheet(style_text_gotham_b)

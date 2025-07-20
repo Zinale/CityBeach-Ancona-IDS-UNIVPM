@@ -1,6 +1,4 @@
 import datetime
-from typing import List
-import datetime
 from Model.Gender import Gender
 
 class Player:

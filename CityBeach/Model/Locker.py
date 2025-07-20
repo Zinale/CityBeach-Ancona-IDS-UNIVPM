@@ -1,4 +1,5 @@
 import datetime
+import uuid
 from Model.Gender import Gender
 
 class Locker:
@@ -15,3 +16,8 @@ class Locker:
     def __repr__(self):
         return f"'{self.id}'\t'{self.name}'\tGender:{self.gender}\tCapacity:{self.capacity}\tadded by:{self.added_by})\n\r"
 
+class LockerRoomUsage:
+    def __init__(self,id_locker:int,players:int):
+        self.id_locker_usage = str(uuid.uuid4())
+        self.id_locker = id_locker
+        self.players = players

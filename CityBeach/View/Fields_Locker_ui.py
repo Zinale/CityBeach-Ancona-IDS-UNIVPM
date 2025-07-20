@@ -368,6 +368,8 @@ class info_locker_ui(QDialog):
                             QMessageBox.warning(self, "Errore", "Nome non valido")
                         elif err_id == 2:
                             QMessageBox.warning(self, "Errore", "Nessuno sta utilizzando il programma")
+                        if err_id == 3:
+                            QMessageBox.warning(self, "Errore", "Nome già usato")
                         elif err_id == -1:
                             QMessageBox.critical(self, "Errore", "Errore")
                 else:
@@ -384,6 +386,8 @@ class info_locker_ui(QDialog):
                         # the controller said: "no!"
                         if err_id == 1:
                             QMessageBox.information(self, "Errore", "Errore nome")
+                        elif err_id == 2:
+                            QMessageBox.information(self, "Errore", "Errore nome già usato")
                         elif err_id == -1:
                             QMessageBox.critical(self, "Errore", "Errore")
         save_btn.clicked.connect(submit_data)

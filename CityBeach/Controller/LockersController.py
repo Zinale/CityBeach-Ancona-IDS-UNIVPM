@@ -15,6 +15,8 @@ class AppLockersController:
             capacity = int(data["capacity"])
             if capacity < 0:
                 return False, 2
+            if self.checkIfNameExists(name):
+                return False,3
             self.locker_id+=1
             self.lockers[self.locker_id] = Locker(self.locker_id,name,gender,capacity,usr)
             return True, 0
@@ -25,6 +27,8 @@ class AppLockersController:
             name = data["name"]
             if len(name) == 0:
                 return False, 1
+            if self.checkIfNameExists(name,id_locker_to_edit):
+                return False, 2
             self.lockers[id_locker_to_edit].name = name
             self.lockers[id_locker_to_edit].capacity = data["capacity"]
             self.lockers[id_locker_to_edit].gender = data["gender"].value
@@ -41,3 +45,6 @@ class AppLockersController:
                 return False, 2
         except:
             return False, 1
+
+    def checkIfNameExists(self,name:str,id:int=-1)->bool:
+        return any((getattr(locker,"name",None) == name and getattr(locker,"id",None)!=id) for locker in self.lockers)
