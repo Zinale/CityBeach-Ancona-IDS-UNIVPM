@@ -5,10 +5,12 @@ from PyQt6.QtGui import QPixmap, QIcon, QBrush, QColor, QFont
 from PyQt6.QtWidgets import (
     QApplication, QDialog, QLabel, QLineEdit, QPushButton, QSizePolicy,
     QVBoxLayout, QHBoxLayout, QMessageBox, QTreeWidget, QTreeWidgetItem,
-    QDateEdit, QComboBox, QCheckBox, QFormLayout
+    QDateEdit, QComboBox, QFormLayout, QCompleter, QSpinBox
 )
-
+from Model.Data import TIME_SLOTS
+import View.View
 from Model.Booking import Booking
+from Model.SportsCategory import SportsCategory
 from View.styles import *
 from View.topBar import topBar
 from Model import Gender
@@ -58,7 +60,7 @@ def view_booking_ui_layout(booking_list:List[Booking]):
     book_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
     hLayoutBtn.addWidget(book_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
 
-    del_book_btn = QPushButton("Elimina Prenotazione")
+    del_book_btn = QPushButton("Annulla Prenotazione")
     del_book_btn.setStyleSheet(style_QButton_white_18Gotham)
     del_book_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
     hLayoutBtn.addWidget(del_book_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
@@ -101,31 +103,98 @@ def view_booking_ui_layout(booking_list:List[Booking]):
     main_layout.addLayout(bottom_bar)
     return main_layout,center_text, tree, book_btn, del_book_btn,back_btn
 
-class add_Dipendete_ui(QDialog):
+class add_booking_ui(QDialog):
     def __init__(self,parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Aggiungi Dipendente")
-        self.setFixedSize(300, 280)
+        self.setWindowTitle("Crea Prenotazione")
+        self.setFixedSize(300, 500)
         self.setStyleSheet(style_app_Dialogs)
         self.setWindowIcon(QIcon("src/img/logo.png"))
         self.init_ui()
 
     def init_ui(self):
         layout = QFormLayout()
-        nameBar = QLineEdit()
-        surnameBar = QLineEdit()
-        usernameBar = QLineEdit()
+        sportBox = QComboBox()
+        print("as32a")
+        for spor in SportsCategory:
+            print(str(spor.name))
+        print("ciaoaadmin")
+        sportBox.addItems([sport.value for sport in SportsCategory])
+        fieldBox = QComboBox()
+        print("asf")
+        if not hasattr(self.parent().fields_controller,"fields"):
+            self.close()
+        print("aassagdasgdasgdadgaadg")
+        fieldBox.addItems([field.name for field in list(self.parent().fields_controller.fields.values())])
+        if not hasattr(self.parent().players_controller,"players"):
+            self.close()
+        print("asssssssssssss")
 
-        birth_day_sel = QDateEdit()
-        birth_day_sel.setDisplayFormat("dd/MM/yyyy")
-        birth_day_sel.setCalendarPopup(True)
-        birth_day_sel.setDate(QDate.currentDate())
+        names = [player.name for player in list(self.parent().players_controller.players.values())]
+        surnames = [player.surname for player in list(self.parent().players_controller.players.values())]
+        playerName = QLineEdit()
+        playerName.setPlaceholderText("Inserisci nome Giocatore")
+        nameCompleter = QCompleter(names,self)
+        nameCompleter.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+        playerName.setCompleter(nameCompleter)
 
-        flagAmministratore = QCheckBox("Amministratore")
-        flagAmministratore.setChecked(False)
+        playerSurname = QLineEdit()
+        playerSurname.setPlaceholderText("Inserisci cognome Giocatore")
+        surnameCompleter = QCompleter(surnames,self)
+        surnameCompleter.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+        playerSurname.setCompleter(surnameCompleter)
 
-        genderCheck = QComboBox()
-        genderCheck.addItems(["Maschio", "Femmina", "Altro"])
+        print("asssssssssssss")
+        nPlayer = QSpinBox()
+        nPlayer.setRange(0, 12)
+        nPlayer.setValue(0)
+        nMale = QSpinBox()
+        nMale.setRange(0, 12)
+        nMale.setValue(0)
+        nFemale = QSpinBox()
+        nFemale.setRange(0, 12)
+        nFemale.setValue(0)
+        def check_values():
+            total = nPlayer.value()
+            male = nMale.value()
+            female = nFemale.value()
+            if male + female > total:
+                sender = self.sender()
+                if sender == nMale:
+                    nMale.blockSignals(True)
+                    nMale.setValue(max(0, total - nFemale.value()))
+                    nMale.blockSignals(False)
+                elif sender == nFemale:
+                    nFemale.blockSignals(True)
+                    nFemale.setValue(max(0, total - nMale.value()))
+                    nFemale.blockSignals(False)
+                else:
+                    nMale.blockSignals(True)
+                    nFemale.blockSignals(True)
+                    nMale.setValue(0)
+                    nFemale.setValue(0)
+                    nMale.blockSignals(False)
+                    nFemale.blockSignals(False)
+        nPlayer.valueChanged.connect(check_values)
+        nMale.valueChanged.connect(check_values)
+        nFemale.valueChanged.connect(check_values)
+
+        price = QSpinBox()
+        price.setRange(0,200)
+        price.setValue(50)
+
+        date_selector = QDateEdit()
+        date_selector.setDisplayFormat("dd/MM/yyyy")
+        date_selector.setCalendarPopup(True)
+        date_selector.setDate(QDate.currentDate())
+
+        slot_selector = QSpinBox()
+        slot_selector.setRange(1,26)
+        print("slots")
+        label_slot = QLabel(f"{TIME_SLOTS[slot_selector.value()].startTime}-{TIME_SLOTS[slot_selector.value()+2]}")
+        def update_label_slot():
+            label_slot.setText(f"{TIME_SLOTS[slot_selector.value()].startTime}-{TIME_SLOTS[slot_selector.value()+2]}")
+        slot_selector.valueChanged.connect(update_label_slot)
 
         save_btn = QPushButton("Salva")
         save_btn.setStyleSheet(style_QButton_red)
@@ -144,18 +213,34 @@ class add_Dipendete_ui(QDialog):
         font.setPointSize(12)
         self.setFont(font)
 
-        layout.addRow("Nome:", nameBar)
-        layout.addRow("Cognome:", surnameBar)
-        layout.addRow("Username:", usernameBar)
-        layout.addRow("Data di nascita:", birth_day_sel)
-        layout.addRow("Amministratore:", flagAmministratore)
-        layout.addRow("Sesso:", genderCheck)
+        layout.addRow("Sport:", sportBox)
+        layout.addRow("Campo:", fieldBox)
+        layout.addRow("Nome Giocatore:", playerName)
+        layout.addRow("Cognome Giocatore:", playerSurname)
+        hLayout_nPlayer = QHBoxLayout()
+        hLayout_nPlayer.addWidget(nPlayer)
+        hLayout_nPlayer.addWidget(nMale)
+        hLayout_nPlayer.addWidget(nFemale)
+        layout.addRow("n° Giocatori/Maschi/Femmine:", hLayout_nPlayer)
+        layout.addRow("Prezzo:", price)
+        layout.addRow("Data:", date_selector)
+        hLayout_slot = QHBoxLayout()
+        hLayout_slot.addWidget(slot_selector)
+        hLayout_slot.addWidget(label_slot)
+        layout.addRow("Fascia oraria:", hLayout_slot)
+
 
         main_layout = QVBoxLayout()
         main_layout.addLayout(layout)
         main_layout.addLayout(btn_layout)
 
         self.setLayout(main_layout)
+
+
+
+
+
+
 
         def submit_data():
             GENDER_MAP = {

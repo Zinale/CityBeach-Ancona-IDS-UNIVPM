@@ -4,7 +4,7 @@ from Controller import *
 from Model.Data import AppData
 from PyQt6.QtGui import QFontDatabase,QGuiApplication
 
-from .Booking_ui import view_booking_ui_layout
+from .Booking_ui import *
 from .Dipendenti_ui import *
 from .Fields_Locker_ui import *
 from .Login_ui import *
@@ -415,14 +415,14 @@ class MainWindow(QWidget):
             if selected_user and selected_user.__len__() == 1:
                 self.selected_user = selected_user[0]  # it is an QTree Object
 
-        def show_add_dipendente_ui():
-            dlg = add_Dipendete_ui(self)
+        def show_add_booking_ui():
+            dlg = add_booking_ui(self)
             if dlg.exec():
                 self.init_dipendenti_ui()
         #tree.itemSelectionChanged.connect(tree_on_item_selected)
         #tree.itemDoubleClicked.connect(show_edit_user_ui)
 
-        #book_btn.clicked.connect(show_add_dipendente_ui)
+        book_btn.clicked.connect(show_add_booking_ui)
         #del_book_btn.clicked.connect(del_dipendente)
         center_text.setText(f"{self.users_controller.get_current_user().username}")
         if not self.users_controller.get_current_user().is_admin:
@@ -432,6 +432,26 @@ class MainWindow(QWidget):
 
         back_btn.clicked.connect(self.init_main_ui)
         self.setLayout(main_layout)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
