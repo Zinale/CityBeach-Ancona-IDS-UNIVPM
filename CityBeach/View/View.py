@@ -427,9 +427,14 @@ class MainWindow(QWidget):
                 self.selected_user = selected_user[0]  # it is an QTree Object
 
         def show_add_booking_ui():
-            dlg = add_booking_ui(self)
+            dlg = add_booking_ui(bookingController=self.bookings_controller,fields_list=list(self.fields_controller.fields.values()),
+                                 lockers_list=list(self.lockers_controller.lockers.values()),players_list=list(self.players_controller.players.values()),
+                                 currentUser=self.users_controller.current_user)
             if dlg.exec():
-                self.init_dipendenti_ui()
+                self.model.bookings_next_id = self.bookings_controller.booking_id
+                self.model.save_to_file("data.pkl")
+                self.init_bookings_ui()
+
         #tree.itemSelectionChanged.connect(tree_on_item_selected)
         #tree.itemDoubleClicked.connect(show_edit_user_ui)
 

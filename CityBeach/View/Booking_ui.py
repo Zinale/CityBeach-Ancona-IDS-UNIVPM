@@ -12,7 +12,11 @@ from Controller import AppBookingsController
 from Model.Data import TIME_SLOTS
 import View.View
 from Model.Booking import Booking
+from Model.Field import Field
+from Model.Locker import Locker
+from Model.Player import Player
 from Model.SportsCategory import SportsCategory
+from Model.User import User
 from View.styles import *
 from View.topBar import topBar
 from Model import Gender
@@ -35,6 +39,8 @@ def view_booking_ui_layout(booking_list:List[Booking]):
     tree.setHeaderLabels(
         ["Numero", "Sport", "Campo", "Giocatore", "#Giocatori", "Costo", "Data", "Fascia Oraria",
          "Registrata il","Stato Prenotazione","Registrata da"])
+    if booking_list!=None:
+        booking_list.reverse()
     for bk in booking_list:
         item = QTreeWidgetItem([
             str(bk.id),
@@ -106,10 +112,16 @@ def view_booking_ui_layout(booking_list:List[Booking]):
     return main_layout,center_text, tree, book_btn, del_book_btn,back_btn
 
 class add_booking_ui(QDialog):
-    def __init__(self,controller:AppBookingsController,parent=None):
-        super().__init__(parent)
+    def __init__(self,bookingController:AppBookingsController,fields_list:List[Field],
+                 lockers_list:List[Locker],players_list:List[Player],currentUser:User=None):
+        super().__init__()
+        self.bookingsController = bookingController
+        self.fieldsList = fields_list
+        self.lockersList = lockers_list
+        self.playersList = players_list
+        self.currentUser = currentUser
         self.setWindowTitle("Crea Prenotazione")
-        self.setFixedSize(450, 380)
+        self.setFixedSize(450, 420)
         self.setStyleSheet(style_app_Dialogs)
         self.setWindowIcon(QIcon("src/img/logo.png"))
         self.init_ui()
@@ -119,18 +131,14 @@ class add_booking_ui(QDialog):
         sportBox = QComboBox()
         sportBox.addItems([sport.value for sport in SportsCategory])
         fieldBox = QComboBox()
-        if not hasattr(self.parent().fields_controller,"fields"):
-            self.close()
-        fieldBox.addItems([field.name for field in list(self.parent().fields_controller.fields.values()) if field.sport==sportBox.currentText()])
-        if not hasattr(self.parent().players_controller,"players"):
-            self.close()
+        fieldBox.addItems([field.name for field in self.fieldsList if field.sport==sportBox.currentText()])
         def update_field_box():
             fieldBox.clear()
-            fieldBox.addItems([field.name for field in list(self.parent().fields_controller.fields.values()) if field.sport==sportBox.currentText()])
+            fieldBox.addItems([field.name for field in self.fieldsList if field.sport==sportBox.currentText()])
         sportBox.currentTextChanged.connect(update_field_box)
 
-        names = [player.name for player in list(self.parent().players_controller.players.values())]
-        surnames = [player.surname for player in list(self.parent().players_controller.players.values())]
+        names = list(set(player.name for player in self.playersList))
+        surnames = list(set(player.surname for player in self.playersList))
         playerName = QLineEdit()
         playerName.setPlaceholderText("Inserisci nome Giocatore")
         nameCompleter = QCompleter(names,self)
@@ -142,6 +150,57 @@ class add_booking_ui(QDialog):
         surnameCompleter = QCompleter(surnames,self)
         surnameCompleter.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         playerSurname.setCompleter(surnameCompleter)
+
+        usrCheckPhone = QComboBox()
+        usrCheckEmail = QComboBox()
+        usrCheckBirthday = QComboBox()
+
+        def checkUserInfo():
+            name = playerName.text().strip()
+            surname = playerSurname.text().strip()
+            usrCheckPhone.clear()
+            usrCheckEmail.clear()
+            usrCheckBirthday.clear()
+            if not name or not surname:
+                return  # Se uno dei due è vuoto, non aggiungiamo nulla
+            matching_players = [ply for ply in self.playersList if ply.name == name and ply.surname == surname]
+            if matching_players:
+                usrCheckPhone.addItems([ply.phone for ply in matching_players])
+                usrCheckEmail.addItems([ply.email for ply in matching_players])
+                usrCheckBirthday.addItems([str(ply.birthday) for ply in matching_players])
+        playerName.textChanged.connect(checkUserInfo)
+        playerSurname.textChanged.connect(checkUserInfo)
+        nameCompleter.activated.connect(checkUserInfo)
+        surnameCompleter.activated.connect(checkUserInfo)
+
+        def updateCheckerComboBox():
+            sender = self.sender()
+            if sender==usrCheckEmail:
+                usrCheckPhone.blockSignals(True)
+                usrCheckPhone.setCurrentIndex(usrCheckEmail.currentIndex())
+                usrCheckPhone.blockSignals(False)
+                usrCheckBirthday.blockSignals(True)
+                usrCheckBirthday.setCurrentIndex(usrCheckEmail.currentIndex())
+                usrCheckBirthday.blockSignals(False)
+            if sender==usrCheckPhone:
+                usrCheckEmail.blockSignals(True)
+                usrCheckEmail.setCurrentIndex(usrCheckPhone.currentIndex())
+                usrCheckEmail.blockSignals(False)
+                usrCheckBirthday.blockSignals(True)
+                usrCheckBirthday.setCurrentIndex(usrCheckPhone.currentIndex())
+                usrCheckBirthday.blockSignals(False)
+            if sender==usrCheckBirthday:
+                usrCheckPhone.blockSignals(True)
+                usrCheckPhone.setCurrentIndex(usrCheckBirthday.currentIndex())
+                usrCheckPhone.blockSignals(False)
+                usrCheckEmail.blockSignals(True)
+                usrCheckEmail.setCurrentIndex(usrCheckBirthday.currentIndex())
+                usrCheckEmail.blockSignals(False)
+
+        usrCheckEmail.currentTextChanged.connect(updateCheckerComboBox)
+        usrCheckPhone.currentTextChanged.connect(updateCheckerComboBox)
+        usrCheckBirthday.currentTextChanged.connect(updateCheckerComboBox)
+
 
         nPlayer = QSpinBox()
         nPlayer.setRange(0, 12)
@@ -214,6 +273,9 @@ class add_booking_ui(QDialog):
         layout.addRow("Campo:", fieldBox)
         layout.addRow("Nome Giocatore:", playerName)
         layout.addRow("Cognome Giocatore:", playerSurname)
+        layout.addRow("Verifica numero Telefono:",usrCheckPhone)
+        layout.addRow("Verifica numero E-mail:",usrCheckEmail)
+        layout.addRow("Verifica data di nascita:",usrCheckBirthday)
         hLayout_nPlayer = QHBoxLayout()
         hLayout_nPlayer.addWidget(nPlayer)
         hLayout_nPlayer.addWidget(nMale)
@@ -233,55 +295,45 @@ class add_booking_ui(QDialog):
 
         self.setLayout(main_layout)
 
-
-
-
-
-
-
         def submit_data():
-            #@TODO
-            GENDER_MAP = {
-                "Maschio": Gender.Gender.MALE,
-                "Femmina": Gender.Gender.FEMALE
-            }
-            gender = GENDER_MAP.get(genderCheck.currentText(), Gender.Gender.OTHER)
+            player =  next((player for player in self.playersList
+                            if player.name == playerName.text() and player.surname==playerSurname.text()
+                            and player.birthday==usrCheckBirthday.currentText() and player.email==usrCheckEmail.currentText()
+                            and player.email==usrCheckEmail.currentText()),None)
+
             data = {
-                "name": nameBar.text(),
-                "surname": surnameBar.text(),
-                "username": usernameBar.text(),
-                "birthday": birth_day_sel.date().toString("dd/MM/yyyy"),
-                "is_admin": flagAmministratore.isChecked(),
-                "gender": gender
+                "sport": sportBox.currentText(),
+                "field": fieldBox.currentText(),
+                "player": player,
+                "nPlayer":nPlayer.value(),
+                "nMale":nMale.value(),
+                "nFemale":nFemale.value(),
+                "price":price.value(),
+                "date": date_selector.date().toString("dd/MM/yyyy"),
+                "timeSlot": slot_selector.value(),
             }
             # call his parent
-            if hasattr(self.parent().users_controller, "register"):      #check if "self.register_dipendente" exists in 'MainWindow'"
-                success, err_id = self.parent().users_controller.register(nameBar.text(),surnameBar.text(),usernameBar.text(),
-                                                         birth_day_sel.date().toString("dd/MM/yyyy"),flagAmministratore.isChecked(),
-                                                         gender)
+            try:
+                success, err_id = self.bookingsController.register_booking(data,self.currentUser)
                 if success:
-                    data = data
-                    self.parent().model.users_next_id = self.parent().users_controller.user_id
-                    self.parent().model.save_to_file("data.pkl")
                     QMessageBox.information(self, "Successo", "Dipendente aggiunto.")
                     #print("REGISTRATO: ",data)
                     self.accept()
                 else:
                     # the controller said: "no!"
-                    if err_id == 1:
-                        QMessageBox.warning(self, "Errore", "Il Nome non può contenere caratteri speciali")
-                    elif err_id == 2:
-                        QMessageBox.warning(self, "Errore", "Il Cognome non può contenere caratteri speciali")
-                    elif err_id == 3:
-                        QMessageBox.warning(self, "Errore", "Username già in uso")
-                    elif err_id == 2:
-                        QMessageBox.warning(self, "Errore", "Username non può contenere caratteri speciali")
-                    elif err_id == 5:
-                        QMessageBox.warning(self, "Errore", "Impossibile inserire una data pari o successiva alla corrente")
-                    elif err_id == -1:
+                    if err_id!=-1:
+                        error_messages = {
+                            1: "Nome non valido.",
+                            2: "Tipo Attrezzatura non valido.",
+                            3: "Categoria Sportiva non valida.",
+                            4: "Quantità deve essere maggiore di zero."
+                        }
+                        QMessageBox.warning(self, "Errore", error_messages.get(err_id, "Errore sconosciuto."))
+                    else:
                         QMessageBox.critical(self, "Errore", "Errore")
-            else:
+            except:
                 QMessageBox.critical(self, "Errore", "Controller non valido.")
+                self.close()
         save_btn.clicked.connect(submit_data)
         self.setLayout(main_layout)
 

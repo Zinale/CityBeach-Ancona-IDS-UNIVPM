@@ -82,12 +82,11 @@ def view_fields_lockers_static_ui_layout(field_list: List[Field],locker_list:Lis
     # TREE WIDGET LOCKER----------------
     treeLocks = QTreeWidget()
     treeLocks.setHeaderLabels(
-        ["Nome", "id", "Genere","Capacità","Aggiunto da", "Data aggiunto"])
+        ["Nome", "id", "Capacità","Aggiunto da", "Data aggiunto"])
     for lock in locker_list:
         item = QTreeWidgetItem([
             str(lock.name),
             str(lock.id),
-            str(lock.gender),
             str(lock.capacity),
             str(lock.added_by),
             str(lock.data_created.date())
@@ -311,8 +310,6 @@ class info_locker_ui(QDialog):
     def init_ui(self):
         layout = QFormLayout()
         nameBar = QLineEdit()
-        genderCheck = QComboBox()
-        genderCheck.addItems([gen.value for gen in Gender])
         capacityBar = QSpinBox()
         capacityBar.setMinimum(1)
 
@@ -335,12 +332,10 @@ class info_locker_ui(QDialog):
 
         layout.addRow("Nome:", nameBar)
         layout.addRow("Capacità:", capacityBar)
-        layout.addRow("Genere:", genderCheck)
 
         try:
             if self.phase == 1:
                 nameBar.setText(f"{self.locker_to_edit.name}")
-                genderCheck.setCurrentIndex([gen.value for gen in Gender].index(self.locker_to_edit.gender))
                 capacityBar.setValue(self.locker_to_edit.capacity)
         except:
             self.close()
@@ -354,7 +349,6 @@ class info_locker_ui(QDialog):
         def submit_data():
             data = {
                 "name": nameBar.text(),
-                "gender": Gender(genderCheck.currentText()),
                 "capacity":capacityBar.value()
             }
             # call his parent

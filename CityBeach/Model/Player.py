@@ -19,5 +19,5 @@ class Player:
     def __str__(self):
         return f"Player: '{self.name}'\t'{self.surname}'\tid:{self.id}"
     def __repr__(self):
-        return f"{self.id}' {self.name}' \t|\t '{self.surname}' \t|\t '{self.phone}' \t|\t '{self.email}')\n\r"
+        return f"{self.id}'{self.name}' \t|\t '{self.surname}' \t|\t '{self.phone}' \t|\t '{self.email}')\n\r"
 
