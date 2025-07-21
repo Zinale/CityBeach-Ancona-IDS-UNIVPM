@@ -88,7 +88,7 @@ class MainWindow(QWidget):
             else:
                 QMessageBox.warning(self, "Permesso negato", "Non sei amministratore")
         def show_edit_user_ui():
-            dlg = edit_user_ui(parent=self,opener_id=self.users_controller.current_user.id)
+            dlg = edit_user_ui(user_to_edit=self.users_controller.current_user,controller_user=self.users_controller)
             if dlg.exec():
                 self.init_main_ui()
 
@@ -120,8 +120,9 @@ class MainWindow(QWidget):
 
         main_layout, center_text, tree, dip_btn, del_dip_btn,back_btn = view_dipendenti_ui_layout(self.users_controller.get_all_users())
         def show_edit_user_ui():
-            dlg = edit_user_ui(parent=self,opener_id=self.users_controller.current_user.id,user_to_edit=self.users_controller.get_user_by_username(self.selected_user.text(4)))
+            dlg = edit_user_ui(user_to_edit=self.users_controller.get_user_by_username(self.selected_user.text(4)),controller_user=self.users_controller)
             if dlg.exec():
+                self.model.save_to_file("data.pkl")
                 self.init_dipendenti_ui()
         def del_dipendente():
             if self.selected_user == None:
@@ -146,8 +147,10 @@ class MainWindow(QWidget):
                 self.selected_user = selected_user[0]  # it is an QTree Object
 
         def show_add_dipendente_ui():
-            dlg = add_Dipendete_ui(self)
+            dlg = add_Dipendete_ui(controller=self.users_controller)
             if dlg.exec():
+                self.model.users_next_id = self.users_controller.user_id
+                self.model.save_to_file("data.pkl")
                 self.init_dipendenti_ui()
         tree.itemSelectionChanged.connect(tree_on_item_selected)
 
@@ -226,8 +229,9 @@ class MainWindow(QWidget):
         def show_edit_player_ui():
             #phase = 0 -> register
             #phase = 1 -> edit player
-            dlg = info_Player_ui(parent=self,phase=1,player_to_edit = self.selected_player)
+            dlg = info_Player_ui(phase=1,player_to_edit = self.selected_player,playerController=self.players_controller)
             if dlg.exec():
+                self.model.save_to_file("data.pkl")
                 self.init_players_ui()
         def tree_on_item_selected():
             selected_player = tree.selectedItems()
@@ -248,15 +252,17 @@ class MainWindow(QWidget):
                 for lab in labels:
                     lab.setText("")
 
-        def show_add_dipendente_ui():
-            dlg = info_Player_ui(parent=self,phase=0)
+        def show_add_player_ui():
+            dlg = info_Player_ui(phase=0,playerController=self.players_controller,currentUser=self.users_controller.current_user)
             if dlg.exec():
+                self.model.players_next_id = self.players_controller.player_id
+                self.model.save_to_file("data.pkl")
                 self.init_players_ui()
 
         tree.itemSelectionChanged.connect(tree_on_item_selected)
         tree.itemDoubleClicked.connect(show_edit_player_ui)
 
-        add_play_btn.clicked.connect(show_add_dipendente_ui)
+        add_play_btn.clicked.connect(show_add_player_ui)
 
         del_play_btn.clicked.connect(del_player)
         center_text.setText(f"{self.users_controller.get_current_user().username}")
@@ -317,16 +323,21 @@ class MainWindow(QWidget):
                         QMessageBox.warning(self, "Errore", "Si è verificato un problema durante l'operazione.")
 
         def show_add_field_ui():
-            dlg = add_field_ui(parent=self)
+            dlg = add_field_ui(fieldController=self.fields_controller,currentUser=self.users_controller.current_user)
             if dlg.exec():
+                self.model.fields_next_id = self.fields_controller.field_id
+                self.model.save_to_file("data.pkl")
                 self.init_fields_lockers_static_ui()
         def show_add_locker_ui():
-            dlg = info_locker_ui(parent=self)
+            dlg = info_locker_ui(self.lockers_controller,phase=0,currentUser=self.users_controller.current_user)
             if dlg.exec():
+                self.model.lockers_next_id = self.lockers_controller.locker_id
+                self.model.save_to_file("data.pkl")
                 self.init_fields_lockers_static_ui()
         def show_edit_locker_ui():
-            dlg = info_locker_ui(phase=1,locker_to_edit=self.selected_locker,parent=self)
+            dlg = info_locker_ui(lockersController=self.lockers_controller,phase=1,locker_to_edit=self.selected_locker)
             if dlg.exec():
+                self.model.save_to_file("data.pkl")
                 self.init_fields_lockers_static_ui()
 
         def item_on_tree_field_selected():
@@ -390,7 +401,7 @@ class MainWindow(QWidget):
 
         main_layout, center_text, tree, book_btn, del_book_btn,back_btn = view_booking_ui_layout(list(self.bookings_controller.bookings.values()))
         def show_edit_user_ui():
-            dlg = edit_user_ui(parent=self,opener_id=self.users_controller.current_user.id,user_to_edit=self.users_controller.get_user_by_username(self.selected_user.text(4)))
+            dlg = edit_user_ui(user_to_edit=self.users_controller.get_user_by_username(self.selected_user.text(4)),controller_user=self.users_controller)
             if dlg.exec():
                 self.init_dipendenti_ui()
         def del_dipendente():

@@ -8,6 +8,7 @@ from PyQt6.QtWidgets import (
     QDateEdit, QComboBox, QCheckBox, QFormLayout, QGridLayout
 )
 
+from Controller import AppUsersController
 from Model.User import User
 from View.styles import *
 from View.topBar import topBar
@@ -153,13 +154,14 @@ def main_ui_layout() -> QVBoxLayout() and QPushButton()and QPushButton()and QPus
     return main_layout, btn_campi, btn_pren,btn_gioc,btn_attspo,btn_dip,btn_rist,center_text,profile_btn,log_btn
 
 class edit_user_ui(QDialog):
-    def __init__(self,opener_id:int,user_to_edit:User=None,parent=None):
-        super().__init__(parent)
+    def __init__(self,user_to_edit:User,controller_user:AppUsersController):
+        super().__init__()
         self.setWindowTitle("Modifica Utente")
         self.setFixedSize(300, 300)
         self.setStyleSheet(style_app_Dialogs)
         self.setWindowIcon(QIcon("src/img/logo.png"))
-        self.current_user = self.parent().users_controller.get_current_user()
+        self.usersController = controller_user
+        self.current_user = self.usersController.get_current_user()
         self.opener_is_admin = False
         self.user_to_edit = self.current_user
         if user_to_edit!=None and self.current_user.id != user_to_edit.id:
@@ -232,19 +234,18 @@ class edit_user_ui(QDialog):
                 "Femmina": Gender.Gender.FEMALE
             }
             gender = GENDER_MAP.get(genderCheck.currentText(), Gender.Gender.OTHER)
-            if hasattr(self.parent().users_controller,"edit_user"):  # check if "self.register_dipendente" exists in 'MainWindow'"
+            try:
                 if self.opener_is_admin:
                     passwordVal = passwordBar.isChecked()
                 else:
                     passwordVal = passwordBar.text()
-                success, err_id = self.parent().users_controller.edit_user(self.user_to_edit.id,nameBar.text(), surnameBar.text(),
+                success, err_id = self.usersController.edit_user(self.user_to_edit.id,nameBar.text(), surnameBar.text(),
                                                                  usernameBar.text(),
                                                                  passwordVal,
                                                                  birth_day_sel.date().toString("dd/MM/yyyy"),
                                                                  gender)
                 if success:
-                    self.parent().model.save_to_file("data.pkl")
-                    QMessageBox.information(self, "Successo", "Utente modificato.")
+                    QMessageBox.information(self, "Successo", f"Utente {self.user_to_edit.username} modificato.")
                     self.accept()
                 else:
                     # controller said: "no!"
@@ -264,7 +265,8 @@ class edit_user_ui(QDialog):
                     elif err_id == 6:
                         QMessageBox.warning(self, "Errore",
                                             "Impossibile modificare l'account 'admin'")
-            else:
+            except:
                 QMessageBox.critical(self, "Errore", "Controller non valido.")
+                self.close()
         save_btn.clicked.connect(submit_data)
         self.setLayout(main_layout)

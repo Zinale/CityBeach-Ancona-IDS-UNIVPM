@@ -80,7 +80,7 @@ class AppPlayersController:
             return False,-1
 
     def checkPhone(self,phone:str,id_player:int=-1):
-        return any((getattr(player, "phone", None) == phone and getattr(player,"phone",None)!=id_player)for player in list(self.players.values()))
+        return any((getattr(player, "phone", None) == phone and getattr(player,"id",None)!=id_player)for player in list(self.players.values()))
 
     def checkEmail(self,email:str,id_player:int=-1):
         return any((getattr(player, "email", None) == email and getattr(player,"id",None)!=id_player) for player in list(self.players.values()))

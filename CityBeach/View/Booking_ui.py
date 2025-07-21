@@ -7,6 +7,8 @@ from PyQt6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QMessageBox, QTreeWidget, QTreeWidgetItem,
     QDateEdit, QComboBox, QFormLayout, QCompleter, QSpinBox
 )
+
+from Controller import AppBookingsController
 from Model.Data import TIME_SLOTS
 import View.View
 from Model.Booking import Booking
@@ -104,10 +106,10 @@ def view_booking_ui_layout(booking_list:List[Booking]):
     return main_layout,center_text, tree, book_btn, del_book_btn,back_btn
 
 class add_booking_ui(QDialog):
-    def __init__(self,parent=None):
+    def __init__(self,controller:AppBookingsController,parent=None):
         super().__init__(parent)
         self.setWindowTitle("Crea Prenotazione")
-        self.setFixedSize(300, 500)
+        self.setFixedSize(450, 380)
         self.setStyleSheet(style_app_Dialogs)
         self.setWindowIcon(QIcon("src/img/logo.png"))
         self.init_ui()
@@ -115,20 +117,17 @@ class add_booking_ui(QDialog):
     def init_ui(self):
         layout = QFormLayout()
         sportBox = QComboBox()
-        print("as32a")
-        for spor in SportsCategory:
-            print(str(spor.name))
-        print("ciaoaadmin")
         sportBox.addItems([sport.value for sport in SportsCategory])
         fieldBox = QComboBox()
-        print("asf")
         if not hasattr(self.parent().fields_controller,"fields"):
             self.close()
-        print("aassagdasgdasgdadgaadg")
-        fieldBox.addItems([field.name for field in list(self.parent().fields_controller.fields.values())])
+        fieldBox.addItems([field.name for field in list(self.parent().fields_controller.fields.values()) if field.sport==sportBox.currentText()])
         if not hasattr(self.parent().players_controller,"players"):
             self.close()
-        print("asssssssssssss")
+        def update_field_box():
+            fieldBox.clear()
+            fieldBox.addItems([field.name for field in list(self.parent().fields_controller.fields.values()) if field.sport==sportBox.currentText()])
+        sportBox.currentTextChanged.connect(update_field_box)
 
         names = [player.name for player in list(self.parent().players_controller.players.values())]
         surnames = [player.surname for player in list(self.parent().players_controller.players.values())]
@@ -144,7 +143,6 @@ class add_booking_ui(QDialog):
         surnameCompleter.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         playerSurname.setCompleter(surnameCompleter)
 
-        print("asssssssssssss")
         nPlayer = QSpinBox()
         nPlayer.setRange(0, 12)
         nPlayer.setValue(0)
@@ -189,11 +187,10 @@ class add_booking_ui(QDialog):
         date_selector.setDate(QDate.currentDate())
 
         slot_selector = QSpinBox()
-        slot_selector.setRange(1,26)
-        print("slots")
-        label_slot = QLabel(f"{TIME_SLOTS[slot_selector.value()].startTime}-{TIME_SLOTS[slot_selector.value()+2]}")
+        slot_selector.setRange(0,25)
+        label_slot = QLabel(f"{TIME_SLOTS[slot_selector.value()].startTime}-{TIME_SLOTS[slot_selector.value()+2].endTime}")
         def update_label_slot():
-            label_slot.setText(f"{TIME_SLOTS[slot_selector.value()].startTime}-{TIME_SLOTS[slot_selector.value()+2]}")
+            label_slot.setText(f"{TIME_SLOTS[slot_selector.value()].startTime}-{TIME_SLOTS[slot_selector.value()+2].endTime}")
         slot_selector.valueChanged.connect(update_label_slot)
 
         save_btn = QPushButton("Salva")
@@ -222,7 +219,7 @@ class add_booking_ui(QDialog):
         hLayout_nPlayer.addWidget(nMale)
         hLayout_nPlayer.addWidget(nFemale)
         layout.addRow("n° Giocatori/Maschi/Femmine:", hLayout_nPlayer)
-        layout.addRow("Prezzo:", price)
+        layout.addRow("Prezzo €:", price)
         layout.addRow("Data:", date_selector)
         hLayout_slot = QHBoxLayout()
         hLayout_slot.addWidget(slot_selector)
@@ -243,6 +240,7 @@ class add_booking_ui(QDialog):
 
 
         def submit_data():
+            #@TODO
             GENDER_MAP = {
                 "Maschio": Gender.Gender.MALE,
                 "Femmina": Gender.Gender.FEMALE
@@ -299,3 +297,4 @@ else:
     from Model import *
     #from .Model import Gender
     from .styles import *
+    from Model.SportsCategory import *

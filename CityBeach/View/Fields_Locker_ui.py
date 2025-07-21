@@ -7,7 +7,9 @@ from PyQt6.QtWidgets import (QLabel, QPushButton, QSizePolicy,
                              QFormLayout, QLineEdit, QComboBox, QMessageBox, QSpinBox
                              )
 
+from Controller import AppLockersController, AppFieldsController
 from Model.SportsCategory import SportsCategory
+from Model.User import User
 from View.styles import *
 from View.topBar import topBar
 from Model.Locker import Locker
@@ -219,12 +221,14 @@ def view_fields_lockers_static_ui_layout(field_list: List[Field],locker_list:Lis
             add_lock_btn, del_lock_btn,back_btn)
 
 class add_field_ui(QDialog):
-    def __init__(self,parent=None):
-        super().__init__(parent)
+    def __init__(self,fieldController:AppFieldsController,currentUser:User):
+        super().__init__()
         self.setWindowTitle("Aggiungi Dipendente")
         self.setFixedSize(300, 160)
         self.setStyleSheet(style_app_Dialogs)
         self.setWindowIcon(QIcon("src/img/logo.png"))
+        self.fieldController = fieldController
+        self.currentUser = currentUser
         self.init_ui()
 
     def init_ui(self):
@@ -265,11 +269,9 @@ class add_field_ui(QDialog):
                 "sport": SportsCategory(sportBar.currentText())
             }
             # call his parent
-            if hasattr(self.parent().fields_controller, "register_field"):      #check if "self.register_dipendente" exists in 'MainWindow'"
-                success, err_id = self.parent().fields_controller.register_field(data,self.parent().users_controller.current_user.username)
+            try:
+                success, err_id = self.fieldController.register_field(data,self.currentUser.username)
                 if success:
-                    self.parent().model.fields_next_id = self.parent().fields_controller.field_id
-                    self.parent().model.save_to_file("data.pkl")
                     QMessageBox.information(self, "Successo", "Campo da Gioco aggiunto.")
                     self.accept()
                 else:
@@ -282,17 +284,20 @@ class add_field_ui(QDialog):
                         QMessageBox.warning(self, "Errore", "Nome non valido")
                     elif err_id == -1:
                         QMessageBox.critical(self, "Errore", "Errore")
-            else:
+            except:
                 QMessageBox.critical(self, "Errore", "Controller non valido.")
+                self.close()
         save_btn.clicked.connect(submit_data)
         self.setLayout(main_layout)
 
 class info_locker_ui(QDialog):
-    def __init__(self,parent=None,phase:int=0,locker_to_edit:Locker=None):
-        #phase = 0 -> to register new Player
-        #phase = 1 -> to edit an existing Player
-        super().__init__(parent)
+    def __init__(self,lockersController:AppLockersController,phase:int=0,locker_to_edit:Locker=None,currentUser:User=None):
+        #phase = 0 -> to register new LockerRoom
+        #phase = 1 -> to edit an existing LockerRoom
+        super().__init__()
+        self.lockersController = lockersController
         self.phase = phase
+        self.currentUser = currentUser
         self.locker_to_edit = locker_to_edit
         if phase==0:
             self.setWindowTitle("Aggiungi Spogliatoio")
@@ -354,12 +359,10 @@ class info_locker_ui(QDialog):
             }
             # call his parent
             if self.phase==0:
-                #REGISTER NEW PLAYER
-                if hasattr(self.parent().lockers_controller, "register_locker"):
-                    success, err_id = self.parent().lockers_controller.register_locker(data,self.parent().users_controller.current_user.username)
+                #REGISTER NEW LOCKER
+                try:
+                    success, err_id = self.lockersController.register_locker(data,self.currentUser)
                     if success:
-                        self.parent().model.lockers_next_id = self.parent().lockers_controller.locker_id
-                        self.parent().model.save_to_file("data.pkl")
                         QMessageBox.information(self, "Successo", "Spogliatoio aggiunto.")
                         self.accept()
                     else:
@@ -372,14 +375,14 @@ class info_locker_ui(QDialog):
                             QMessageBox.warning(self, "Errore", "Nome già usato")
                         elif err_id == -1:
                             QMessageBox.critical(self, "Errore", "Errore")
-                else:
+                except:
                     QMessageBox.critical(self, "Errore", "Controller non valido/ha riscontrato un errore.")
+                    self.close()
             elif self.phase==1:
-                #EDIT PLAYER
-                if hasattr(self.parent().lockers_controller,"edit_locker"):
-                    success, err_id = self.parent().lockers_controller.edit_locker(data,self.locker_to_edit.id)
+                #EDIT LOCKER
+                try:
+                    success, err_id = self.lockersController.edit_locker(data,self.locker_to_edit.id)
                     if success:
-                        self.parent().model.save_to_file("data.pkl")
                         QMessageBox.information(self, "Successo", f"Spogliatoio '{self.locker_to_edit.name} aggiornato.")
                         self.accept()
                     else:
@@ -390,6 +393,8 @@ class info_locker_ui(QDialog):
                             QMessageBox.information(self, "Errore", "Errore nome già usato")
                         elif err_id == -1:
                             QMessageBox.critical(self, "Errore", "Errore")
+                except:
+                    self.close()
         save_btn.clicked.connect(submit_data)
         self.setLayout(main_layout)
 

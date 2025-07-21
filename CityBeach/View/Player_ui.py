@@ -7,6 +7,9 @@ from PyQt6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QMessageBox, QTreeWidget, QTreeWidgetItem,
     QDateEdit, QComboBox, QFormLayout, QSplitter, QWidget
 )
+
+from Controller import AppPlayersController
+from Model.User import User
 from View.styles import *
 from View.topBar import topBar
 from Model import Gender
@@ -162,12 +165,14 @@ def view_players_ui_layout(player_list: List[Player]):
     return main_layout, center_text, tree, label_name,label_surname,label_created_when,label_created_by,label_city,label_eta,label_time,label_sport,label_avg_n_player,add_play_btn, del_play_btn,back_btn
 
 class info_Player_ui(QDialog):
-    def __init__(self,phase:int,player_to_edit:Player=None,parent=None):
+    def __init__(self,phase:int,playerController:AppPlayersController,player_to_edit:Player=None,currentUser:User=None):
         #phase = 0 -> to register new Player
         #phase = 1 -> to edit an existing Player
-        super().__init__(parent)
+        super().__init__()
         self.phase = phase
+        self.playersController = playerController
         self.player_to_edit = player_to_edit
+        self.currentUser = currentUser
         if phase==0:
             self.setWindowTitle("Aggiungi Giocatore")
         else:
@@ -236,7 +241,6 @@ class info_Player_ui(QDialog):
             surnameBar.setText(f"{self.player_to_edit.surname}")
             date = self.player_to_edit.birthday.split("/")
             birth_day_sel.setDate(QDate(int(date[2]), int(date[1]), int(date[0])))
-            print(type(self.player_to_edit.gender))
             genderCheck.setCurrentIndex(list(Gender.Gender).index(self.player_to_edit.gender))
             phone_number = self.player_to_edit.phone.split(" ")
             prefix_label.setText(phone_number[0])
@@ -269,15 +273,13 @@ class info_Player_ui(QDialog):
             # call his parent
             if self.phase==0:
                 #REGISTER NEW PLAYER
-                if hasattr(self.parent().players_controller, "register_player"):      #check if "self.register_dipendente" exists in 'MainWindow'"
-                    success, err_id = self.parent().players_controller.register_player(list(data.values()),self.parent().users_controller.current_user)
+                try:
+                    success, err_id = self.playersController.register_player(list(data.values()),self.currentUser)
                     if success:
-                        self.parent().model.players_next_id = self.parent().players_controller.player_id
-                        self.parent().model.save_to_file("data.pkl")
                         QMessageBox.information(self, "Successo", "Giocatore aggiunto.")
                         self.accept()
                     else:
-                        # controller said: "no!"
+                        # the controller said: "no!"
                         if err_id == 1:
                             QMessageBox.warning(self, "Errore", "Impossibile inserire una data pari o successiva alla corrente")
                         elif err_id == 2:
@@ -290,18 +292,18 @@ class info_Player_ui(QDialog):
                             QMessageBox.warning(self, "Errore", "Numero di telefono già usato")
                         elif err_id == -1:
                             QMessageBox.critical(self, "Errore", "Errore")
-                else:
+                except:
                     QMessageBox.critical(self, "Errore", "Controller non valido/ha riscontrato un errore.")
+                    self.close()
             elif self.phase==1:
                 #EDIT PLAYER
-                if hasattr(self.parent().players_controller,"edit_player"):
-                    success, err_id = self.parent().players_controller.edit_player(list(data.values()),self.player_to_edit.id)
+                try:
+                    success, err_id = self.playersController.edit_player(list(data.values()),self.player_to_edit.id)
                     if success:
-                        self.parent().model.save_to_file("data.pkl")
                         QMessageBox.information(self, "Successo", f"Profilo di {self.player_to_edit.name} {self.player_to_edit.surname} modificato.")
                         self.accept()
                     else:
-                        # controller said: "no!"
+                        # the controller said: "no!"
                         if err_id == 1:
                             QMessageBox.warning(self, "Errore", "Impossibile inserire una data pari o successiva alla corrente")
                         elif err_id == 2:
@@ -312,6 +314,8 @@ class info_Player_ui(QDialog):
                             QMessageBox.warning(self, "Errore", "Numero di telefono già usato")
                         elif err_id == -1:
                             QMessageBox.critical(self, "Errore", "Errore")
+                except:
+                    self.close()
         save_btn.clicked.connect(submit_data)
         self.setLayout(main_layout)
 

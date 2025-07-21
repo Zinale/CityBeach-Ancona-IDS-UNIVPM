@@ -8,6 +8,7 @@ from PyQt6.QtWidgets import (
     QDateEdit, QComboBox, QCheckBox, QFormLayout
 )
 
+from Controller import AppUsersController
 from View.styles import (
     style_QButton_white_18Gotham,
     style_QButton_red,
@@ -111,8 +112,9 @@ def view_dipendenti_ui_layout(lista_dipendenti):
     return main_layout,center_text, tree, dip_btn, del_dip_btn,back_btn
 
 class add_Dipendete_ui(QDialog):
-    def __init__(self,parent=None):
-        super().__init__(parent)
+    def __init__(self,controller:AppUsersController = None):
+        super().__init__()
+        self.controller = controller
         self.setWindowTitle("Aggiungi Dipendente")
         self.setFixedSize(300, 280)
         self.setStyleSheet(style_app_Dialogs)
@@ -181,14 +183,11 @@ class add_Dipendete_ui(QDialog):
                 "gender": gender
             }
             # call his parent
-            if hasattr(self.parent().users_controller, "register"):      #check if "self.register_dipendente" exists in 'MainWindow'"
-                success, err_id = self.parent().users_controller.register(nameBar.text(),surnameBar.text(),usernameBar.text(),
+            try:
+                success, err_id = self.controller.register(nameBar.text(),surnameBar.text(),usernameBar.text(),
                                                          birth_day_sel.date().toString("dd/MM/yyyy"),flagAmministratore.isChecked(),
                                                          gender)
                 if success:
-                    data = data
-                    self.parent().model.users_next_id = self.parent().users_controller.user_id
-                    self.parent().model.save_to_file("data.pkl")
                     QMessageBox.information(self, "Successo", "Dipendente aggiunto.")
                     #print("REGISTRATO: ",data)
                     self.accept()
@@ -206,8 +205,9 @@ class add_Dipendete_ui(QDialog):
                         QMessageBox.warning(self, "Errore", "Impossibile inserire una data pari o successiva alla corrente")
                     elif err_id == -1:
                         QMessageBox.critical(self, "Errore", "Errore")
-            else:
+            except Exception:
                 QMessageBox.critical(self, "Errore", "Controller non valido.")
+                self.close()
         save_btn.clicked.connect(submit_data)
         self.setLayout(main_layout)
 

@@ -1,12 +1,14 @@
 from typing import Dict
 from Model.Locker import Locker
+from Model.User import User
+
 
 class AppLockersController:
     def __init__(self, lockers: Dict[int, Locker], locker_id: int):
         self.lockers = lockers
         self.locker_id = locker_id
 
-    def register_locker(self,data,usr)->bool and int:
+    def register_locker(self,data,usr:User)->bool and int:
         try:
             name = data["name"].strip()
             if len(name) == 0:
@@ -18,7 +20,7 @@ class AppLockersController:
             if self.checkIfNameExists(name):
                 return False,3
             self.locker_id+=1
-            self.lockers[self.locker_id] = Locker(self.locker_id,name,gender,capacity,usr)
+            self.lockers[self.locker_id] = Locker(self.locker_id,name,gender,capacity,usr.username)
             return True, 0
         except:
             return False, -1
