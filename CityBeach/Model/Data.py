@@ -15,6 +15,7 @@ for i in range(28):
     TIME_SLOTS.append(TimeSlot(number=i+1,
                                startTime=time(9 + i//2,30*((i)%2)),
                                endTime=time(9 + ((i+1)//2),30-30*((i)%2))))
+TIME_SLOTS_str = [str(ts) for ts in TIME_SLOTS]
 
 class AppData:
     def __init__(self):

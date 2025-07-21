@@ -1,4 +1,3 @@
-import datetime
 from datetime import *
 from enum import Enum
 from typing import List
@@ -16,21 +15,21 @@ class TimeSlot:
         self.endTime = endTime
 
     def __str__(self):
-        return f"Fascia Oraria '{self.number}': {self.startTime}-{self.endTime}"
+        return f"Fascia Oraria: {self.startTime}-{self.endTime}"
     def __repr__(self):
         return f"Fascia Oraria '{self.number}': {self.startTime}-{self.endTime}"
 
 class DayTimeSlot:
     def __init__(self,day:date,slot:(TimeSlot,TimeSlot,TimeSlot)):
         self.day = day
-        self.slot = slot
+        self.slots = slot
 
     def getAllTime(self):
-        return self.slot[0].startTime + "-" + self.slot[2].endTime
+        return f"{self.slots[0].startTime.strftime("%H:%M")}-{self.slots[2].endTime.strftime("%H:%M")}"
     def __str__(self):
-        return f"Giorno: '{self.day}'. {self.slot}"
+        return f"Giorno: '{self.day}'. {self.slots}"
     def __repr__(self):
-        return f"Giorno: '{self.day}'. {self.slot}"
+        return f"Giorno: '{self.day}'. {self.slots}"
 
 class BookingState(Enum):
     REGISTERED = "Registrata"
@@ -39,8 +38,10 @@ class BookingState(Enum):
 
 #Stato, data_created, registrata da
 class Booking:
-    def __init__(self,field:Field,nPlayers:int,nMale:int,nFemale:int,
-                 player:Player,when:DayTimeSlot,price:int,lockers_usage:List[LockerRoomUsage],id_booking:int,usr_added_by:User):
+    def __init__(self, field: Field, nPlayers: int, nMale: int, nFemale: int,
+                 player: Player, when: DayTimeSlot, price: int=0,
+                 id_booking: int=0, usr_added_by: User=None,
+                 lockers_usage: List[LockerRoomUsage] = None):
         self.price:int=price
         self.field = field
         self.totalPlayers = nPlayers
@@ -50,8 +51,12 @@ class Booking:
         self.time = when
         self.lockers_usage = lockers_usage
         self.id = id_booking
-        self.data_created = datetime.datetime.now()
+        self.data_created = datetime.now()
         self.state:BookingState=BookingState.REGISTERED
         self.registered_by:User=usr_added_by
+
+    def __str__(self):
+        return (f"Prenotazione: {self.id}\tGiocatore:{self.player.name}\tCampo:{self.field.name} x {self.field.sport}\n\r"
+                f"{self.time}")
 
 

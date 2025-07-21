@@ -82,11 +82,12 @@ def view_fields_lockers_static_ui_layout(field_list: List[Field],locker_list:Lis
     # TREE WIDGET LOCKER----------------
     treeLocks = QTreeWidget()
     treeLocks.setHeaderLabels(
-        ["Nome", "id", "Capacità","Aggiunto da", "Data aggiunto"])
+        ["Nome", "id", "Genere", "Capacità", "Aggiunto da", "Data aggiunto"])
     for lock in locker_list:
         item = QTreeWidgetItem([
             str(lock.name),
             str(lock.id),
+            str(lock.gender),
             str(lock.capacity),
             str(lock.added_by),
             str(lock.data_created.date())
@@ -96,7 +97,7 @@ def view_fields_lockers_static_ui_layout(field_list: List[Field],locker_list:Lis
     treeLocks.setMaximumWidth(650)
     treeLocks.setMinimumWidth(650)
     vLeftLayout.addWidget(treeLocks)
-    #----------------------
+    # ----------------------
     LEFT_PART_WIDGET = QWidget()
     LEFT_PART_WIDGET.setLayout(vLeftLayout)
     hSplitter.addWidget(LEFT_PART_WIDGET)
@@ -265,7 +266,7 @@ class add_field_ui(QDialog):
         def submit_data():
             data = {
                 "name": nameBar.text(),
-                "sport": SportsCategory(sportBar.currentText())
+                "sport": sportBar.currentText()
             }
             # call his parent
             try:
@@ -275,19 +276,22 @@ class add_field_ui(QDialog):
                     self.accept()
                 else:
                     # the controller said: "no!"
-                    if err_id == 1:
-                        QMessageBox.warning(self, "Errore", "Utente in uso non riconosciuto")
-                    elif err_id == 2:
-                        QMessageBox.warning(self, "Errore", "Sport non valido")
-                    elif err_id == 3:
-                        QMessageBox.warning(self, "Errore", "Nome non valido")
-                    elif err_id == -1:
+                    if err_id != -1:
+                        error_messages = {
+                            1: "Utente in uso non riconosciuto.",
+                            2: "Sport non valido.",
+                            3: "Nome non valido.",
+                            4: "Nome già in uso per un altro campo."
+                        }
+                        QMessageBox.warning(self, "Errore", error_messages.get(err_id, "Errore sconosciuto."))
+                    else:
                         QMessageBox.critical(self, "Errore", "Errore")
             except:
                 QMessageBox.critical(self, "Errore", "Controller non valido.")
                 self.close()
         save_btn.clicked.connect(submit_data)
         self.setLayout(main_layout)
+
 
 class info_locker_ui(QDialog):
     def __init__(self,lockersController:AppLockersController,phase:int=0,locker_to_edit:Locker=None,currentUser:User=None):
@@ -310,6 +314,8 @@ class info_locker_ui(QDialog):
     def init_ui(self):
         layout = QFormLayout()
         nameBar = QLineEdit()
+        genderCheck = QComboBox()
+        genderCheck.addItems([gen.value for gen in Gender])
         capacityBar = QSpinBox()
         capacityBar.setMinimum(1)
 
@@ -332,10 +338,12 @@ class info_locker_ui(QDialog):
 
         layout.addRow("Nome:", nameBar)
         layout.addRow("Capacità:", capacityBar)
+        layout.addRow("Genere:", genderCheck)
 
         try:
             if self.phase == 1:
                 nameBar.setText(f"{self.locker_to_edit.name}")
+                genderCheck.setCurrentIndex([gen.value for gen in Gender].index(self.locker_to_edit.gender))
                 capacityBar.setValue(self.locker_to_edit.capacity)
         except:
             self.close()
@@ -349,6 +357,7 @@ class info_locker_ui(QDialog):
         def submit_data():
             data = {
                 "name": nameBar.text(),
+                "gender": Gender(genderCheck.currentText()),
                 "capacity":capacityBar.value()
             }
             # call his parent
@@ -391,4 +400,3 @@ class info_locker_ui(QDialog):
                     self.close()
         save_btn.clicked.connect(submit_data)
         self.setLayout(main_layout)
-

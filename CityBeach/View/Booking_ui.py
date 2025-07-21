@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 
 from PyQt6.QtCore import Qt, QDate
@@ -9,7 +10,7 @@ from PyQt6.QtWidgets import (
 )
 
 from Controller import AppBookingsController
-from Model.Data import TIME_SLOTS
+from Model.Data import TIME_SLOTS, TIME_SLOTS_str
 import View.View
 from Model.Booking import Booking
 from Model.Field import Field
@@ -37,7 +38,7 @@ def view_booking_ui_layout(booking_list:List[Booking]):
 
     tree = QTreeWidget()
     tree.setHeaderLabels(
-        ["Numero", "Sport", "Campo", "Giocatore", "#Giocatori", "Costo", "Data", "Fascia Oraria",
+        ["Numero", "Sport", "Campo", "Giocatore", "#Giocatori", "Prezzo (€)", "Data", "Fascia Oraria",
          "Registrata il","Stato Prenotazione","Registrata da"])
     if booking_list!=None:
         booking_list.reverse()
@@ -46,7 +47,7 @@ def view_booking_ui_layout(booking_list:List[Booking]):
             str(bk.id),
             str(bk.field.sport),
             str(bk.field.name),
-            str(bk.player.name + " " +bk.player.surname),
+            str(f"{bk.player.name} {bk.player.surname}"),
             str(bk.totalPlayers),
             str(bk.price),
             str(bk.time.day),
@@ -56,7 +57,6 @@ def view_booking_ui_layout(booking_list:List[Booking]):
             str(bk.registered_by.username)
         ])
         tree.addTopLevelItem(item)
-
     vLayout.addWidget(tree)
     tree.setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
@@ -245,12 +245,21 @@ class add_booking_ui(QDialog):
         date_selector.setCalendarPopup(True)
         date_selector.setDate(QDate.currentDate())
 
-        slot_selector = QSpinBox()
-        slot_selector.setRange(0,25)
-        label_slot = QLabel(f"{TIME_SLOTS[slot_selector.value()].startTime}-{TIME_SLOTS[slot_selector.value()+2].endTime}")
-        def update_label_slot():
-            label_slot.setText(f"{TIME_SLOTS[slot_selector.value()].startTime}-{TIME_SLOTS[slot_selector.value()+2].endTime}")
-        slot_selector.valueChanged.connect(update_label_slot)
+        slot_selector = QComboBox()
+        def update_availability_field():
+            field_name = fieldBox.currentText()
+            selected_date = datetime.strptime(date_selector.date().toString("dd/MM/yyyy"), "%d/%m/%Y").date()
+            available_slots = self.bookingsController.getAvailableTimeSlots(field_name, selected_date)
+            slot_selector.clear()
+            for slot_index in available_slots:
+                start = TIME_SLOTS[slot_index].startTime
+                end = TIME_SLOTS[slot_index + 2].endTime
+                label = f"{start.strftime('%H:%M')} - {end.strftime('%H:%M')}"
+                slot_selector.addItem(label, slot_index)
+
+        update_availability_field()
+        fieldBox.currentTextChanged.connect(update_availability_field)
+        date_selector.dateChanged.connect(update_availability_field)
 
         save_btn = QPushButton("Salva")
         save_btn.setStyleSheet(style_QButton_red)
@@ -283,10 +292,7 @@ class add_booking_ui(QDialog):
         layout.addRow("n° Giocatori/Maschi/Femmine:", hLayout_nPlayer)
         layout.addRow("Prezzo €:", price)
         layout.addRow("Data:", date_selector)
-        hLayout_slot = QHBoxLayout()
-        hLayout_slot.addWidget(slot_selector)
-        hLayout_slot.addWidget(label_slot)
-        layout.addRow("Fascia oraria:", hLayout_slot)
+        layout.addRow("Fascia oraria:", slot_selector)
 
 
         main_layout = QVBoxLayout()
@@ -300,33 +306,42 @@ class add_booking_ui(QDialog):
                             if player.name == playerName.text() and player.surname==playerSurname.text()
                             and player.birthday==usrCheckBirthday.currentText() and player.email==usrCheckEmail.currentText()
                             and player.email==usrCheckEmail.currentText()),None)
-
+            field = next((field for field in self.fieldsList
+                          if field.name==fieldBox.currentText()))
             data = {
                 "sport": sportBox.currentText(),
-                "field": fieldBox.currentText(),
+                "field": field,
                 "player": player,
                 "nPlayer":nPlayer.value(),
                 "nMale":nMale.value(),
                 "nFemale":nFemale.value(),
                 "price":price.value(),
                 "date": date_selector.date().toString("dd/MM/yyyy"),
-                "timeSlot": slot_selector.value(),
+                "timeSlot": slot_selector.currentData(),
             }
             # call his parent
             try:
                 success, err_id = self.bookingsController.register_booking(data,self.currentUser)
                 if success:
-                    QMessageBox.information(self, "Successo", "Dipendente aggiunto.")
+                    QMessageBox.information(self, "Successo", "Prenotazione creata.")
                     #print("REGISTRATO: ",data)
                     self.accept()
                 else:
                     # the controller said: "no!"
                     if err_id!=-1:
                         error_messages = {
-                            1: "Nome non valido.",
-                            2: "Tipo Attrezzatura non valido.",
-                            3: "Categoria Sportiva non valida.",
-                            4: "Quantità deve essere maggiore di zero."
+                            1: "Sport non valido.",
+                            2: "Campo da Gioco non valido.",
+                            3: "Giocatore non valido.",
+                            4: "Numero di giocatori non valido.",
+                            5: "Numero di giocatori maschi non valido.",
+                            6: "Numero di giocatori femmina non valido.",
+                            7: "Prezzo inserito non valido.",
+                            8: "Data inserita non valida.",
+                            9: "Fascia oraria inserita non valida.",
+                            10: "Numero di giocatori totali inseriti errato",
+                            11: "Inserire una prenotazione per una data precedente a quella di oggi",
+                            12: "Fascia oraria non disponibile"
                         }
                         QMessageBox.warning(self, "Errore", error_messages.get(err_id, "Errore sconosciuto."))
                     else:

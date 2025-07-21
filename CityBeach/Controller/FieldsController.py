@@ -14,12 +14,14 @@ class AppFieldsController:
             sport = data["sport"]
             if usr is None:
                 return False, 1
-            if sport.value not in [sport.value for sport in SportsCategory]:
+            if sport not in [sport.value for sport in SportsCategory]:
                 return False, 2
             if len(name.strip()) <=0:
                 return False,3
+            if self.checkName(name,sport):
+                return False, 4
             self.field_id+=1
-            self.fields[self.field_id] = Field(self.field_id,sport.value,name,usr)
+            self.fields[self.field_id] = Field(self.field_id,sport,name,usr)
             return True,0
         except:
             return False, -1
@@ -33,3 +35,6 @@ class AppFieldsController:
                 return False, 2
         except:
             return False, 1
+
+    def checkName(self,name:str,sport:str)->bool:
+        return any((getattr(field,"name",None) == name and getattr(field,"sport",None)==sport for field in list(self.fields.values())))
