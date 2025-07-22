@@ -1,3 +1,4 @@
+from datetime import date
 from typing import List
 
 from PyQt6.QtCore import Qt
@@ -12,7 +13,7 @@ from Model.SportsCategory import SportsCategory
 from Model.User import User
 from View.styles import *
 from View.topBar import topBar
-from Model.Locker import Locker
+from Model.Locker import Locker, LockerType
 from Model.Field import Field
 from Model.Gender import Gender
 
@@ -82,14 +83,15 @@ def view_fields_lockers_static_ui_layout(field_list: List[Field],locker_list:Lis
     # TREE WIDGET LOCKER----------------
     treeLocks = QTreeWidget()
     treeLocks.setHeaderLabels(
-        ["Nome", "id", "Genere", "Capacità", "Aggiunto da", "Data aggiunto"])
+        ["Nome", "id", "Genere", "Capacità", "Tipo","Aggiunto da", "Data aggiunto"])
     for lock in locker_list:
         item = QTreeWidgetItem([
             str(lock.name),
             str(lock.id),
             str(lock.gender),
             str(lock.capacity),
-            str(lock.added_by),
+            str(lock.type),
+            str(lock.added_by.username),
             str(lock.data_created.date())
         ])
         treeLocks.addTopLevelItem(item)
@@ -318,6 +320,8 @@ class info_locker_ui(QDialog):
         genderCheck.addItems([gen.value for gen in Gender])
         capacityBar = QSpinBox()
         capacityBar.setMinimum(1)
+        typeBar = QComboBox()
+        typeBar.addItems([t.value for t in LockerType])
 
         save_btn = QPushButton("Salva")
         save_btn.setStyleSheet(style_QButton_red)
@@ -339,6 +343,7 @@ class info_locker_ui(QDialog):
         layout.addRow("Nome:", nameBar)
         layout.addRow("Capacità:", capacityBar)
         layout.addRow("Genere:", genderCheck)
+        layout.addRow("Tipo: ",typeBar)
 
         try:
             if self.phase == 1:
@@ -358,7 +363,8 @@ class info_locker_ui(QDialog):
             data = {
                 "name": nameBar.text(),
                 "gender": Gender(genderCheck.currentText()),
-                "capacity":capacityBar.value()
+                "capacity":capacityBar.value(),
+                "type":typeBar.currentText()
             }
             # call his parent
             if self.phase==0:

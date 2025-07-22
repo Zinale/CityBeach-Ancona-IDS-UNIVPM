@@ -219,7 +219,9 @@ class edit_user_ui(QDialog):
         if self.opener_is_admin:
             layout.addRow("Reset Password:",passwordBar)
         else:
+            passwordBar.setText(self.user_to_edit.password)
             layout.addRow("Password:",passwordBar)
+
         layout.addRow("Data di nascita:", birth_day_sel)
         layout.addRow("Amministratore:", flagAmministratore)
         layout.addRow("Sesso:", genderCheck)

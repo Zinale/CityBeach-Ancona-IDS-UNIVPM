@@ -12,7 +12,7 @@ from PyQt6.QtWidgets import (
 from Controller import AppBookingsController
 from Model.Data import TIME_SLOTS, TIME_SLOTS_str
 import View.View
-from Model.Booking import Booking
+from Model.Booking import Booking, BookingState
 from Model.Field import Field
 from Model.Locker import Locker
 from Model.Player import Player
@@ -42,7 +42,12 @@ def view_booking_ui_layout(booking_list:List[Booking]):
          "Registrata il","Stato Prenotazione","Registrata da"])
     if booking_list!=None:
         booking_list.reverse()
+    print("----------------")
     for bk in booking_list:
+        print(bk.time.day,type(bk.time.day))
+        if bk.state in (BookingState.REGISTERED,BookingState.IN_PROGRESS):
+            for l in bk.lockers_usage:
+                print(f"{l.gender.value} {l.players} {l.locker.name}")
         item = QTreeWidgetItem([
             str(bk.id),
             str(bk.field.sport),
@@ -53,9 +58,13 @@ def view_booking_ui_layout(booking_list:List[Booking]):
             str(bk.time.day),
             str(bk.time.getAllTime()),
             str(bk.data_created.date()),
-            str(bk.state),
+            str(bk.state.value),
             str(bk.registered_by.username)
         ])
+        if bk.state == BookingState.CANCELLED:
+            for i in range(11):
+                item.setBackground(i, QBrush(QColor("#F2F2F2")))
+                item.setBackground(i, QBrush(QColor("#A0A0A0")))
         tree.addTopLevelItem(item)
     vLayout.addWidget(tree)
     tree.setFocusPolicy(Qt.FocusPolicy.NoFocus)
@@ -64,13 +73,14 @@ def view_booking_ui_layout(booking_list:List[Booking]):
     hLayoutBtn.addStretch(1)
     # add Bookin btn
     book_btn = QPushButton("Crea Prenotazione")
-    book_btn.setStyleSheet(style_QButton_white_18Gotham)
+    book_btn.setStyleSheet(style_QButton_white_16Gotham)
     book_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
     hLayoutBtn.addWidget(book_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
 
     del_book_btn = QPushButton("Annulla Prenotazione")
-    del_book_btn.setStyleSheet(style_QButton_white_18Gotham)
+    del_book_btn.setStyleSheet(style_QButton_disabled_16)
     del_book_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
+    del_book_btn.setEnabled(False)
     hLayoutBtn.addWidget(del_book_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
 
     vLayout.addLayout(hLayoutBtn)
@@ -319,9 +329,8 @@ class add_booking_ui(QDialog):
                 "date": date_selector.date().toString("dd/MM/yyyy"),
                 "timeSlot": slot_selector.currentData(),
             }
-            # call his parent
             try:
-                success, err_id = self.bookingsController.register_booking(data,self.currentUser)
+                success, err_id = self.bookingsController.register_booking(data,self.currentUser,lockersList=self.lockersList)
                 if success:
                     QMessageBox.information(self, "Successo", "Prenotazione creata.")
                     #print("REGISTRATO: ",data)

@@ -35,6 +35,7 @@ class BookingState(Enum):
     REGISTERED = "Registrata"
     IN_PROGRESS = "In corso"
     CANCELLED = "Annullata"
+    COMPLETED = "Terminata"
 
 #Stato, data_created, registrata da
 class Booking:

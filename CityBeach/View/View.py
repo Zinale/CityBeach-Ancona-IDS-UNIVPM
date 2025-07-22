@@ -5,7 +5,7 @@ from Model.Data import AppData
 from PyQt6.QtGui import QFontDatabase,QGuiApplication
 
 from .Booking_ui import *
-from .Dipendenti_ui import *
+from .Employee_ui import *
 from .Fields_Locker_ui import *
 from .Login_ui import *
 from .Main_ui import *
@@ -39,6 +39,11 @@ class MainWindow(QWidget):
             if success:
                 self.model.users_next_id = self.users_controller.user_id
                 self.model.save_to_file("data.pkl")
+        self.selected_user:User | None = None
+        self.selected_player:Player | None = None
+        self.selected_locker:Locker | None = None
+        self.selected_field:Field | None = None
+        self.selected_booking:Booking | None= None
         self.init_login_ui()
 
     def init_login_ui(self):
@@ -127,7 +132,7 @@ class MainWindow(QWidget):
         def del_dipendente():
             if self.selected_user == None:
                 return False
-            status, err_id = self.users_controller.delete_user(self.selected_user.text(4))
+            status, err_id = self.users_controller.delete_user(self.selected_user)
             if status:
                 self.model.save_to_file("data.pkl")
                 self.model = AppData.load_from_file("data.pkl")
@@ -144,7 +149,7 @@ class MainWindow(QWidget):
         def tree_on_item_selected():
             selected_user = tree.selectedItems()
             if selected_user and selected_user.__len__() == 1:
-                self.selected_user = selected_user[0]  # it is an QTree Object
+                self.selected_user = self.users_controller.get_user_by_username(selected_user[0].text(4))  # it is an QTree Object
 
         def show_add_dipendente_ui():
             dlg = add_Dipendete_ui(controller=self.users_controller)
@@ -400,31 +405,34 @@ class MainWindow(QWidget):
         self.center_window()
 
         main_layout, center_text, tree, book_btn, del_book_btn,back_btn = view_booking_ui_layout(list(self.bookings_controller.bookings.values()))
-        def show_edit_user_ui():
-            dlg = edit_user_ui(user_to_edit=self.users_controller.get_user_by_username(self.selected_user.text(4)),controller_user=self.users_controller)
-            if dlg.exec():
-                self.init_dipendenti_ui()
-        def del_dipendente():
-            if self.selected_user == None:
-                return False
-            status, err_id = self.users_controller.delete_user(self.selected_user.text(4))
-            if status:
-                self.model.save_to_file("data.pkl")
-                self.model = AppData.load_from_file("data.pkl")
-                QMessageBox.information(self, "Rimosso", "Utente eliminato.")
-                self.init_dipendenti_ui()
-            else:
-                if err_id==1:
-                    QMessageBox.warning(self, "Errore", "Non puoi eliminare il tuo account.")
-                elif err_id==2:
-                    QMessageBox.critical(self, "Errore", "Errore")
-                elif err_id == 3:
-                    QMessageBox.warning(self, "Errore", "Si è verificato un problema durante l'operazione.")
 
-        def tree_on_item_selected():
-            selected_user = tree.selectedItems()
-            if selected_user and selected_user.__len__() == 1:
-                self.selected_user = selected_user[0]  # it is an QTree Object
+        def cancel_booking():
+            if self.selected_booking is None:
+                return False
+            if self.selected_booking.state == BookingState.REGISTERED:
+                self.selected_booking.state = BookingState.CANCELLED
+            elif self.selected_booking.state == BookingState.CANCELLED:
+                self.selected_booking.state = BookingState.REGISTERED
+            self.model.save_to_file("data.pkl")
+            self.model = AppData.load_from_file("data.pkl")
+            self.init_bookings_ui()
+            return None
+
+        def item_on_tree_selected():
+            selected_booking = tree.selectedItems()
+            if selected_booking and selected_booking.__len__() == 1:
+                self.selected_booking = self.bookings_controller.bookings[int(selected_booking[0].text(0))]
+                if self.selected_booking.state in (BookingState.REGISTERED,BookingState.CANCELLED):
+                    del_book_btn.setStyleSheet(style_QButton_white_16Gotham)
+                    del_book_btn.setEnabled(True)
+                    if self.selected_booking.state == BookingState.CANCELLED:
+                        del_book_btn.setText("Attiva Prenotazione")
+                    else:
+                        del_book_btn.setText("Annulla Prenotazione")
+            else:
+                self.selected_booking = None
+                del_book_btn.setStyleSheet(style_QButton_disabled_16)
+                del_book_btn.setEnabled(False)
 
         def show_add_booking_ui():
             dlg = add_booking_ui(bookingController=self.bookings_controller,fields_list=list(self.fields_controller.fields.values()),
@@ -435,11 +443,11 @@ class MainWindow(QWidget):
                 self.model.save_to_file("data.pkl")
                 self.init_bookings_ui()
 
-        #tree.itemSelectionChanged.connect(tree_on_item_selected)
-        #tree.itemDoubleClicked.connect(show_edit_user_ui)
+        tree.itemSelectionChanged.connect(item_on_tree_selected)
+        tree.itemDoubleClicked.connect(cancel_booking)
 
         book_btn.clicked.connect(show_add_booking_ui)
-        #del_book_btn.clicked.connect(del_dipendente)
+        del_book_btn.clicked.connect(cancel_booking)
         center_text.setText(f"{self.users_controller.get_current_user().username}")
         if not self.users_controller.get_current_user().is_admin:
             center_text.setStyleSheet(style_text_red_on_white)

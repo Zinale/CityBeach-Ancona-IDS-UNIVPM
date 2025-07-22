@@ -5,6 +5,8 @@ import PyQt6
 
 from Model.Booking import *
 from Model.Data import TIME_SLOTS
+from Model.Gender import Gender
+from Model.Locker import Locker, LockerType
 
 
 class AppBookingsController:
@@ -12,7 +14,7 @@ class AppBookingsController:
         self.bookings = bookings
         self.booking_id = booking_id
 
-    def register_booking(self,data,currentUser:User)->bool and int:
+    def register_booking(self,data,currentUser:User,lockersList:List[Locker])->bool and int:
         try:
             #validate data
             if data["sport"] is None:
@@ -51,12 +53,27 @@ class AppBookingsController:
             if not self.checkAvailabilityField(field.name, date_obj, timeSlot):
                 return False, 12
 
+            #CREATE A NEW BOOKING
+            lockerRoomUsageMale_list:List[LockerRoomUsage]=[]
+            lockerRoomUsageFemale_list:List[LockerRoomUsage]=[]
+            lockerRoomUsage_list:List[LockerRoomUsage]=[]
+            if nMale>0:
+                lockerRoomUsageMale_list = self.assign_locker_rooms(Gender.MALE, nMale, date_obj, timeSlot, lockersList)
+                if not lockerRoomUsageMale_list:
+                    return False, 13
+                lockerRoomUsage_list.extend(lockerRoomUsageMale_list)
+            if nFemale>0:
+                lockerRoomUsageFemale_list = self.assign_locker_rooms(Gender.FEMALE, nFemale, date_obj, timeSlot, lockersList)
+                if not lockerRoomUsageFemale_list:
+                    return False, 13
+                lockerRoomUsage_list.extend(lockerRoomUsageFemale_list)
+            #for l in lockerRoomUsage_list:
+            #    print(f"{l.gender.value} {l.players} {l.locker.name}")
             self.booking_id+=1
             dayTimeSlot = DayTimeSlot(day=date_obj,slot=(TIME_SLOTS[timeSlot:timeSlot+3]))
             self.bookings[self.booking_id] = Booking(field=field,nPlayers=nPlayer,nMale=nMale,nFemale=nFemale,
-                                                     player=player,price=price,when=dayTimeSlot,
+                                                     player=player,price=price,when=dayTimeSlot,lockers_usage=lockerRoomUsage_list,
                                                      id_booking=self.booking_id,usr_added_by=currentUser)
-            print(self.bookings[self.booking_id])
             return True, 0
 
         except Exception as e:
@@ -70,7 +87,7 @@ class AppBookingsController:
         requested_start = requested_slots[0].startTime
         requested_end = requested_slots[2].endTime
         matched_bookings = [book for book in self.bookings.values()
-            if book.field.name == name and book.time.day == date]
+            if book.field.name == name and book.time.day == date and book.state in (BookingState.REGISTERED,BookingState.IN_PROGRESS) ]
         for booking in matched_bookings:
             for booked_slot in booking.time.slots:
                 booked_start = booked_slot.startTime
@@ -82,7 +99,7 @@ class AppBookingsController:
         available_slots = []
         bookings_on_date = [
             b for b in self.bookings.values()
-            if b.field.name == name and b.time.day == date
+            if b.field.name == name and b.time.day == date and b.state in (BookingState.REGISTERED,BookingState.IN_PROGRESS)
         ]
         booked_slot_numbers = set()
         for booking in bookings_on_date:
@@ -95,3 +112,73 @@ class AppBookingsController:
                 available_slots.append(i)
 
         return available_slots
+
+    def assign_locker_rooms(self,gender: Gender,n_players: int,date_obj: date,timeSlot: int,
+            lockersList: List[Locker]) -> List[LockerRoomUsage]:
+
+        assigned: List[LockerRoomUsage] = []
+
+        preferred_lockers = [l for l in lockersList if gender.value==l.gender and l.type==LockerType.MAIN.value]
+        support_lockers = [l for l in lockersList if l.type==LockerType.SECONDARY.value]
+        individual_lockers = [l for l in lockersList if l.type == LockerType.INDIVIDUAL.value]
+        active_bookings = [
+            b for b in self.bookings.values()
+            if b.time.day == date_obj and b.state in (BookingState.REGISTERED, BookingState.IN_PROGRESS)
+        ]
+        for b in active_bookings:
+            for ts in b.time.slots:
+                if ts.number in [s.number for s in TIME_SLOTS[timeSlot:timeSlot + 3]]:
+                    for u in b.lockers_usage or []:
+                        if u.gender not in (gender,Gender.OTHER.value):
+                            pass
+                            #support_lockers.remove(u.locker)
+        print(f"spo prefe:{preferred_lockers}")
+        print(f"spo suppo:{support_lockers}")
+        print(f"spo indivi:{individual_lockers}")
+
+        # Calcola occupazione corrente di un locker nella fascia richiesta
+        def compute_locker_usage(lock: Locker) -> (int, set[Gender]):
+            usage = 0
+            genders = set()
+            for b in active_bookings:
+                ts_start = b.time.slots[0]
+                #for ts in b.time.slots:
+                if ts_start.number in [s.number for s in TIME_SLOTS[timeSlot:timeSlot + 3]]:
+                    for u in b.lockers_usage or []:
+                        if u.locker.name == lock.name:
+                            usage += u.players
+                            genders.add(u.gender)
+            return usage, genders
+
+        def allocate_from_list(locker_list: List[Locker]) -> int:
+            nonlocal n_players
+            for lock in locker_list:
+                used, genders = compute_locker_usage(lock)
+                print(f"Nome:{lock.name} Usati:{used} Generi:{genders}")
+                if lock.gender == Gender.OTHER and genders and gender not in genders:
+                    print("skidiosa")
+                    continue  # già usato da altro genere
+                if used >= lock.capacity:
+                    print("asafa")
+                    continue
+                free = lock.capacity - used
+                to_assign = min(free, n_players)
+                assigned.append(LockerRoomUsage(lock, to_assign, gender))
+                n_players -= to_assign
+                if n_players <= 0:
+                    break
+            return n_players
+
+        # Ordine di allocazione
+        print(f"Da allocare {n_players} {gender.value}")
+        remaining = allocate_from_list(preferred_lockers)
+        print(f"Rimanenti: {remaining}")
+        if remaining > 0:
+            remaining = allocate_from_list(support_lockers)
+        if remaining > 0:
+            remaining = allocate_from_list(individual_lockers)
+
+        if remaining > 0:
+            return []  # spazio insufficiente
+
+        return assigned

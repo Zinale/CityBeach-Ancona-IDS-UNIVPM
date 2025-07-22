@@ -47,12 +47,12 @@ class AppUsersController:
                 return True, self.current_user
         return False, None
 
-    def delete_user(self,username:str)->bool and int:
+    def delete_user(self,user:User)->bool and int:
         try:
             current_user = self.current_user
             if not current_user or not current_user.is_admin:
                 return False, 2
-            user_to_delete = self.get_user_by_username(username)
+            user_to_delete = user
             if current_user.username == user_to_delete.username:
                 return False, 1
             if user_to_delete:

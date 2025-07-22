@@ -15,12 +15,13 @@ class AppLockersController:
                 return False, 1
             gender = data["gender"].value
             capacity = int(data["capacity"])
+            typ = data["type"]
             if capacity < 0:
                 return False, 2
             if self.checkIfNameExists(name):
                 return False,3
             self.locker_id+=1
-            self.lockers[self.locker_id] = Locker(self.locker_id,name,gender,capacity,usr.username)
+            self.lockers[self.locker_id] = Locker(self.locker_id,name,gender,lockerType=typ,capacity=capacity,usr_added_by=usr)
             return True, 0
         except:
             return False, -1
