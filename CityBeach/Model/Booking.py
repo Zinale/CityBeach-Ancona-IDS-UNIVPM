@@ -25,7 +25,8 @@ class DayTimeSlot:
         self.slots = slot
 
     def getAllTime(self):
-        return f"{self.slots[0].startTime.strftime("%H:%M")}-{self.slots[2].endTime.strftime("%H:%M")}"
+        return f"{self.slots[0].startTime.strftime('%H:%M')}-{self.slots[2].endTime.strftime('%H:%M')}"
+
     def __str__(self):
         return f"Giorno: '{self.day}'. {self.slots}"
     def __repr__(self):

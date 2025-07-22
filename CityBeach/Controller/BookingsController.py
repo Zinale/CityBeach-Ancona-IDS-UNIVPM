@@ -140,10 +140,10 @@ class AppBookingsController:
         def compute_locker_usage(lock: Locker) -> (int, set[Gender]):
             usage = 0
             genders = set()
+            requested_slot_numbers = [s.number for s in TIME_SLOTS[timeSlot:timeSlot + 3]]
             for b in active_bookings:
-                ts_start = b.time.slots[0]
-                #for ts in b.time.slots:
-                if ts_start.number in [s.number for s in TIME_SLOTS[timeSlot:timeSlot + 3]]:
+                booked_slot_numbers = [s.number for s in b.time.slots]
+                if any(slot in requested_slot_numbers for slot in booked_slot_numbers):
                     for u in b.lockers_usage or []:
                         if u.locker.name == lock.name:
                             usage += u.players

@@ -44,10 +44,6 @@ def view_booking_ui_layout(booking_list:List[Booking]):
         booking_list.reverse()
     print("----------------")
     for bk in booking_list:
-        print(bk.time.day,type(bk.time.day))
-        if bk.state in (BookingState.REGISTERED,BookingState.IN_PROGRESS):
-            for l in bk.lockers_usage:
-                print(f"{l.gender.value} {l.players} {l.locker.name}")
         item = QTreeWidgetItem([
             str(bk.id),
             str(bk.field.sport),

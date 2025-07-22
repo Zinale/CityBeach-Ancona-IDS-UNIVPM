@@ -405,6 +405,7 @@ class MainWindow(QWidget):
         self.center_window()
 
         main_layout, center_text, tree, book_btn, del_book_btn,back_btn = view_booking_ui_layout(list(self.bookings_controller.bookings.values()))
+        #self.bookings_controller.print_locker_status_by_date(date(2025,7,22),list(self.lockers_controller.lockers.values()))
 
         def cancel_booking():
             if self.selected_booking is None:
