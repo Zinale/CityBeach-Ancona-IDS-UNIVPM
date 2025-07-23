@@ -405,8 +405,9 @@ class MainWindow(QWidget):
         self.center_window()
 
         main_layout, center_text, tree, book_btn, del_book_btn,back_btn = view_booking_ui_layout(list(self.bookings_controller.bookings.values()))
-        #self.bookings_controller.print_locker_status_by_date(date(2025,7,22),list(self.lockers_controller.lockers.values()))
-
+        from datetime import datetime
+        date_obj = datetime.strptime("23/07/2025", "%d/%m/%Y").date()
+        self.bookings_controller.print_locker_status_by_slot(date_obj,list(self.lockers_controller.lockers.values()))
         def cancel_booking():
             if self.selected_booking is None:
                 return False
@@ -442,8 +443,9 @@ class MainWindow(QWidget):
             if dlg.exec():
                 self.model.bookings_next_id = self.bookings_controller.booking_id
                 self.model.save_to_file("data.pkl")
+                print("alvato")
                 self.init_bookings_ui()
-
+        print(len(self.bookings_controller.bookings.values()))
         tree.itemSelectionChanged.connect(item_on_tree_selected)
         tree.itemDoubleClicked.connect(cancel_booking)
 

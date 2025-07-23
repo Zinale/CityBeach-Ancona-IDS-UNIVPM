@@ -44,6 +44,8 @@ def view_booking_ui_layout(booking_list:List[Booking]):
         booking_list.reverse()
     print("----------------")
     for bk in booking_list:
+        if bk.id == 79:
+            print("79")
         item = QTreeWidgetItem([
             str(bk.id),
             str(bk.field.sport),
