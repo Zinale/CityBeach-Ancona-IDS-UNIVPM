@@ -416,7 +416,6 @@ class MainWindow(QWidget):
             elif self.selected_booking.state == BookingState.CANCELLED:
                 self.selected_booking.state = BookingState.REGISTERED
             self.model.save_to_file("data.pkl")
-            self.model = AppData.load_from_file("data.pkl")
             self.init_bookings_ui()
             return None
 
@@ -424,6 +423,7 @@ class MainWindow(QWidget):
             selected_booking = tree.selectedItems()
             if selected_booking and selected_booking.__len__() == 1:
                 self.selected_booking = self.bookings_controller.bookings[int(selected_booking[0].text(0))]
+                print(f"{self.selected_booking.id}")
                 if self.selected_booking.state in (BookingState.REGISTERED,BookingState.CANCELLED):
                     del_book_btn.setStyleSheet(style_QButton_white_16Gotham)
                     del_book_btn.setEnabled(True)

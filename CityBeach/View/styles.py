@@ -164,7 +164,7 @@ style_app_Dialogs = """
         font-size: 10pt;
     }
 
-    QLineEdit, QDateEdit, QComboBox,QSpinBox {
+    QLineEdit, QDateEdit, QComboBox,QSpinBox,QCheckBox {
         background-color: white;
         border: 1px solid #ccc;
         padding: 4px;
@@ -195,6 +195,36 @@ style_app_Dialogs = """
         color: #333;
     }
 """
+
+style_check_box = """
+
+    QWidget {
+        background-color: #FFF0E6;
+        font-family: 'Segoe UI', sans-serif;
+        font-size: 10pt;
+    }
+
+    QCheckBox {
+        background-color: white;
+        border: 1px solid #ccc;
+        padding: 4px;
+        border-radius: 4px;
+    }
+
+    QCheckBox {
+        padding-left: 5px;
+    }
+
+    QLabel {
+        color: #333;
+    }
+"""
+PADEL_COLOR_FG = "#1D6F63"
+PADEL_COLOR_BG =  "#D1F2EB"
+BEACHVOLLEY_COLOR_BG = "#FFF4CC"
+BEACHVOLLEY_COLOR_FG = "#B28D00"
+BEACHTENNIS_COLOR_BG = "#E6E6FA"
+BEACHTENNIS_COLOR_FG = "#5D4E9A"
 
 # EAF6FF bianco/grigio
 # F5F5F5 bianco sporco

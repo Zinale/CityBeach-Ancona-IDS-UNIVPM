@@ -6,7 +6,7 @@ from PyQt6.QtGui import QPixmap, QIcon, QBrush, QColor, QFont
 from PyQt6.QtWidgets import (
     QApplication, QDialog, QLabel, QLineEdit, QPushButton, QSizePolicy,
     QVBoxLayout, QHBoxLayout, QMessageBox, QTreeWidget, QTreeWidgetItem,
-    QDateEdit, QComboBox, QFormLayout, QCompleter, QSpinBox
+    QDateEdit, QComboBox, QFormLayout, QCompleter, QSpinBox, QHeaderView, QWidget, QCheckBox
 )
 
 from Controller import AppBookingsController
@@ -21,6 +21,8 @@ from Model.User import User
 from View.styles import *
 from View.topBar import topBar
 from Model import Gender
+
+
 
 
 def view_booking_ui_layout(booking_list:List[Booking]):
@@ -39,51 +41,153 @@ def view_booking_ui_layout(booking_list:List[Booking]):
     tree = QTreeWidget()
     tree.setHeaderLabels(
         ["Numero", "Sport", "Campo", "Giocatore", "#Giocatori", "Prezzo (€)", "Data", "Fascia Oraria",
-         "Registrata il","Stato Prenotazione","Registrata da"])
+         "Stato Prenotazione","Registrata il","Registrata da"])
     if booking_list!=None:
         booking_list.reverse()
     print("----------------")
-    for bk in booking_list:
-        if bk.id == 79:
-            print("79")
-        item = QTreeWidgetItem([
-            str(bk.id),
-            str(bk.field.sport),
-            str(bk.field.name),
-            str(f"{bk.player.name} {bk.player.surname}"),
-            str(bk.totalPlayers),
-            str(bk.price),
-            str(bk.time.day),
-            str(bk.time.getAllTime()),
-            str(bk.data_created.date()),
-            str(bk.state.value),
-            str(bk.registered_by.username)
-        ])
-        if bk.state == BookingState.CANCELLED:
-            for i in range(11):
-                item.setBackground(i, QBrush(QColor("#F2F2F2")))
-                item.setBackground(i, QBrush(QColor("#A0A0A0")))
-        tree.addTopLevelItem(item)
-    vLayout.addWidget(tree)
+    def populate_tree():
+        tree.clear()
+        for bk in booking_list:
+            #FILTERS
+            #SPORT
+            if bySportCheckBox.isChecked():
+                sport = bySportComboBox.currentText()
+            else:
+                sport = ""
+            item = QTreeWidgetItem([
+                str(bk.id),
+                str(bk.field.sport),
+                str(bk.field.name),
+                str(f"{bk.player.name} {bk.player.surname}"),
+                str(bk.totalPlayers),
+                str(bk.price),
+                str(bk.time.day.strftime("%d/%m/%Y")),
+                str(bk.time.getAllTime()),
+                str(bk.state.value),
+                str(f"{bk.data_created.time().strftime("%H:%M")} | {bk.data_created.date().strftime("%d/%m/%Y")}"),
+                str(bk.registered_by.username)
+            ])
+            if bk.state == BookingState.CANCELLED:
+                for i in range(11):
+                    item.setForeground(i, QBrush(QColor("#F2F2F2")))
+                    item.setBackground(i, QBrush(QColor("#A0A0A0")))
+            else:
+                if colorsActivatedCheckBox.isChecked():
+                    if bk.field.sport==SportsCategory.PADEL.value:
+                        for i in range(11):
+                            item.setBackground(i, QBrush(QColor(PADEL_COLOR_BG)))
+                            item.setForeground(i, QBrush(QColor(PADEL_COLOR_FG)))
+                    elif bk.field.sport==SportsCategory.BEACH_TENNIS.value:
+                        for i in range(11):
+                            item.setBackground(i, QBrush(QColor(BEACHTENNIS_COLOR_BG)))
+                            item.setForeground(i, QBrush(QColor(BEACHTENNIS_COLOR_FG)))
+                    elif bk.field.sport==SportsCategory.BEACH_VOLLEY.value:
+                        for i in range(11):
+                            item.setBackground(i, QBrush(QColor(BEACHVOLLEY_COLOR_BG)))
+                            item.setForeground(i, QBrush(QColor(BEACHVOLLEY_COLOR_FG)))
+            tree.addTopLevelItem(item)
+        for col in range(tree.columnCount()):
+            tree.resizeColumnToContents(col)
+    tree.header().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
     tree.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+    vLayout.addWidget(tree)
 
-    hLayoutBtn = QHBoxLayout()
-    hLayoutBtn.addStretch(1)
+    # --- Filter + Btns Bar -------------------------
+    hLayoutFiltBtn = QHBoxLayout()
+    hLayoutFiltBtn.setContentsMargins(0, 0, 0, 0)
+    hLayoutFiltBtn.setSpacing(20)
+    #BLOCK TITLE
+    labelTitle = QLabel("Filtra per")
+    labelTitle.setStyleSheet(style_text_red_on_white)
+    labelTitle.setFixedSize(145,40)
+    hLayoutFilterTitleColors = QHBoxLayout()
+    hLayoutFilterTitleColors.addWidget(labelTitle)
+    hLayoutFilterTitleColors.addStretch(1)
+    colorsActivatedCheckBox = QCheckBox("Evidenzia Sport")
+    colorsActivatedCheckBox.setStyleSheet(style_check_box)
+    colorsActivatedCheckBox.stateChanged.connect(populate_tree)
+    hLayoutFilterTitleColors.addWidget(colorsActivatedCheckBox)
+    vLayout.addLayout(hLayoutFilterTitleColors,stretch=0)
+    # FILTER 1: Sport
+    bySportCheckBox = QCheckBox("Sport:")
+    bySportComboBox = QComboBox()
+    bySportComboBox.addItems([sp.value for sp in SportsCategory])
+    block1 = QWidget()
+    bl1_layout = QHBoxLayout(block1)
+    bl1_layout.setContentsMargins(0, 0, 0, 0)
+    bl1_layout.setSpacing(3)
+    bl1_layout.addWidget(bySportCheckBox)
+    bl1_layout.addWidget(bySportComboBox)
+    bySportCheckBox.setChecked(False)
+    bySportComboBox.setEnabled(False)
+    bySportCheckBox.checkStateChanged.connect(lambda :bySportComboBox.setEnabled(bySportCheckBox.isChecked()))
+    bySportCheckBox.checkStateChanged.connect(populate_tree)
+    bySportComboBox.currentTextChanged.connect(populate_tree)
+    #@TODO bySportComboBox.currentTextChanged.connect(populate_tree)
+    # FILTER 2: Date
+    byDateCheckBox = QCheckBox("Data:")
+    byDateSelector = QDateEdit()
+    byDateSelector.setDisplayFormat("dd/MM/yyyy")
+    byDateSelector.setCalendarPopup(True)
+    byDateSelector.setDate(QDate.currentDate())
+    block2 = QWidget()
+    bl2_layout = QHBoxLayout(block2)
+    bl2_layout.setContentsMargins(0, 0, 0, 0)
+    bl2_layout.setSpacing(3)
+    bl2_layout.addWidget(byDateCheckBox)
+    bl2_layout.addWidget(byDateSelector)
+    byDateCheckBox.setChecked(False)
+    byDateSelector.setEnabled(False)
+    byDateCheckBox.checkStateChanged.connect(lambda :byDateSelector.setEnabled(byDateCheckBox.isChecked()))
+    byDateCheckBox.checkStateChanged.connect(populate_tree)
+    byDateSelector.dateChanged.connect(populate_tree)
+    #@TODO bySportComboBox.currentTextChanged.connect(populate_tree)
+    # FILTER 3: TIMESLOT
+    bySlotCheckBox = QCheckBox("Fascia:")
+    bySlotComboBox = QComboBox()
+    bySlotComboBox.addItems([st.getAllTime() for st in TIME_SLOTS])
+    block3 = QWidget()
+    bl3_layout = QHBoxLayout(block3)
+    bl3_layout.setContentsMargins(0, 0, 0, 0)
+    bl3_layout.setSpacing(3)
+    bl3_layout.addWidget(bySlotCheckBox)
+    bl3_layout.addWidget(bySlotComboBox)
+    bySlotCheckBox.setChecked(False)
+    bySlotComboBox.setEnabled(False)
+    bySlotCheckBox.checkStateChanged.connect(lambda :bySlotComboBox.setEnabled(bySlotCheckBox.isChecked()))
+    bySlotCheckBox.checkStateChanged.connect(populate_tree)
+    bySlotComboBox.currentTextChanged.connect(populate_tree)
+    #@TODO bySportComboBox.currentTextChanged.connect(populate_tree)
+
+    # Aggiungi i blocchi al layout dei bottoni
+    block1.setStyleSheet(style_app_Dialogs)
+    block2.setStyleSheet(style_app_Dialogs)
+    block3.setStyleSheet(style_app_Dialogs)
+    hLayoutFiltBtn.addWidget(block1)
+    hLayoutFiltBtn.addWidget(block2)
+    hLayoutFiltBtn.addWidget(block3)
+
+    hLayoutFiltBtn.addStretch(1)
     # add Bookin btn
     book_btn = QPushButton("Crea Prenotazione")
     book_btn.setStyleSheet(style_QButton_white_16Gotham)
     book_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
-    hLayoutBtn.addWidget(book_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
+    hLayoutFiltBtn.addWidget(book_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
 
     del_book_btn = QPushButton("Annulla Prenotazione")
     del_book_btn.setStyleSheet(style_QButton_disabled_16)
     del_book_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
     del_book_btn.setEnabled(False)
-    hLayoutBtn.addWidget(del_book_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
+    hLayoutFiltBtn.addWidget(del_book_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
 
-    vLayout.addLayout(hLayoutBtn)
+
+    # Infine inserisci la riga nell'interfaccia
+    vLayout.addLayout(hLayoutFiltBtn)
+
     vLayout.setSpacing(15)
     main_layout.addLayout(vLayout)
+
+
 
     # --- BOTTOM BAR ------------------------------------------------------------------------------------
     bottom_bar = QHBoxLayout()
@@ -117,6 +221,8 @@ def view_booking_ui_layout(booking_list:List[Booking]):
     #back_btn.clicked.connect(self.init_main_ui)
     bottom_bar.addWidget(back_btn)
     main_layout.addLayout(bottom_bar)
+    populate_tree()
+
     return main_layout,center_text, tree, book_btn, del_book_btn,back_btn
 
 class add_booking_ui(QDialog):

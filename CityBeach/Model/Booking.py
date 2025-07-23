@@ -18,6 +18,8 @@ class TimeSlot:
         return f"Fascia Oraria: {self.startTime}-{self.endTime}"
     def __repr__(self):
         return f"Fascia Oraria '{self.number}': {self.startTime}-{self.endTime}"
+    def getAllTime(self):
+        return f"{self.startTime.strftime('%H:%M')}-{self.endTime.strftime('%H:%M')}"
 
 class DayTimeSlot:
     def __init__(self,day:date,slot:(TimeSlot,TimeSlot,TimeSlot)):

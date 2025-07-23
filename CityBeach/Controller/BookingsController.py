@@ -113,6 +113,7 @@ class AppBookingsController:
 
         return available_slots
 
+
     def assign_locker_rooms(self, gender: Gender, n_players: int, date_obj: date, timeSlot: int,
                             lockersList: List[Locker]) -> List[LockerRoomUsage]:
 
