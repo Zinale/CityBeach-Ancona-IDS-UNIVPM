@@ -28,7 +28,7 @@ class MainWindow(QWidget):
         #CONTROLLERS
         self.model = AppData.load_from_file("data.pkl")
         self.users_controller = AppUsersController(self.model.users,self.model.users_next_id)
-        self.sport_equipment_controller = AppSportsEquipmentController()
+        self.sport_equipment_controller = AppSportsEquipmentController(self.model.equipment)
         self.players_controller = AppPlayersController(self.model.players,self.model.players_next_id)
         self.fields_controller = AppFieldsController(self.model.fields,self.model.fields_next_id)
         self.lockers_controller = AppLockersController(self.model.lockers,self.model.lockers_next_id)
@@ -181,19 +181,15 @@ class MainWindow(QWidget):
         self.setWindowTitle("CityBeach Ancona | Attrezzatura Sportiva")
         self.center_window()
 
-        main_layout, back_btn, att_btn, qty_btn, tree, center_text = view_attrezzaturaSportiva_ui_layout(self.sport_equipment_controller.get_all_equipment())
-
-        def show_add_attrezzatura_ui():
-            dlg = add_Attrezzatura_ui(self)
-            if dlg.exec():
-                self.init_sport_equipment_ui()
+        main_layout, back_btn, qty_btn, tree, center_text = view_attrezzaturaSportiva_ui_layout(self.sport_equipment_controller.get_all_equipment())
 
         def show_modify_quantity_ui():
-                dlg = modify_quantity_ui(parent=self)
+                dlg = modify_quantity_ui(parent=self, tree=tree, controller=self.sport_equipment_controller)
                 if dlg.exec():
                     self.init_sport_equipment_ui()
+                    
 
-        att_btn.clicked.connect(show_add_attrezzatura_ui)
+        # att_btn.clicked.connect(show_add_attrezzatura_ui)
         back_btn.clicked.connect(self.init_main_ui)
         qty_btn.clicked.connect(show_modify_quantity_ui)
         self.setLayout(main_layout)

@@ -3,12 +3,12 @@ from Model import EquipmentType
 from Model import SportsCategory
 
 class SportsEquipment:
-    def __init__(self, id: int, name: str, equipmentType: EquipmentType.EquipmentType, sportCategory: SportsCategory.SportsCategory, quantity: int):
+    def __init__(self, id: int, name: str, equipmentType: EquipmentType.EquipmentType, sportCategory: SportsCategory.SportsCategory):
         self.id = id
         self.name = name
         self.equipmentType = equipmentType
         self.sportCategory = sportCategory
-        self.quantity = quantity
+        self.quantity = 0
         self.date_added = datetime.datetime.now()
 
     def __str__(self):

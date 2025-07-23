@@ -8,6 +8,8 @@ from Model.Player import Player
 from Model.User import User
 from Model.SportsEquipment import SportsEquipment
 from Model.Booking import *
+from Model.EquipmentType import EquipmentType
+from Model.SportsCategory import SportsCategory
 
 #all the time_slots available
 TIME_SLOTS = []
@@ -23,7 +25,13 @@ class AppData:
         self.users_next_id: int = 0
         self.articles: Dict[str, Article] = {}
         self.current_user: User | None = None
-        self.equipment:Dict[int,SportsEquipment] = {}
+        self.equipment:Dict[int,SportsEquipment] ={
+            0: SportsEquipment(id=0, name="Racchetta da Padel", equipmentType=EquipmentType.PADEL_RACKETS, sportCategory=SportsCategory.PADEL),
+            1: SportsEquipment(id=1, name="Pallina da Padel", equipmentType=EquipmentType.PADEL_BALLS, sportCategory=SportsCategory.PADEL),
+            2: SportsEquipment(id=2, name="Racchetta da Beach Tennis", equipmentType=EquipmentType.BEACH_TENNIS_RACKETS, sportCategory=SportsCategory.BEACH_TENNIS),
+            3: SportsEquipment(id=3, name="Pallina da Beach Tennis", equipmentType=EquipmentType.BEACH_TENNIS_BALLS, sportCategory=SportsCategory.BEACH_TENNIS),
+            4: SportsEquipment(id=4, name="Palla da Beach Volley", equipmentType=EquipmentType.BEACH_VOLLEYBALLS, sportCategory=SportsCategory.BEACH_VOLLEY)
+        }
         self.equipment_next_id: int = 0
         self.players:Dict[int,Player] = {}
         self.players_next_id:int = 0

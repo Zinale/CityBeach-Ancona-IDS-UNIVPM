@@ -18,6 +18,7 @@ from Model import Data
 from Model.EquipmentType import EquipmentType
 from Model.SportsCategory import SportsCategory
 from Model.SportsEquipment import SportsEquipment
+from Controller import AppSportsEquipmentController
 
 def view_attrezzaturaSportiva_ui_layout(lista_attrezzatura):
     # Layout verticale principale
@@ -39,7 +40,7 @@ def view_attrezzaturaSportiva_ui_layout(lista_attrezzatura):
     # Funzione per popolare il QTreeWidget
     def populate_tree():
         tree.clear()
-
+ 
         for sport in SportsCategory:
             sport_item = QTreeWidgetItem([sport.value.title()])
             tree.addTopLevelItem(sport_item)
@@ -77,12 +78,12 @@ def view_attrezzaturaSportiva_ui_layout(lista_attrezzatura):
 
 
     # Attrezzatura btn
-    att_btn = QPushButton("Aggiungi Attrezzatura")
-    att_btn.setStyleSheet(style_QButton_disabled)
-    att_btn.setEnabled(False)
-    tree.itemSelectionChanged.connect(lambda: update_btn(att_btn))
-    att_btn.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-    hLayoutBtn.addWidget(att_btn, alignment=Qt.AlignmentFlag.AlignRight)
+    #att_btn = QPushButton("Aggiungi Attrezzatura")
+    #att_btn.setStyleSheet(style_QButton_disabled)
+    #att_btn.setEnabled(False)
+    #tree.itemSelectionChanged.connect(lambda: update_btn(att_btn))
+    #att_btn.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+    #hLayoutBtn.addWidget(att_btn, alignment=Qt.AlignmentFlag.AlignRight)
     
     vLayout.addLayout(hLayoutBtn)
     vLayout.setSpacing(15)
@@ -125,10 +126,10 @@ def view_attrezzaturaSportiva_ui_layout(lista_attrezzatura):
     back_btn.setStyleSheet(style_QButton_red)
     bottom_bar.addWidget(back_btn)
     main_layout.addLayout(bottom_bar)
-    return main_layout, back_btn, att_btn, qty_btn, tree, center_text
+    return main_layout, back_btn, qty_btn, tree, center_text
 
 
-class add_Attrezzatura_ui(QDialog):
+# class add_Attrezzatura_ui(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Aggiungi Attrezzatura Sportiva")
@@ -217,8 +218,10 @@ class add_Attrezzatura_ui(QDialog):
 
     
 class modify_quantity_ui(QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, tree=None, controller:AppSportsEquipmentController=None):
         super().__init__(parent)
+        self.tree = tree
+        self.controller = controller
         self.setWindowTitle("Modifica Quantità Attrezzatura Sportiva")
         self.setFixedSize(300, 200)
         self.setStyleSheet(style_app_Dialogs)
@@ -245,7 +248,31 @@ class modify_quantity_ui(QDialog):
         save_button.setStyleSheet(style_QButton_white_18Gotham)
         button_layout.addWidget(save_button)
 
-        #save_button.clicked.connect(submit_data)
+        def submit_data():
+            selected_items = self.tree.selectedItems()
+            if not selected_items:
+                QMessageBox.warning(self, "Errore", "Nessuna attrezzatura selezionata.")
+                return
+
+            selected_item = selected_items[0]
+
+            try:
+                equipment_id = int(selected_item.text(0))  # Colonna 0: ID
+                new_quantity = self.quantity_input.value()
+
+                success = self.controller.modify_quantity(equipment_id, new_quantity)
+
+                if success:
+                    selected_item.setText(3, str(self.controller.get_equipment_by_id(equipment_id).quantity))  # Colonna 3: Disponibilità
+                    QMessageBox.information(self, "Successo", "Quantità aggiornata con successo.")
+                    self.accept()
+                else:
+                    QMessageBox.warning(self, "Errore", "Impossibile aggiornare la quantità.")
+            except Exception as e:
+                QMessageBox.critical(self, "Errore", f"Errore durante la modifica: {str(e)}")
+
+
+        save_button.clicked.connect(submit_data)
         
         cancel_button = QPushButton("Annulla")
         cancel_button.setStyleSheet(style_QButton_red)
