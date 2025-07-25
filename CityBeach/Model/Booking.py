@@ -62,5 +62,3 @@ class Booking:
     def __str__(self):
         return (f"Prenotazione: {self.id}\tGiocatore:{self.player.name}\tCampo:{self.field.name} x {self.field.sport}\n\r"
                 f"{self.time}")
-
-

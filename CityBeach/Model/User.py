@@ -2,7 +2,6 @@ import datetime
 from typing import List
 
 from Model.Gender import Gender
-from Model.Article import Article
 import datetime
 
 
@@ -31,6 +30,4 @@ class User:
     def __repr__(self):
         return f"{self.id}' {self.username}' \t|\t '{self.password}' \t|\t '{self.is_admin}' \t|\t '{self.data_created}')\n\r"
 
-    def can_delete(self, article: Article) -> bool:
-        return article.id in self.article_ids
 

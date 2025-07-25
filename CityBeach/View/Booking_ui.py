@@ -78,6 +78,10 @@ def view_booking_ui_layout(booking_list:List[Booking]):
                 for i in range(11):
                     item.setForeground(i, QBrush(QColor("#F2F2F2")))
                     item.setBackground(i, QBrush(QColor("#A0A0A0")))
+            elif bk.state == BookingState.IN_PROGRESS:
+                for i in range(11):
+                    item.setForeground(i, QBrush(QColor(IN_PROGRESS_COLOR_FG)))
+                    item.setBackground(i, QBrush(QColor(IN_PROGRESS_COLOR_BG)))
             else:
                 if colorsActivatedCheckBox.isChecked():
                     if bk.field.sport==SportsCategory.PADEL:

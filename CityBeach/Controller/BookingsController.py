@@ -2,8 +2,9 @@ from dataclasses import field
 from typing import Dict
 
 import PyQt6
+from PyQt6.QtCore import QTimer
 from PyQt6.QtWidgets import QMessageBox
-
+from datetime import datetime
 from Model.Booking import *
 from Model.Data import TIME_SLOTS
 from Model.Gender import Gender
@@ -14,6 +15,23 @@ class AppBookingsController:
     def __init__(self, bookings: Dict[int, Booking], booking_id: int):
         self.bookings = bookings
         self.booking_id = booking_id
+        self.timerLastTrigger = None
+
+    def check_and_update(self):
+        now = datetime.now()
+        hour =now.hour
+        minute = now.minute
+        if True or (minute == 0 or minute == 30) and (self.timerLastTrigger != (hour, minute)):
+            self.timerLastTrigger = (hour, minute)
+            for b in list(self.bookings.values()):
+                if b.state == BookingState.REGISTERED:
+                    if b.time.day == now.date():
+                        if hour > b.time.slots[0].startTime.hour or (hour == b.time.slots[0].startTime.hour and minute >= b.time.slots[0].startTime.minute):
+                            b.state = BookingState.IN_PROGRESS
+                if b.state == BookingState.IN_PROGRESS:
+                    if b.time.day == now.date():
+                        if hour > b.time.slots[2].endTime.hour or (hour == b.time.slots[2].endTime.hour and minute >= b.time.slots[2].endTime.minute):
+                            b.state = BookingState.COMPLETED
 
     def register_booking(self,data,currentUser:User,lockersList:List[Locker])->bool and int:
         try:
@@ -80,7 +98,6 @@ class AppBookingsController:
             print(f"Errore: {type(e)}")
             print(f"Messaggio: {e}")
             return False, -1
-
 
     def checkAvailabilityField(self, name: str, date: date, timeSlot: int):
         requested_slots = TIME_SLOTS[timeSlot:timeSlot + 3]
@@ -274,7 +291,3 @@ class AppBookingsController:
                     for gender, count in gender_counts.items():
                         print(f"     - {gender}: {count} giocatori")
             print()
-
-
-
-

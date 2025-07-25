@@ -3,6 +3,7 @@ import PyQt6.QtCore
 from Controller import *
 from Model.Data import AppData
 from PyQt6.QtGui import QFontDatabase,QGuiApplication
+from PyQt6.QtCore import QTimer
 
 from .Booking_ui import *
 from .Employee_ui import *
@@ -55,6 +56,11 @@ class MainWindow(QWidget):
         self.selected_locker:Locker | None = None
         self.selected_field:Field | None = None
         self.selected_booking:Booking | None= None
+
+        self.timerToUpdateBookings = QTimer()
+        self.timerToUpdateBookings.timeout.connect(self.check_and_update_bookings)
+        self.timerToUpdateBookings.start(10000) #30s
+
         self.init_login_ui()
 
     def init_login_ui(self):
@@ -549,3 +555,7 @@ class MainWindow(QWidget):
         center_point = screen_geometry.center()
         window_geometry.moveCenter(center_point)
         self.move(window_geometry.topLeft())
+
+    def check_and_update_bookings(self):
+        self.bookings_controller.check_and_update()
+        self.model.save_to_file("data.pkl")

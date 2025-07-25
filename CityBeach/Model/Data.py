@@ -1,11 +1,7 @@
 import pickle
 from typing import Dict
 
-from Model.Field import Field
 from Model.Locker import Locker
-from Model.Article import Article
-from Model.Player import Player
-from Model.User import User
 from Model.SportsEquipment import SportsEquipment
 from Model.Booking import *
 from Model.EquipmentType import EquipmentType
