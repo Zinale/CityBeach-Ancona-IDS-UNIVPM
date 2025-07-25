@@ -5,7 +5,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap, QIcon, QFont
 from PyQt6.QtWidgets import (QLabel, QPushButton, QSizePolicy,
                              QVBoxLayout, QHBoxLayout, QTreeWidget, QTreeWidgetItem, QSplitter, QWidget, QDialog,
-                             QFormLayout, QLineEdit, QComboBox, QMessageBox, QSpinBox
+                             QFormLayout, QLineEdit, QComboBox, QMessageBox, QSpinBox, QHeaderView
                              )
 
 from Controller import AppLockersController, AppFieldsController
@@ -64,7 +64,7 @@ def view_fields_lockers_static_ui_layout(field_list: List[Field],locker_list:Lis
         item = QTreeWidgetItem([
             str(field.name),
             str(field.id),
-            str(field.sport),
+            str(field.sport.value),
             str(field.added_by),
             str(field.data_created.date())
         ])
@@ -88,13 +88,14 @@ def view_fields_lockers_static_ui_layout(field_list: List[Field],locker_list:Lis
         item = QTreeWidgetItem([
             str(lock.name),
             str(lock.id),
-            str(lock.gender),
+            str(lock.gender.value),
             str(lock.capacity),
             str(lock.type),
             str(lock.added_by.username),
             str(lock.data_created.date())
         ])
         treeLocks.addTopLevelItem(item)
+    treeLocks.header().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
     treeLocks.setFocusPolicy(Qt.FocusPolicy.NoFocus)
     treeLocks.setMaximumWidth(650)
     treeLocks.setMinimumWidth(650)
@@ -268,7 +269,7 @@ class add_field_ui(QDialog):
         def submit_data():
             data = {
                 "name": nameBar.text(),
-                "sport": sportBar.currentText()
+                "sport": SportsCategory(sportBar.currentText())
             }
             # call his parent
             try:
@@ -348,7 +349,7 @@ class info_locker_ui(QDialog):
         try:
             if self.phase == 1:
                 nameBar.setText(f"{self.locker_to_edit.name}")
-                genderCheck.setCurrentIndex([gen.value for gen in Gender].index(self.locker_to_edit.gender))
+                genderCheck.setCurrentIndex([gen.value for gen in Gender].index(self.locker_to_edit.gender.value))
                 capacityBar.setValue(self.locker_to_edit.capacity)
         except:
             self.close()

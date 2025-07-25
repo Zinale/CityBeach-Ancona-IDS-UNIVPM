@@ -14,7 +14,7 @@ class AppFieldsController:
             sport = data["sport"]
             if usr is None:
                 return False, 1
-            if sport not in [sport.value for sport in SportsCategory]:
+            if sport not in [sport for sport in SportsCategory]:
                 return False, 2
             if len(name.strip()) <=0:
                 return False,3

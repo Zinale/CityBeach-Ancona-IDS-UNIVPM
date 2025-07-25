@@ -120,10 +120,11 @@ class AppBookingsController:
         assigned: List[LockerRoomUsage] = []
 
         # Dividi locker per tipo
-        preferred_lockers = [l for l in lockersList if gender.value == l.gender and l.type == LockerType.MAIN.value]
+        preferred_lockers = [l for l in lockersList if gender == l.gender and l.type == LockerType.MAIN.value]
         support_lockers = [l for l in lockersList if l.type == LockerType.SECONDARY.value]
         individual_lockers = [l for l in lockersList if l.type == LockerType.INDIVIDUAL.value]
 
+        print(len(preferred_lockers))
         # Fascia oraria richiesta
         requested_slots = TIME_SLOTS[timeSlot:timeSlot + 3]
         requested_start = requested_slots[0].startTime
@@ -201,7 +202,7 @@ class AppBookingsController:
                     break
             return n_players
 
-        print(f"Da allocare: {n_players} {gender.value}")
+        print(f"Da allocare: {n_players} {gender}")
         remaining = allocate_from_list(preferred_lockers)
         print(f"Rimanenti dopo MAIN: {remaining}")
         if remaining > 0:

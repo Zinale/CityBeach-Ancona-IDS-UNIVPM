@@ -7,6 +7,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QMessageBox, QTreeWidget, QTreeWidgetItem,
     QDateEdit, QComboBox, QCheckBox, QFormLayout
 )
+from typing import List
 
 from Controller import AppUsersController
 from View.styles import (
@@ -16,7 +17,7 @@ from View.styles import (
     style_app_Dialogs,          # usato per il dialog
 )
 from View.topBar import topBar
-from Model import Gender
+from Model.Gender import Gender
 
 
 def view_dipendenti_ui_layout(lista_dipendenti):
@@ -136,8 +137,7 @@ class add_Dipendete_ui(QDialog):
         flagAmministratore.setChecked(False)
 
         genderCheck = QComboBox()
-        genderCheck.addItems(["Maschio", "Femmina", "Altro"])
-
+        genderCheck.addItems([g.value for g in Gender])
         save_btn = QPushButton("Salva")
         save_btn.setStyleSheet(style_QButton_red)
 
@@ -169,24 +169,17 @@ class add_Dipendete_ui(QDialog):
         self.setLayout(main_layout)
 
         def submit_data():
-            GENDER_MAP = {
-                "Maschio": Gender.Gender.MALE,
-                "Femmina": Gender.Gender.FEMALE
-            }
-            gender = GENDER_MAP.get(genderCheck.currentText(), Gender.Gender.OTHER)
             data = {
                 "name": nameBar.text(),
                 "surname": surnameBar.text(),
                 "username": usernameBar.text(),
                 "birthday": birth_day_sel.date().toString("dd/MM/yyyy"),
                 "is_admin": flagAmministratore.isChecked(),
-                "gender": gender
+                "gender": Gender(genderCheck.currentText())
             }
             # call his parent
             try:
-                success, err_id = self.controller.register(nameBar.text(),surnameBar.text(),usernameBar.text(),
-                                                         birth_day_sel.date().toString("dd/MM/yyyy"),flagAmministratore.isChecked(),
-                                                         gender)
+                success, err_id = self.controller.register(data)
                 if success:
                     QMessageBox.information(self, "Successo", "Dipendente aggiunto.")
                     #print("REGISTRATO: ",data)
@@ -220,6 +213,4 @@ if __name__ == "__main__":
     #window.resize(400, 300)
     window.exec()
 else:
-    from Model import *
-    #from .Model import Gender
     from .styles import *

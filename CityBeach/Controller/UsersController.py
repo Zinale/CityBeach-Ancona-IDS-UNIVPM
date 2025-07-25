@@ -11,11 +11,11 @@ class AppUsersController:
         self.current_user = None
     def __str__(self):
         return f"AppUsersController, utente attivo:{self.current_user.username}"
-    def register(self,name:str,surname:str,username:str,birthday,is_admin:bool,gender:Gender = Gender.OTHER,password:str = "") -> bool and int:
+    def register(self,data,password:str="") -> bool and int:
         try:
-            name = name.strip()
-            surname = surname.strip()
-            username = username.strip()
+            name = data["name"].strip()
+            surname = data["surname"].strip()
+            username = data["username"].strip()
             if not name.isalnum():
                 return False, 1
             if not surname.isalnum():
@@ -25,10 +25,12 @@ class AppUsersController:
                 return False, 3
             if not username.isalnum():
                 return False, 4
+            birthday = data["birthday"]
             date= birthday.split("/")
             if PyQt6.QtCore.QDate(int(date[2]),int(date[1]),int(date[0])) >= PyQt6.QtCore.QDate.currentDate():
                 return False, 5
-
+            gender = data["gender"]
+            is_admin = data["is_admin"]
             if self.current_user != None:
                 addedBy = self.current_user.username
             else:

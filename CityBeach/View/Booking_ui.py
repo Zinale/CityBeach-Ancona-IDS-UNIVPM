@@ -50,13 +50,20 @@ def view_booking_ui_layout(booking_list:List[Booking]):
         for bk in booking_list:
             #FILTERS
             #SPORT
+            sport = None
+            date = None
+            slot = None
             if bySportCheckBox.isChecked():
-                sport = bySportComboBox.currentText()
-            else:
-                sport = ""
+                sport = SportsCategory(bySportComboBox.currentText())
+            if byDateCheckBox.isChecked():
+                date = byDateSelector.date()
+            if bySlotCheckBox.isChecked():
+                slot = bySlotComboBox.currentIndex() + 1
+            if  (sport and sport != bk.field.sport) or (date and date!=bk.time.day) or (slot and slot not in [ts.number for ts in bk.time.slots]):
+                continue
             item = QTreeWidgetItem([
                 str(bk.id),
-                str(bk.field.sport),
+                str(bk.field.sport.value),
                 str(bk.field.name),
                 str(f"{bk.player.name} {bk.player.surname}"),
                 str(bk.totalPlayers),
@@ -73,15 +80,15 @@ def view_booking_ui_layout(booking_list:List[Booking]):
                     item.setBackground(i, QBrush(QColor("#A0A0A0")))
             else:
                 if colorsActivatedCheckBox.isChecked():
-                    if bk.field.sport==SportsCategory.PADEL.value:
+                    if bk.field.sport==SportsCategory.PADEL:
                         for i in range(11):
                             item.setBackground(i, QBrush(QColor(PADEL_COLOR_BG)))
                             item.setForeground(i, QBrush(QColor(PADEL_COLOR_FG)))
-                    elif bk.field.sport==SportsCategory.BEACH_TENNIS.value:
+                    elif bk.field.sport==SportsCategory.BEACH_TENNIS:
                         for i in range(11):
                             item.setBackground(i, QBrush(QColor(BEACHTENNIS_COLOR_BG)))
                             item.setForeground(i, QBrush(QColor(BEACHTENNIS_COLOR_FG)))
-                    elif bk.field.sport==SportsCategory.BEACH_VOLLEY.value:
+                    elif bk.field.sport==SportsCategory.BEACH_VOLLEY:
                         for i in range(11):
                             item.setBackground(i, QBrush(QColor(BEACHVOLLEY_COLOR_BG)))
                             item.setForeground(i, QBrush(QColor(BEACHVOLLEY_COLOR_FG)))
@@ -123,7 +130,6 @@ def view_booking_ui_layout(booking_list:List[Booking]):
     bySportCheckBox.checkStateChanged.connect(lambda :bySportComboBox.setEnabled(bySportCheckBox.isChecked()))
     bySportCheckBox.checkStateChanged.connect(populate_tree)
     bySportComboBox.currentTextChanged.connect(populate_tree)
-    #@TODO bySportComboBox.currentTextChanged.connect(populate_tree)
     # FILTER 2: Date
     byDateCheckBox = QCheckBox("Data:")
     byDateSelector = QDateEdit()
@@ -141,7 +147,6 @@ def view_booking_ui_layout(booking_list:List[Booking]):
     byDateCheckBox.checkStateChanged.connect(lambda :byDateSelector.setEnabled(byDateCheckBox.isChecked()))
     byDateCheckBox.checkStateChanged.connect(populate_tree)
     byDateSelector.dateChanged.connect(populate_tree)
-    #@TODO bySportComboBox.currentTextChanged.connect(populate_tree)
     # FILTER 3: TIMESLOT
     bySlotCheckBox = QCheckBox("Fascia:")
     bySlotComboBox = QComboBox()
@@ -157,7 +162,6 @@ def view_booking_ui_layout(booking_list:List[Booking]):
     bySlotCheckBox.checkStateChanged.connect(lambda :bySlotComboBox.setEnabled(bySlotCheckBox.isChecked()))
     bySlotCheckBox.checkStateChanged.connect(populate_tree)
     bySlotComboBox.currentTextChanged.connect(populate_tree)
-    #@TODO bySportComboBox.currentTextChanged.connect(populate_tree)
 
     # Aggiungi i blocchi al layout dei bottoni
     block1.setStyleSheet(style_app_Dialogs)
@@ -180,14 +184,11 @@ def view_booking_ui_layout(booking_list:List[Booking]):
     del_book_btn.setEnabled(False)
     hLayoutFiltBtn.addWidget(del_book_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
 
-
     # Infine inserisci la riga nell'interfaccia
     vLayout.addLayout(hLayoutFiltBtn)
 
     vLayout.setSpacing(15)
     main_layout.addLayout(vLayout)
-
-
 
     # --- BOTTOM BAR ------------------------------------------------------------------------------------
     bottom_bar = QHBoxLayout()
@@ -245,10 +246,10 @@ class add_booking_ui(QDialog):
         sportBox = QComboBox()
         sportBox.addItems([sport.value for sport in SportsCategory])
         fieldBox = QComboBox()
-        fieldBox.addItems([field.name for field in self.fieldsList if field.sport==sportBox.currentText()])
+        fieldBox.addItems([field.name for field in self.fieldsList if field.sport==SportsCategory(sportBox.currentText())])
         def update_field_box():
             fieldBox.clear()
-            fieldBox.addItems([field.name for field in self.fieldsList if field.sport==sportBox.currentText()])
+            fieldBox.addItems([field.name for field in self.fieldsList if field.sport==SportsCategory(sportBox.currentText())])
         sportBox.currentTextChanged.connect(update_field_box)
 
         names = list(set(player.name for player in self.playersList))

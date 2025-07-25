@@ -12,7 +12,7 @@ from Controller import AppUsersController
 from Model.User import User
 from View.styles import *
 from View.topBar import topBar
-from Model import Gender
+from Model.Gender import Gender
 
 def main_ui_layout() -> QVBoxLayout() and QPushButton()and QPushButton()and QPushButton()and QPushButton()and QLabel()and QPushButton()and QPushButton():
     # Layout verticale principale
@@ -181,7 +181,6 @@ class edit_user_ui(QDialog):
             passwordBar = QCheckBox()
         else:
             passwordBar = QLineEdit()
-
         date = self.user_to_edit.birthday.split("/")
         birth_day_sel = QDateEdit()
         birth_day_sel.setDisplayFormat("dd/MM/yyyy")
@@ -193,8 +192,8 @@ class edit_user_ui(QDialog):
         flagAmministratore.setEnabled(False)
 
         genderCheck = QComboBox()
-        genderCheck.addItems(["Maschio", "Femmina", "Altro"])
-        genderCheck.setCurrentIndex(list(Gender.Gender).index(self.user_to_edit.gender))
+        genderCheck.addItems([g.value for g in Gender])
+        genderCheck.setCurrentIndex(list([g.value for g in Gender]).index(self.user_to_edit.gender.value))
 
         save_btn = QPushButton("Salva")
         save_btn.setStyleSheet(style_QButton_red)
@@ -231,11 +230,8 @@ class edit_user_ui(QDialog):
         main_layout.addLayout(btn_layout)
 
         def submit_data():
-            GENDER_MAP = {
-                "Maschio": Gender.Gender.MALE,
-                "Femmina": Gender.Gender.FEMALE
-            }
-            gender = GENDER_MAP.get(genderCheck.currentText(), Gender.Gender.OTHER)
+
+            gender = Gender(genderCheck.currentText())
             try:
                 if self.opener_is_admin:
                     passwordVal = passwordBar.isChecked()
@@ -250,7 +246,7 @@ class edit_user_ui(QDialog):
                     QMessageBox.information(self, "Successo", f"Utente {self.user_to_edit.username} modificato.")
                     self.accept()
                 else:
-                    # controller said: "no!"
+                    # the controller said: "no!"
                     if err_id == 0:
                         QMessageBox.critical(self, "Errore", "Errore")
                     elif err_id == 1:

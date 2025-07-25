@@ -12,7 +12,7 @@ from Controller import AppPlayersController
 from Model.User import User
 from View.styles import *
 from View.topBar import topBar
-from Model import Gender
+from Model.Gender import Gender
 from Model import Player
 
 def view_players_ui_layout(player_list: List[Player]):
@@ -193,7 +193,7 @@ class info_Player_ui(QDialog):
         birth_day_sel.setDate(QDate.currentDate())
 
         genderCheck = QComboBox()
-        genderCheck.addItems(["Maschio", "Femmina", "Altro"])
+        genderCheck.addItems([g.value for g in Gender])
 
         emailBar = QLineEdit()
         emailBar.setPlaceholderText("prova@esempio.it")
@@ -241,7 +241,7 @@ class info_Player_ui(QDialog):
             surnameBar.setText(f"{self.player_to_edit.surname}")
             date = self.player_to_edit.birthday.split("/")
             birth_day_sel.setDate(QDate(int(date[2]), int(date[1]), int(date[0])))
-            genderCheck.setCurrentIndex(list(Gender.Gender).index(self.player_to_edit.gender))
+            genderCheck.setCurrentIndex(list([g.value for g in Gender]).index(self.player_to_edit.gender.value))
             phone_number = self.player_to_edit.phone.split(" ")
             prefix_label.setText(phone_number[0])
             phoneBar.setText("".join(phone_number[1:]))
@@ -255,17 +255,11 @@ class info_Player_ui(QDialog):
         self.setLayout(main_layout)
 
         def submit_data():
-            GENDER_MAP = {
-                "Maschio": Gender.Gender.MALE,
-                "Femmina": Gender.Gender.FEMALE,
-                "Altro": Gender.Gender.OTHER
-            }
-            gender = GENDER_MAP.get(genderCheck.currentText(), Gender.Gender.OTHER)
             data = {
                 "name": nameBar.text(),
                 "surname": surnameBar.text(),
                 "birthday": birth_day_sel.date().toString("dd/MM/yyyy"),
-                "gender": gender,
+                "gender": Gender(genderCheck.currentText()),
                 "phone":str(prefix_label.text())+" "+str(phoneBar.text()),
                 "email":emailBar.text(),
                 "city":cityBar.text()

@@ -13,7 +13,7 @@ class AppLockersController:
             name = data["name"].strip()
             if len(name) == 0:
                 return False, 1
-            gender = data["gender"].value
+            gender = data["gender"]
             capacity = int(data["capacity"])
             typ = data["type"]
             if capacity < 0:
@@ -34,7 +34,7 @@ class AppLockersController:
                 return False, 2
             self.lockers[id_locker_to_edit].name = name
             self.lockers[id_locker_to_edit].capacity = data["capacity"]
-            self.lockers[id_locker_to_edit].gender = data["gender"].value
+            self.lockers[id_locker_to_edit].gender = data["gender"]
             return True, 0
         except:
             return False, -1

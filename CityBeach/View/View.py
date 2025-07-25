@@ -35,10 +35,21 @@ class MainWindow(QWidget):
         self.bookings_controller = AppBookingsController(self.model.bookings,self.model.bookings_next_id)
         if (self.model.users.__len__() == 0):
             #"admin": "admin" is the first user to be created
-            success, status = self.users_controller.register("admin","admin","admin",PyQt6.QtCore.QDate(1,1,1).toString("dd/MM/yyyy"),is_admin = True,password="admin")
+            data = {
+                "name": "admin",
+                "surname": "admin",
+                "username": "admin",
+                "birthday": PyQt6.QtCore.QDate(1,1,1).toString("dd/MM/yyyy"),
+                "is_admin": True,
+                "gender": Gender.OTHER
+            }
+            success, status = self.users_controller.register(data,password="admin")
             if success:
                 self.model.users_next_id = self.users_controller.user_id
                 self.model.save_to_file("data.pkl")
+            else:
+                QMessageBox.critical(self,"ERRORE AVVIO","NESSUN PROFILO UTENTE ESISTENTE")
+                self.close()
         self.selected_user:User | None = None
         self.selected_player:Player | None = None
         self.selected_locker:Locker | None = None
@@ -125,7 +136,7 @@ class MainWindow(QWidget):
 
         main_layout, center_text, tree, dip_btn, del_dip_btn,back_btn = view_dipendenti_ui_layout(self.users_controller.get_all_users())
         def show_edit_user_ui():
-            dlg = edit_user_ui(user_to_edit=self.users_controller.get_user_by_username(self.selected_user.text(4)),controller_user=self.users_controller)
+            dlg = edit_user_ui(user_to_edit=self.selected_user,controller_user=self.users_controller)
             if dlg.exec():
                 self.model.save_to_file("data.pkl")
                 self.init_dipendenti_ui()
@@ -397,12 +408,12 @@ class MainWindow(QWidget):
         self.setMinimumSize(1280, 720)
         self.setMaximumSize(10000, 10000)
         self.selected_booking = None
-        self.setWindowTitle("CityBeach Ancona | Dipendenti")
+        self.setWindowTitle("CityBeach Ancona | Prenotazioni")
         self.center_window()
 
         main_layout, center_text, tree, book_btn, del_book_btn,back_btn = view_booking_ui_layout(list(self.bookings_controller.bookings.values()))
         from datetime import datetime
-        date_obj = datetime.strptime("23/07/2025", "%d/%m/%Y").date()
+        date_obj = datetime.strptime("25/07/2025", "%d/%m/%Y").date()
         self.bookings_controller.print_locker_status_by_slot(date_obj,list(self.lockers_controller.lockers.values()))
         def cancel_booking():
             if self.selected_booking is None:
