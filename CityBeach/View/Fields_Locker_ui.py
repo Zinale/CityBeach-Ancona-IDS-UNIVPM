@@ -1,14 +1,16 @@
-from datetime import date
+from datetime import datetime
 from typing import List
 
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QPixmap, QIcon, QFont
+from PyQt6.QtCore import Qt, QDate
+from PyQt6.QtGui import QPixmap, QIcon, QFont, QBrush, QColor
 from PyQt6.QtWidgets import (QLabel, QPushButton, QSizePolicy,
                              QVBoxLayout, QHBoxLayout, QTreeWidget, QTreeWidgetItem, QSplitter, QWidget, QDialog,
-                             QFormLayout, QLineEdit, QComboBox, QMessageBox, QSpinBox, QHeaderView
+                             QFormLayout, QLineEdit, QComboBox, QMessageBox, QSpinBox, QHeaderView, QDateEdit, QCheckBox
                              )
 
-from Controller import AppLockersController, AppFieldsController
+from Controller import AppLockersController, AppFieldsController, AppBookingsController
+from Model.Booking import Booking
+from Model.Data import TIME_SLOTS
 from Model.SportsCategory import SportsCategory
 from Model.User import User
 from View.styles import *
@@ -90,7 +92,7 @@ def view_fields_lockers_static_ui_layout(field_list: List[Field],locker_list:Lis
             str(lock.id),
             str(lock.gender.value),
             str(lock.capacity),
-            str(lock.type),
+            str(lock.type.value),
             str(lock.added_by.username),
             str(lock.data_created.date())
         ])
@@ -222,6 +224,179 @@ def view_fields_lockers_static_ui_layout(field_list: List[Field],locker_list:Lis
             label_name,label_surname,label_created_when,label_created_by,label_city,
             label_eta,label_time,label_sport,label_avg_n_player,add_field_btn,del_field_btn,
             add_lock_btn, del_lock_btn,back_btn)
+
+def view_fields_lockers_dynamic_ui_layout(field_list: List[Field],locker_list:List[Locker],bookingsController:AppBookingsController):
+    main_layout = QVBoxLayout()
+    main_layout.setContentsMargins(10, 10, 10, 10)
+    main_layout.setSpacing(10)
+    vLayout = QVBoxLayout()
+
+    #function to give color by the current status of a LockerRoom
+    def get_color_by_status(locker:Locker,value:int):
+        perc = int(value/locker.capacity) *100
+        if perc>= 75:
+            return (RED_COLOR_BG,RED_COLOR_FG)
+        elif perc >= 35:
+            return (YELLOW_COLOR_BG,YELLOW_COLOR_FG)
+        else:
+            return (GREEN_COLOR_BG,GREEN_COLOR_FG)
+
+    # --- TOP BAR ------------------------------------------------------------------------------------
+    top_bar_widget = QWidget()
+    top_bar_widget.setFixedHeight(21)
+    top_bar_widget.setLayout(topBar())
+    main_layout.addWidget(top_bar_widget)
+    # --------STATIC vs DYNAMIC ------------------------------------------------------------------
+    hStaDynBtnLayout = QHBoxLayout()
+    hStaDynBtnLayout.addStretch(1)
+    stat_btn = QPushButton("Statica")
+    stat_btn.setStyleSheet(style_QButton_white)
+    stat_btn.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
+    hStaDynBtnLayout.addWidget(stat_btn)
+    hStaDynBtnLayout.addSpacing(10)
+    dyna_btn = QPushButton("Dinamica")
+    dyna_btn.setEnabled(False)
+    dyna_btn.setStyleSheet(style_QButton_red)
+    dyna_btn.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
+    hStaDynBtnLayout.addWidget(dyna_btn)
+    hStaDynBtnLayout.addStretch(1)
+    hStaDynBtnWidget = QWidget()
+    hStaDynBtnWidget.setLayout(hStaDynBtnLayout)
+    hStaDynBtnWidget.setSizePolicy(QSizePolicy.Policy.Maximum,QSizePolicy.Policy.Fixed)
+    main_layout.addWidget(hStaDynBtnWidget,alignment=Qt.AlignmentFlag.AlignCenter)
+    # ---------------------------------------------------------------------------------------
+    #---------------------------------------------------------------------------------------
+    contextText = QLabel("Campi da Gioco:")
+    contextText.setAlignment(Qt.AlignmentFlag.AlignLeft)
+    contextText.setFixedHeight(24)
+    contextText.setStyleSheet("""font-family: Gotham; color: #000000;font-size: 15pt;""")
+    vLayout.addWidget(contextText)
+    # TREE WIDGET FIELD----------------
+    treeFields = QTreeWidget()
+    def populateTreeField():
+        treeFields.clear()
+        treeFields.setHeaderLabels(["Nome"] + [st.getAllTime() for st in TIME_SLOTS])
+        for sport in SportsCategory:
+            sport_item = QTreeWidgetItem([sport.value.title()])
+            treeFields.addTopLevelItem(sport_item)
+            sport_item.setExpanded(True)
+            for f in field_list:
+                try:
+                    if f.sport!=sport:
+                        continue
+                    item = QTreeWidgetItem([str(f.name)] + [(bookingsController.checkAvailabilityFieldAtTimeSLot(field=f,date=datetime.strptime(byDateSelector.date().toString("dd/MM/yyyy"), "%d/%m/%Y").date(),slot=TS.number))[1]for TS in TIME_SLOTS])
+                    if colorsActivatedCheckBox.isChecked():
+                        for i in range(1,29):
+                            if item.text(i) == "Libero":
+                                item.setForeground(i,QBrush(QColor(GREEN_COLOR_FG)))
+                                item.setBackground(i,QBrush(QColor(GREEN_COLOR_BG)))
+                            else:
+                                item.setForeground(i,QBrush(QColor(RED_COLOR_FG)))
+                                item.setBackground(i,QBrush(QColor(RED_COLOR_BG)))
+                    sport_item.addChild(item)
+                except Exception as e:
+                    print(e)
+        treeFields.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        treeFields.header().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        for col in range(treeFields.columnCount()):
+            treeFields.resizeColumnToContents(col)
+        return
+    def populateTreeLocker():
+        treeLocks.clear()
+        treeLocks.setHeaderLabels(["Nome"] + [st.getAllTime() for st in TIME_SLOTS])
+        for Ltype in LockerType:
+            lock_item = QTreeWidgetItem([Ltype.value.title()])
+            treeLocks.addTopLevelItem(lock_item)
+            lock_item.setExpanded(True)
+            for l in locker_list:
+                try:
+                    if l.type!=Ltype:
+                        continue
+                    item = QTreeWidgetItem([str(l.name)] + [
+                        (bookingsController.checkStatusLockerAtTimeSlot(locker=l,date=datetime.strptime(byDateSelector.date().toString("dd/MM/yyyy"), "%d/%m/%Y").date(),slot=TS.number)) for TS in TIME_SLOTS])
+                    if colorsActivatedCheckBox.isChecked():
+                        for i in range(1,29):
+                            value = int(item.text(i).split('/')[0])
+                            item.setForeground(i,QBrush(QColor(get_color_by_status(l,value)[1])))
+                            item.setBackground(i,QBrush(QColor(get_color_by_status(l,value)[0])))
+                    lock_item.addChild(item)
+                except Exception as e:
+                    print(e)
+        treeLocks.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        treeLocks.header().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        for col in range(treeLocks.columnCount()):
+            treeLocks.resizeColumnToContents(col)
+        return
+    vLayout.addWidget(treeFields)
+    #---------LOCKERS----------------------------------------------
+    contextText = QLabel("Spogliatoi:")
+    contextText.setAlignment(Qt.AlignmentFlag.AlignLeft)
+    contextText.setFixedHeight(24)
+    contextText.setStyleSheet("""font-family: Gotham; color: #000000;font-size: 15pt;""")
+    vLayout.addWidget(contextText)
+    # TREE WIDGET LOCKER----------------
+    treeLocks = QTreeWidget()
+    vLayout.addWidget(treeLocks)
+    #--------------Date Selector ------------------------------
+    hDateLayoutWidget = QWidget()
+    hDateLayout = QHBoxLayout()
+    hDateLayout.setContentsMargins(10,10,10,10)
+    label_title = QLabel("Seleziona Data")
+    label_title.setStyleSheet(style_text_gotham_b)
+    byDateSelector = QDateEdit()
+    byDateSelector.setDisplayFormat("dd/MM/yyyy")
+    byDateSelector.setCalendarPopup(True)
+    byDateSelector.setFixedSize(150,40)
+    byDateSelector.setStyleSheet(style_date_selector)
+    byDateSelector.dateChanged.connect(populateTreeField)
+    byDateSelector.dateChanged.connect(populateTreeLocker)
+    colorsActivatedCheckBox = QCheckBox("Colori")
+    colorsActivatedCheckBox.setChecked(False)
+    colorsActivatedCheckBox.checkStateChanged.connect(populateTreeField)
+    colorsActivatedCheckBox.checkStateChanged.connect(populateTreeLocker)
+    colorsActivatedCheckBox.setStyleSheet(style_check_box)
+    byDateSelector.setDate(QDate.currentDate())
+    # Aggiungi al layout
+    hDateLayout.addWidget(label_title,alignment=Qt.AlignmentFlag.AlignCenter)
+    hDateLayout.addWidget(byDateSelector,alignment=Qt.AlignmentFlag.AlignCenter)
+    hDateLayout.addStretch(1)
+    hDateLayout.addWidget(colorsActivatedCheckBox)
+    hDateLayoutWidget.setLayout(hDateLayout)
+
+    # -------------------------------------------------------
+    vLayout.addWidget(hDateLayoutWidget)
+    vLayout.setSpacing(15)
+    main_layout.addLayout(vLayout)
+
+    # --- BOTTOM BAR ------------------------------------------------------------------------------------
+    bottom_bar = QHBoxLayout()
+    bottom_bar.setContentsMargins(0, 0, 0, 0)
+
+    logo_label = QLabel()
+    try:
+        pixmap = QPixmap("src/img/logo.png")
+        if not pixmap.isNull():
+            logo_label.setPixmap(
+                pixmap.scaledToHeight(60, Qt.TransformationMode.SmoothTransformation)
+            )
+    except Exception as e:
+        print(f"Errore caricamento immagine: {e}")
+
+    bottom_bar.addWidget(logo_label)
+    bottom_bar.addSpacing(10)
+    usr_center_text = QLabel()
+    usr_center_text.setAlignment(Qt.AlignmentFlag.AlignCenter)
+    bottom_bar.addStretch()
+    bottom_bar.addWidget(usr_center_text)
+    bottom_bar.addStretch()
+    # right btn
+    back_btn = QPushButton("Indietro")
+    back_btn.setStyleSheet(style_QButton_red)
+    #back_btn.clicked.connect(self.init_main_ui)
+    bottom_bar.addWidget(back_btn)
+    main_layout.addLayout(bottom_bar)
+    return (main_layout, usr_center_text,stat_btn,dyna_btn, treeFields, treeLocks,
+            back_btn)
 
 class add_field_ui(QDialog):
     def __init__(self,fieldController:AppFieldsController,currentUser:User):
@@ -365,7 +540,7 @@ class info_locker_ui(QDialog):
                 "name": nameBar.text(),
                 "gender": Gender(genderCheck.currentText()),
                 "capacity":capacityBar.value(),
-                "type":typeBar.currentText()
+                "type":LockerType(typeBar.currentText())
             }
             # call his parent
             if self.phase==0:

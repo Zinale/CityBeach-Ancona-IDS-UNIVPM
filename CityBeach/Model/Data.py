@@ -19,7 +19,6 @@ class AppData:
     def __init__(self):
         self.users: Dict[int, User] = {}
         self.users_next_id: int = 0
-        self.articles: Dict[str, Article] = {}
         self.current_user: User | None = None
         self.equipment:Dict[int,SportsEquipment] ={
             0: SportsEquipment(id=0, name="Racchetta da Padel", equipmentType=EquipmentType.PADEL_RACKETS, sportCategory=SportsCategory.PADEL),

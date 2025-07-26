@@ -307,6 +307,7 @@ class MainWindow(QWidget):
          add_lock_btn, del_lock_btn, back_btn) = view_fields_lockers_static_ui_layout(list(self.fields_controller.fields.values()),list(self.lockers_controller.lockers.values()))
         labels = (label_name,label_surname,label_created_when,label_created_by,label_city,label_eta
                   ,label_time,label_sport,label_avg_n_player)
+        dyna_btn.clicked.connect(self.init_fields_lockers_dynamic_ui)
         def del_field():
             if self.selected_field == None:
                 return False
@@ -408,6 +409,30 @@ class MainWindow(QWidget):
         back_btn.clicked.connect(self.init_main_ui)
         self.setLayout(main_layout)
 
+    def init_fields_lockers_dynamic_ui(self):
+        self.clear_layout()
+        self.setStyleSheet("background-color: #FFF0E6;")
+        self.setMinimumSize(1280, 720)
+        self.setMaximumSize(10000, 10000)
+        self.setWindowTitle("CityBeach Ancona | Campi e Spogliatoi")
+        self.center_window()
+        self.selected_field = None
+        self.selected_locker = None
+
+        (main_layout, usr_center_text, stat_btn, dyna_btn, treeFields, treeLocks,
+         back_btn) = view_fields_lockers_dynamic_ui_layout(field_list=list(self.fields_controller.fields.values()),locker_list=list(self.lockers_controller.lockers.values()),bookingsController=self.bookings_controller)
+
+        stat_btn.clicked.connect(self.init_fields_lockers_static_ui)
+        usr_center_text.setText(f"{self.users_controller.get_current_user().username}")
+        if not self.users_controller.get_current_user().is_admin:
+            usr_center_text.setStyleSheet(style_text_red_on_white)
+        else:
+            usr_center_text.setStyleSheet(style_text_white_on_red)
+
+        back_btn.clicked.connect(self.init_main_ui)
+        self.setLayout(main_layout)
+
+
     def init_bookings_ui(self):
         self.clear_layout()
         self.setStyleSheet("background-color: #FFF0E6;")
@@ -428,6 +453,23 @@ class MainWindow(QWidget):
                 self.selected_booking.state = BookingState.CANCELLED
             elif self.selected_booking.state == BookingState.CANCELLED:
                 self.selected_booking.state = BookingState.REGISTERED
+            elif self.selected_booking.state == BookingState.COMPLETED:
+                if self.selected_booking == None:
+                    return False
+                if self.confirmDeleteBooking():
+                    status, err_id = self.bookings_controller.delete_booking(self.selected_booking)
+                    if status:
+                        self.model.save_to_file("data.pkl")
+                        self.model = AppData.load_from_file("data.pkl")
+                        QMessageBox.information(self, "Rimosso",
+                                                f"Lo spogliatoio '{self.selected_locker.name}' è stato rimosso")
+                        self.init_fields_lockers_static_ui()
+                    else:
+                        if err_id == 1:
+                            QMessageBox.critical(self, "Errore", "Errore")
+                        elif err_id == 2:
+                            QMessageBox.warning(self, "Errore", "Si è verificato un problema durante l'operazione.")
+
             self.model.save_to_file("data.pkl")
             self.init_bookings_ui()
             return None
@@ -532,7 +574,14 @@ class MainWindow(QWidget):
         elif reply == QMessageBox.StandardButton.No:
             return False
         return None
-
+    def confirmDeleteBooking(self)->bool | None:
+        reply = QMessageBox.question(self,"Rimuovi Spogliatoio", f"Sei sicuro di voler rimuovere lo spogliatoio '{self.selected_locker.name}'?",
+                                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.Yes)
+        if reply == QMessageBox.StandardButton.Yes:
+            return True
+        elif reply == QMessageBox.StandardButton.No:
+            return False
+        return None
     def closeEvent(self, event):
         reply = QMessageBox.question(
             self, "Conferma uscita", "Sei sicuro di voler uscire?",

@@ -99,12 +99,36 @@ class AppBookingsController:
             print(f"Messaggio: {e}")
             return False, -1
 
+    def checkAvailabilityFieldAtTimeSLot(self,field:Field,date:date,slot:int):
+        matched_bookings = [b for b in self.bookings.values() if b.field.name == field.name and b.time.day == date and b.state in (BookingState.REGISTERED,BookingState.IN_PROGRESS,BookingState.COMPLETED)]
+        for b in matched_bookings:
+            if slot in [i.number for i in b.time.slots]:
+                return False, "Occupato"
+        return True, "Libero"
+    def checkStatusLockerAtTimeSlot(self,locker:Locker,date:date,slot:int)->int and Gender:
+        matched_bookings = [b for b in self.bookings.values() if locker.name in [l.locker.name for l in b.lockers_usage] and slot in [i.number for i in b.time.slots] and b.time.day == date and b.state in (BookingState.REGISTERED,BookingState.IN_PROGRESS,BookingState.COMPLETED)]
+        gender = None
+        count = 0
+        for b in matched_bookings:
+            for lu in b.lockers_usage:
+                if lu.locker.name == locker.name:
+                    count += lu.players
+                    print(count)
+                    print(lu.gender,gender)
+                    if gender is None:
+                        print("none")
+                        gender = lu.gender
+                        print(gender)
+        if count==0:
+            gender = locker.gender
+        return f"{count}/{locker.capacity} {gender.value}"
+
     def checkAvailabilityField(self, name: str, date: date, timeSlot: int):
         requested_slots = TIME_SLOTS[timeSlot:timeSlot + 3]
         requested_start = requested_slots[0].startTime
         requested_end = requested_slots[2].endTime
         matched_bookings = [book for book in self.bookings.values()
-            if book.field.name == name and book.time.day == date and book.state in (BookingState.REGISTERED,BookingState.IN_PROGRESS) ]
+        if book.field.name == name and book.time.day == date and book.state in (BookingState.REGISTERED,BookingState.IN_PROGRESS)]
         for booking in matched_bookings:
             for booked_slot in booking.time.slots:
                 booked_start = booked_slot.startTime
@@ -112,6 +136,7 @@ class AppBookingsController:
                 if not (requested_end <= booked_start or requested_start >= booked_end):
                     return False
         return True
+
     def getAvailableTimeSlots(self, name: str, date: date) -> List[int]:
         available_slots = []
         bookings_on_date = [
@@ -137,9 +162,9 @@ class AppBookingsController:
         assigned: List[LockerRoomUsage] = []
 
         # Dividi locker per tipo
-        preferred_lockers = [l for l in lockersList if gender == l.gender and l.type == LockerType.MAIN.value]
-        support_lockers = [l for l in lockersList if l.type == LockerType.SECONDARY.value]
-        individual_lockers = [l for l in lockersList if l.type == LockerType.INDIVIDUAL.value]
+        preferred_lockers = [l for l in lockersList if gender == l.gender and l.type == LockerType.MAIN]
+        support_lockers = [l for l in lockersList if l.type == LockerType.SECONDARY]
+        individual_lockers = [l for l in lockersList if l.type == LockerType.INDIVIDUAL]
 
         print(len(preferred_lockers))
         # Fascia oraria richiesta
@@ -203,8 +228,8 @@ class AppBookingsController:
                 used, genders = compute_locker_usage(lock)
                 print(f"Nome: {lock.name} Usati: {used} Generi: {genders}")
                 print(f"CHECK: Genere:{type(gender)}:{gender}, {genders}")
-                if lock.type in (LockerType.SECONDARY.value,
-                                 LockerType.INDIVIDUAL.value) and genders and gender not in genders:
+                if lock.type in (LockerType.SECONDARY,
+                                 LockerType.INDIVIDUAL) and genders and gender not in genders:
                     print("Spogliatoio occupato da genere diverso, salto")
                     continue
 

@@ -156,6 +156,40 @@ def style_img1_bg(img:str):
         border: 8px solid #3777FF;
     }}
 """
+style_date_selector = """
+    QDateEdit {
+        font-size: 11pt;
+        background-color: white;
+        border: 1px solid #ccc;
+        padding: 4px;
+        border-radius: 4px;
+    }
+    QCalendarWidget QToolButton {
+        background-color: #ffffff;
+        color: black;
+    }
+
+    QCalendarWidget QMenu::item{
+        color:black;
+        background-color: #ffffff;
+    }
+    
+    QCalendarWidget QMenu::item:selected{
+        color:#FFFFFF;
+        background-color: #E30613;
+    }
+    
+    QLabel {
+        color: #333;
+    }
+"""
+style_check_box = """QCheckBox {
+        background-color: white;
+        border: 1px solid #ccc;
+        padding: 4px;
+        border-radius: 4px;
+        padding-left: 5px;
+    }"""
 style_app_Dialogs = """
  
     QWidget {
@@ -228,6 +262,12 @@ BEACHTENNIS_COLOR_FG = "#5D4E9A"
 IN_PROGRESS_COLOR_BG = "#DFF7E4"
 IN_PROGRESS_COLOR_FG = "#4C8C4A"
 
+GREEN_COLOR_BG = "#C8E6C9"
+GREEN_COLOR_FG = "#2E7D32"
+YELLOW_COLOR_BG = "#FFF9C4"
+YELLOW_COLOR_FG = "#F9A825"
+RED_COLOR_BG = "#FFCDD2"
+RED_COLOR_FG = "#C62828"
 # EAF6FF bianco/grigio
 # F5F5F5 bianco sporco
 # FAFAFA avorio
