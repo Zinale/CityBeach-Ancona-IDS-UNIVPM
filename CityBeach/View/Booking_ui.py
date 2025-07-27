@@ -286,7 +286,7 @@ class add_booking_ui(QDialog):
             if matching_players:
                 usrCheckPhone.addItems([ply.phone for ply in matching_players])
                 usrCheckEmail.addItems([ply.email for ply in matching_players])
-                usrCheckBirthday.addItems([str(ply.birthday) for ply in matching_players])
+                usrCheckBirthday.addItems([str(ply.birthday.strftime("%d/%m/%Y")) for ply in matching_players])
         playerName.textChanged.connect(checkUserInfo)
         playerSurname.textChanged.connect(checkUserInfo)
         nameCompleter.activated.connect(checkUserInfo)
@@ -421,24 +421,30 @@ class add_booking_ui(QDialog):
         self.setLayout(main_layout)
 
         def submit_data():
-            player =  next((player for player in self.playersList
-                            if player.name == playerName.text() and player.surname==playerSurname.text()
-                            and player.birthday==usrCheckBirthday.currentText() and player.email==usrCheckEmail.currentText()
-                            and player.email==usrCheckEmail.currentText()),None)
-            field = next((field for field in self.fieldsList
-                          if field.name==fieldBox.currentText()))
-            data = {
-                "sport": sportBox.currentText(),
-                "field": field,
-                "player": player,
-                "nPlayer":nPlayer.value(),
-                "nMale":nMale.value(),
-                "nFemale":nFemale.value(),
-                "price":price.value(),
-                "date": date_selector.date().toString("dd/MM/yyyy"),
-                "timeSlot": slot_selector.currentData(),
-            }
             try:
+                print("a")
+                player =  next((player for player in self.playersList
+                                if player.name == playerName.text() and player.surname==playerSurname.text()
+                                and player.birthday==datetime.strptime(usrCheckBirthday.currentText(),"%d/%m/%Y").date() and player.email==usrCheckEmail.currentText()
+                                and player.email==usrCheckEmail.currentText()),None)
+                print("a")
+                field = next((field for field in self.fieldsList
+                              if field.name==fieldBox.currentText()))
+                data = {
+                    "sport": sportBox.currentText(),
+                    "field": field,
+                    "player": player,
+                    "nPlayer":nPlayer.value(),
+                    "nMale":nMale.value(),
+                    "nFemale":nFemale.value(),
+                    "price":price.value(),
+                    "date": date_selector.date().toString("dd/MM/yyyy"),
+                    "timeSlot": slot_selector.currentData()
+                }
+                print(data)
+                print(len(data))
+                for x in data:
+                    print(f"{x}: {data[x]}")
                 success, err_id = self.bookingsController.register_booking(data,self.currentUser,lockersList=self.lockersList)
                 if success:
                     QMessageBox.information(self, "Successo", "Prenotazione creata.")
@@ -464,7 +470,8 @@ class add_booking_ui(QDialog):
                         QMessageBox.warning(self, "Errore", error_messages.get(err_id, "Errore sconosciuto."))
                     else:
                         QMessageBox.critical(self, "Errore", "Errore")
-            except:
+            except Exception as e:
+                print(e)
                 QMessageBox.critical(self, "Errore", "Controller non valido.")
                 self.close()
         save_btn.clicked.connect(submit_data)

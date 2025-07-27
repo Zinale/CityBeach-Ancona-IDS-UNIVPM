@@ -9,7 +9,6 @@ from PyQt6.QtWidgets import (QLabel, QPushButton, QSizePolicy,
                              )
 
 from Controller import AppLockersController, AppFieldsController, AppBookingsController
-from Model.Booking import Booking
 from Model.Data import TIME_SLOTS
 from Model.SportsCategory import SportsCategory
 from Model.User import User

@@ -212,19 +212,17 @@ class MainWindow(QWidget):
         self.setLayout(main_layout)
 
     def init_players_ui(self):
-        #@TODO: search (+filter) function
         self.clear_layout()
         self.setStyleSheet("background-color: #FFF0E6;")
         self.setMinimumSize(1280, 720)
         self.setMaximumSize(10000, 10000)
         self.selected_player = None
-        self.selected_player = None
         self.setWindowTitle("CityBeach Ancona | Giocatori")
         self.center_window()
 
-        (main_layout, center_text, tree, label_name, label_surname, label_created_when,label_created_by, label_city,label_eta, label_time,
-         label_sport, label_avg_n_player, add_play_btn, del_play_btn, back_btn)= view_players_ui_layout(list(self.players_controller.players.values()))
-        labels = (label_name,label_surname,label_created_when,label_created_by,label_city,label_eta,label_time,label_sport,label_avg_n_player)
+        (main_layout, center_text, tree, label_name, label_surname, label_eta, label_created_when,label_created_by, label_city,label_bookings, label_fav_time,
+         label_fav_sport, label_avg_n_player, add_play_btn, del_play_btn, back_btn)= view_players_ui_layout(list(self.players_controller.players.values()))
+        labels = (label_name,label_surname,label_eta,label_created_when,label_created_by,label_city,label_bookings,label_fav_time,label_fav_sport,label_avg_n_player)
         for lab in labels:
             lab.setText("")
 
@@ -253,22 +251,31 @@ class MainWindow(QWidget):
                 self.init_players_ui()
         def tree_on_item_selected():
             selected_player = tree.selectedItems()
-            if selected_player and selected_player.__len__() == 1:
-                self.selected_player = self.players_controller.findByEmail(selected_player[0].text(4)) #find by email
-                del_play_btn.setStyleSheet(style_QButton_white_18Gotham)
-                del_play_btn.setEnabled(True)
-                #UPDATE STATS
-                label_name.setText(self.selected_player.name.upper())
-                label_surname.setText(self.selected_player.surname.upper())
-                label_created_when.setText(f"Registrato il: {self.selected_player.data_created.date()}")
-                label_created_by.setText(f"Registrato da: {self.selected_player.added_by}")
-                label_city.setText(f"Città: {self.selected_player.residence}")
-            else:
-                self.selected_player = None
-                del_play_btn.setStyleSheet(style_QButton_disabled)
-                del_play_btn.setEnabled(False)
-                for lab in labels:
-                    lab.setText("")
+            try:
+                if selected_player and selected_player.__len__() == 1:
+                    self.selected_player = self.players_controller.findByEmail(selected_player[0].text(4)) #find by email
+                    del_play_btn.setStyleSheet(style_QButton_white_18Gotham)
+                    del_play_btn.setEnabled(True)
+                    #UPDATE STATS
+                    label_name.setText(self.selected_player.name.upper())
+                    label_surname.setText(self.selected_player.surname.upper())
+                    label_eta.setText(f"Età: {get_age(self.selected_player)}")
+                    label_created_when.setText(f"Registrato il: {self.selected_player.data_created.date()}")
+                    label_created_by.setText(f"Registrato da: {self.selected_player.added_by}")
+                    label_city.setText(f"Città: {self.selected_player.residence}")
+                    label_bookings.setText(f"Prenotazioni: {len([b for b in self.bookings_controller.bookings.values() if b.player == self.selected_player])}")
+                    label_fav_sport.setText(f"Sport Preferito: {self.bookings_controller.getFavoriteSport(self.selected_player).value}")
+                    label_fav_time.setText(f"Orario Preferito: {self.bookings_controller.getFavoriteTime(self.selected_player)}")
+                    label_avg_n_player.setText(f"Media pers/pren: {self.bookings_controller.getAvgPersonForBooking(self.selected_player)}")
+                else:
+                    self.selected_player = None
+                    del_play_btn.setStyleSheet(style_QButton_disabled)
+                    del_play_btn.setEnabled(False)
+                    for lab in labels:
+                        lab.setText("a")
+            except Exception as e:
+                print(e)
+
 
         def show_add_player_ui():
             dlg = info_Player_ui(phase=0,playerController=self.players_controller,currentUser=self.users_controller.current_user)
@@ -432,7 +439,6 @@ class MainWindow(QWidget):
         back_btn.clicked.connect(self.init_main_ui)
         self.setLayout(main_layout)
 
-
     def init_bookings_ui(self):
         self.clear_layout()
         self.setStyleSheet("background-color: #FFF0E6;")
@@ -443,9 +449,9 @@ class MainWindow(QWidget):
         self.center_window()
 
         main_layout, center_text, tree, book_btn, del_book_btn,back_btn = view_booking_ui_layout(list(self.bookings_controller.bookings.values()))
-        from datetime import datetime
-        date_obj = datetime.strptime("25/07/2025", "%d/%m/%Y").date()
-        self.bookings_controller.print_locker_status_by_slot(date_obj,list(self.lockers_controller.lockers.values()))
+        #from datetime import datetime
+        #date_obj = datetime.strptime("25/07/2025", "%d/%m/%Y").date()
+        #self.bookings_controller.print_locker_status_by_slot(date_obj,list(self.lockers_controller.lockers.values()))
         def cancel_booking():
             if self.selected_booking is None:
                 return False
@@ -453,22 +459,6 @@ class MainWindow(QWidget):
                 self.selected_booking.state = BookingState.CANCELLED
             elif self.selected_booking.state == BookingState.CANCELLED:
                 self.selected_booking.state = BookingState.REGISTERED
-            elif self.selected_booking.state == BookingState.COMPLETED:
-                if self.selected_booking == None:
-                    return False
-                if self.confirmDeleteBooking():
-                    status, err_id = self.bookings_controller.delete_booking(self.selected_booking)
-                    if status:
-                        self.model.save_to_file("data.pkl")
-                        self.model = AppData.load_from_file("data.pkl")
-                        QMessageBox.information(self, "Rimosso",
-                                                f"Lo spogliatoio '{self.selected_locker.name}' è stato rimosso")
-                        self.init_fields_lockers_static_ui()
-                    else:
-                        if err_id == 1:
-                            QMessageBox.critical(self, "Errore", "Errore")
-                        elif err_id == 2:
-                            QMessageBox.warning(self, "Errore", "Si è verificato un problema durante l'operazione.")
 
             self.model.save_to_file("data.pkl")
             self.init_bookings_ui()
@@ -478,7 +468,6 @@ class MainWindow(QWidget):
             selected_booking = tree.selectedItems()
             if selected_booking and selected_booking.__len__() == 1:
                 self.selected_booking = self.bookings_controller.bookings[int(selected_booking[0].text(0))]
-                print(f"{self.selected_booking.id}")
                 if self.selected_booking.state in (BookingState.REGISTERED,BookingState.CANCELLED):
                     del_book_btn.setStyleSheet(style_QButton_white_16Gotham)
                     del_book_btn.setEnabled(True)
@@ -498,9 +487,7 @@ class MainWindow(QWidget):
             if dlg.exec():
                 self.model.bookings_next_id = self.bookings_controller.booking_id
                 self.model.save_to_file("data.pkl")
-                print("alvato")
                 self.init_bookings_ui()
-        print(len(self.bookings_controller.bookings.values()))
         tree.itemSelectionChanged.connect(item_on_tree_selected)
         tree.itemDoubleClicked.connect(cancel_booking)
 
@@ -574,14 +561,7 @@ class MainWindow(QWidget):
         elif reply == QMessageBox.StandardButton.No:
             return False
         return None
-    def confirmDeleteBooking(self)->bool | None:
-        reply = QMessageBox.question(self,"Rimuovi Spogliatoio", f"Sei sicuro di voler rimuovere lo spogliatoio '{self.selected_locker.name}'?",
-                                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.Yes)
-        if reply == QMessageBox.StandardButton.Yes:
-            return True
-        elif reply == QMessageBox.StandardButton.No:
-            return False
-        return None
+
     def closeEvent(self, event):
         reply = QMessageBox.question(
             self, "Conferma uscita", "Sei sicuro di voler uscire?",

@@ -1,9 +1,19 @@
+from datetime import date, datetime
 from typing import List, Dict
 
 import PyQt6.QtCore
 
 from Model.Gender import Gender
 from Model.Player import Player
+
+
+def get_age(player:Player):
+    today = date.today()
+    age = today.year - player.birthday.year
+    if (today.month, today.day) < (player.birthday.month, player.birthday.day):
+        age -= 1
+    return age
+
 
 class AppPlayersController:
     def __init__(self, players: Dict[int, Player],player_id:int):
@@ -13,18 +23,19 @@ class AppPlayersController:
 
     def register_player(self,data,current_user) -> bool and int:
         try:
-            name = data[0]
-            surname = data[1]
-            birthday = data[2]
+            name = data["name"]
+            surname = data["surname"]
+            birthday = data["birthday"]
             date = birthday.strip().split("/")
+            date_obj = datetime.strptime(birthday, "%d/%m/%Y").date()
             if PyQt6.QtCore.QDate(int(date[2]),int(date[1]),int(date[0])) >= PyQt6.QtCore.QDate.currentDate():
                 return False,1
             if current_user is None:
                 return False, 2
-            gender = data[3]
-            phone = data[4]
-            email = data[5]
-            city = data[6]
+            gender = data["gender"]
+            phone = data["phone"]
+            email = data["email"]
+            city = data["city"]
             if "@" not in email:
                 return False, 3
             if self.checkEmail(email):
@@ -33,7 +44,7 @@ class AppPlayersController:
                 return False,5
             self.player_id+=1
             self.players[self.player_id] = Player(
-                self.player_id,name=name,surname=surname,datebirth=birthday,gender=gender,
+                self.player_id,name=name,surname=surname,datebirth=date_obj,gender=gender,
                 phone=phone,email=email, residence=city,added_by=current_user.username
             )
             return True,0
@@ -87,4 +98,3 @@ class AppPlayersController:
 
     def findByEmail(self,emaiL:str)->Player:
         return next((player for player in self.players.values() if player.email == emaiL), None)
-

@@ -2,5 +2,5 @@ from .AttrrezzaturaSportivaController import AppSportsEquipmentController
 from .BookingsController import AppBookingsController
 from .FieldsController import AppFieldsController
 from .LockersController import AppLockersController
-from .PlayersController import AppPlayersController
+from .PlayersController import *
 from .UsersController import AppUsersController

@@ -71,7 +71,6 @@ class AppBookingsController:
                 return False, 11
             if not self.checkAvailabilityField(field.name, date_obj, timeSlot):
                 return False, 12
-
             #CREATE A NEW BOOKING
             lockerRoomUsageMale_list:List[LockerRoomUsage]=[]
             lockerRoomUsageFemale_list:List[LockerRoomUsage]=[]
@@ -93,7 +92,6 @@ class AppBookingsController:
                     return False, 13
                 self.bookings[self.booking_id].lockers_usage.extend(lockerRoomUsageFemale_list)
             return True, 0
-
         except Exception as e:
             print(f"Errore: {type(e)}")
             print(f"Messaggio: {e}")
@@ -316,3 +314,39 @@ class AppBookingsController:
                     for gender, count in gender_counts.items():
                         print(f"     - {gender}: {count} giocatori")
             print()
+
+    def getFavoriteSport(self,player:Player):
+        dict = {}
+        for b in self.bookings.values():
+            if b.state in (BookingState.REGISTERED,BookingState.COMPLETED,BookingState.IN_PROGRESS) and b.player==player:
+                if b.field.sport in dict:
+                    dict[b.field.sport] += 1
+                else:
+                    dict[b.field.sport] = 1
+        if len(dict.keys())==0:
+            return "/"
+        return max(dict,key=dict.get)
+
+    def getFavoriteTime(self,player:Player):
+        dict:Dict[TIME_SLOTS,int] = {}
+        for b in self.bookings.values():
+            if b.state in (BookingState.REGISTERED,BookingState.COMPLETED,BookingState.IN_PROGRESS) and b.player==player:
+                for TS in b.time.slots:
+                    if TS in dict:
+                        dict[TS]+=1
+                    else:
+                        dict[TS] = 1
+        if len(dict.keys())==0:
+            return "/"
+        return max(dict,key=dict.get).getAllTime()
+
+    def getAvgPersonForBooking(self,player:Player):
+        sum = 0
+        nB = 0
+        for b in self.bookings.values():
+            if b.state in (BookingState.REGISTERED,BookingState.COMPLETED,BookingState.IN_PROGRESS) and b.player==player:
+                sum+=b.totalPlayers
+                nB+=1
+        if nB==0:
+            return "/"
+        return sum//nB

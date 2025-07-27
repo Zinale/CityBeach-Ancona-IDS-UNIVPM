@@ -42,7 +42,7 @@ def view_players_ui_layout(player_list: List[Player]):
         item = QTreeWidgetItem([
             str(player.name),
             str(player.surname),
-            str(player.birthday),
+            str(player.birthday.strftime("%d/%m/%Y")),
             str(player.gender.value),
             str(player.email),
             str(player.phone),
@@ -65,6 +65,9 @@ def view_players_ui_layout(player_list: List[Player]):
     label_surname = QLabel("Cognome")
     label_surname.setStyleSheet("""font-family: Gotham; color: #E30613;font-size: 20pt;font-weight: bold;""")
     # Etichette vuote che verranno aggiornate dinamicamente
+    label_eta = QLabel("Età: -")
+    label_eta.setStyleSheet(style_text_gotham_b)
+
     label_created_when = QLabel("Registrato il: -")
     label_created_when.setStyleSheet(style_text_gotham_b)
 
@@ -74,14 +77,14 @@ def view_players_ui_layout(player_list: List[Player]):
     label_city = QLabel("Città: -")
     label_city.setStyleSheet(style_text_gotham_b)
 
-    label_eta = QLabel("Prenotazioni: -")
-    label_eta.setStyleSheet(style_text_gotham_b)
+    label_bookings = QLabel("Prenotazioni: -")
+    label_bookings.setStyleSheet(style_text_gotham_b)
 
-    label_time = QLabel("Orario Pref.: -")
-    label_time.setStyleSheet(style_text_gotham_b)
+    label_fav_time = QLabel("Orario Pref.: -")
+    label_fav_time.setStyleSheet(style_text_gotham_b)
 
-    label_sport = QLabel("Sport Pref.: -")
-    label_sport.setStyleSheet(style_text_gotham_b)
+    label_fav_sport = QLabel("Sport Pref.: -")
+    label_fav_sport.setStyleSheet(style_text_gotham_b)
 
     label_avg_n_player = QLabel("Media pers/pren: -")
     label_avg_n_player.setStyleSheet(style_text_gotham_b)
@@ -89,14 +92,15 @@ def view_players_ui_layout(player_list: List[Player]):
     # Aggiungi al layout
     stats_layout.addWidget(label_name)
     stats_layout.addWidget(label_surname)
+    stats_layout.addWidget(label_eta)
     stats_layout.addWidget(label_created_when)
     stats_layout.addWidget(label_created_by)
     stats_layout.addWidget(label_city)
-    stats_layout.addWidget(label_eta)
-    stats_layout.addWidget(label_time)
-    stats_layout.addWidget(label_sport)
+    stats_layout.addWidget(label_bookings)
+    stats_layout.addWidget(label_fav_time)
+    stats_layout.addWidget(label_fav_sport)
     stats_layout.addWidget(label_avg_n_player)
-    stats_layout.setSpacing(12)
+    stats_layout.setSpacing(14)
     stats_layout.addStretch()
 
     hSplitter.addWidget(stats_widget)
@@ -162,7 +166,7 @@ def view_players_ui_layout(player_list: List[Player]):
     #back_btn.clicked.connect(self.init_main_ui)
     bottom_bar.addWidget(back_btn)
     main_layout.addLayout(bottom_bar)
-    return main_layout, center_text, tree, label_name,label_surname,label_created_when,label_created_by,label_city,label_eta,label_time,label_sport,label_avg_n_player,add_play_btn, del_play_btn,back_btn
+    return main_layout, center_text, tree, label_name,label_surname,label_eta,label_created_when,label_created_by,label_city,label_bookings,label_fav_time,label_fav_sport,label_avg_n_player,add_play_btn, del_play_btn,back_btn
 
 class info_Player_ui(QDialog):
     def __init__(self,phase:int,playerController:AppPlayersController,player_to_edit:Player=None,currentUser:User=None):
@@ -268,7 +272,7 @@ class info_Player_ui(QDialog):
             if self.phase==0:
                 #REGISTER NEW PLAYER
                 try:
-                    success, err_id = self.playersController.register_player(list(data.values()),self.currentUser)
+                    success, err_id = self.playersController.register_player(data,self.currentUser)
                     if success:
                         QMessageBox.information(self, "Successo", "Giocatore aggiunto.")
                         self.accept()
