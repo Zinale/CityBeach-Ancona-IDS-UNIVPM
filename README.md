@@ -20,7 +20,7 @@ CityBeach is designed to simplify the day-to-day operations of a beach sports fa
 - 🏅 Field and changing room occupancy monitoring to prevent overcrowding
 - 🍔 In-house refreshment area management: available products and order tracking
 
-The software is being developed as a course project and is not yet ready for production use.
+> The software is being developed as a course project and is not yet ready for production use.
 
 ---
 
