@@ -123,14 +123,13 @@ Directory structure:
 ---
 
 ## 📖 How to Use
-### 🛂 First-Time Login
+### ‼️​​ First-Time Login
 On first launch, use the default admin credentials:
+```
+👤 Username: admin
+🔑 Password: admin
+```
 > ⛔️ The "admin" account will always exist and cannot be modified or deleted.
-
-```
-Username: admin
-Password: admin
-```
 
 ### 📋 Functional Panels Overview
 
