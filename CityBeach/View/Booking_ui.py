@@ -16,7 +16,7 @@ from Model.Booking import Booking, BookingState
 from Model.Field import Field
 from Model.Locker import Locker
 from Model.Player import Player
-from Model.SportsCategory import SportsCategory
+from Model.SportsCategory import *
 from Model.User import User
 from View.styles import *
 from View.topBar import topBar
@@ -54,16 +54,16 @@ def view_booking_ui_layout(booking_list:List[Booking]):
             date = None
             slot = None
             if bySportCheckBox.isChecked():
-                sport = SportsCategory(bySportComboBox.currentText())
+                sport = Sports(bySportComboBox.currentText())
             if byDateCheckBox.isChecked():
                 date = byDateSelector.date()
             if bySlotCheckBox.isChecked():
                 slot = bySlotComboBox.currentIndex() + 1
-            if  (sport and sport != bk.field.sport) or (date and date!=bk.time.day) or (slot and slot not in [ts.number for ts in bk.time.slots]):
+            if  (sport and sport != bk.sport) or (date and date!=bk.time.day) or (slot and slot not in [ts.number for ts in bk.time.slots]):
                 continue
             item = QTreeWidgetItem([
                 str(bk.id),
-                str(bk.field.sport.value),
+                str(bk.sport.value),
                 str(bk.field.name),
                 str(f"{bk.player.name} {bk.player.surname}"),
                 str(bk.totalPlayers),
@@ -84,15 +84,15 @@ def view_booking_ui_layout(booking_list:List[Booking]):
                     item.setBackground(i, QBrush(QColor(IN_PROGRESS_COLOR_BG)))
             else:
                 if colorsActivatedCheckBox.isChecked():
-                    if bk.field.sport==SportsCategory.PADEL:
+                    if bk.sport==Sports.PADEL:
                         for i in range(11):
                             item.setBackground(i, QBrush(QColor(PADEL_COLOR_BG)))
                             item.setForeground(i, QBrush(QColor(PADEL_COLOR_FG)))
-                    elif bk.field.sport==SportsCategory.BEACH_TENNIS:
+                    elif bk.sport==Sports.BEACH_TENNIS:
                         for i in range(11):
                             item.setBackground(i, QBrush(QColor(BEACHTENNIS_COLOR_BG)))
                             item.setForeground(i, QBrush(QColor(BEACHTENNIS_COLOR_FG)))
-                    elif bk.field.sport==SportsCategory.BEACH_VOLLEY:
+                    elif bk.sport==Sports.BEACH_VOLLEY:
                         for i in range(11):
                             item.setBackground(i, QBrush(QColor(BEACHVOLLEY_COLOR_BG)))
                             item.setForeground(i, QBrush(QColor(BEACHVOLLEY_COLOR_FG)))
@@ -122,7 +122,7 @@ def view_booking_ui_layout(booking_list:List[Booking]):
     # FILTER 1: Sport
     bySportCheckBox = QCheckBox("Sport:")
     bySportComboBox = QComboBox()
-    bySportComboBox.addItems([sp.value for sp in SportsCategory])
+    bySportComboBox.addItems([sp.value for sp in Sports])
     block1 = QWidget()
     bl1_layout = QHBoxLayout(block1)
     bl1_layout.setContentsMargins(0, 0, 0, 0)
@@ -248,12 +248,13 @@ class add_booking_ui(QDialog):
     def init_ui(self):
         layout = QFormLayout()
         sportBox = QComboBox()
-        sportBox.addItems([sport.value for sport in SportsCategory])
+        sportBox.addItems([sport.value for sport in Sports])
         fieldBox = QComboBox()
-        fieldBox.addItems([field.name for field in self.fieldsList if field.sport==SportsCategory(sportBox.currentText())])
+        fieldBox.addItems([field.name for field in self.fieldsList if field.sport.value==sportBox.currentText() or (field.sport.value in [sp.value.split(" ")[0] for sp in BeachSportsType] and FieldType.BEACH.value in sportBox.currentText())])
+
         def update_field_box():
             fieldBox.clear()
-            fieldBox.addItems([field.name for field in self.fieldsList if field.sport==SportsCategory(sportBox.currentText())])
+            fieldBox.addItems([field.name for field in self.fieldsList if field.sport.value==sportBox.currentText() or (field.sport.value in [sp.value.split(" ")[0] for sp in BeachSportsType] and FieldType.BEACH.value in sportBox.currentText())])
         sportBox.currentTextChanged.connect(update_field_box)
 
         names = list(set(player.name for player in self.playersList))
@@ -431,7 +432,7 @@ class add_booking_ui(QDialog):
                 field = next((field for field in self.fieldsList
                               if field.name==fieldBox.currentText()))
                 data = {
-                    "sport": sportBox.currentText(),
+                    "sport": Sports(sportBox.currentText()),
                     "field": field,
                     "player": player,
                     "nPlayer":nPlayer.value(),

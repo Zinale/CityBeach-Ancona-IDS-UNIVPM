@@ -10,7 +10,7 @@ from PyQt6.QtWidgets import (QLabel, QPushButton, QSizePolicy,
 
 from Controller import AppLockersController, AppFieldsController, AppBookingsController
 from Model.Data import TIME_SLOTS
-from Model.SportsCategory import SportsCategory
+from Model.SportsCategory import *
 from Model.User import User
 from View.styles import *
 from View.topBar import topBar
@@ -275,7 +275,7 @@ def view_fields_lockers_dynamic_ui_layout(field_list: List[Field],locker_list:Li
     def populateTreeField():
         treeFields.clear()
         treeFields.setHeaderLabels(["Nome"] + [st.getAllTime() for st in TIME_SLOTS])
-        for sport in SportsCategory:
+        for sport in FieldType:
             sport_item = QTreeWidgetItem([sport.value.title()])
             treeFields.addTopLevelItem(sport_item)
             sport_item.setExpanded(True)
@@ -412,7 +412,7 @@ class add_field_ui(QDialog):
         layout = QFormLayout()
         nameBar = QLineEdit()
         sportBar = QComboBox()
-        sportBar.addItems([sport.value for sport in SportsCategory])
+        sportBar.addItems([sport.value for sport in FieldType])
 
         save_btn = QPushButton("Salva")
         save_btn.setStyleSheet(style_QButton_red)
@@ -443,7 +443,7 @@ class add_field_ui(QDialog):
         def submit_data():
             data = {
                 "name": nameBar.text(),
-                "sport": SportsCategory(sportBar.currentText())
+                "sport": FieldType(sportBar.currentText())
             }
             # call his parent
             try:

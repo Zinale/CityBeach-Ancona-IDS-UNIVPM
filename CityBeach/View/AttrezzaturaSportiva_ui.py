@@ -15,9 +15,8 @@ from View.styles import (
 )
 from View.topBar import topBar
 from Model import Data
-from Model.EquipmentType import EquipmentType
-from Model.SportsCategory import SportsCategory
-from Model.SportsEquipment import SportsEquipment
+from Model.SportsEquipment import *
+from Model.SportsCategory import *
 from Controller import AppSportsEquipmentController
 
 def view_attrezzaturaSportiva_ui_layout(lista_attrezzatura):
@@ -41,7 +40,7 @@ def view_attrezzaturaSportiva_ui_layout(lista_attrezzatura):
     def populate_tree():
         tree.clear()
  
-        for sport in SportsCategory:
+        for sport in Sports:
             sport_item = QTreeWidgetItem([sport.value.title()])
             tree.addTopLevelItem(sport_item)
             sport_item.setExpanded(True)
@@ -54,6 +53,9 @@ def view_attrezzaturaSportiva_ui_layout(lista_attrezzatura):
                     att_item.setText(2, att.equipmentType.value.replace("_", " ").title())
                     att_item.setText(3, str(att.quantity))
                     sport_item.addChild(att_item)
+        
+        for i in range(tree.columnCount()):
+            tree.resizeColumnToContents(i)
     
     vLayout.addWidget(tree)
     tree.setFocusPolicy(Qt.FocusPolicy.NoFocus)
@@ -75,15 +77,6 @@ def view_attrezzaturaSportiva_ui_layout(lista_attrezzatura):
         else:
             btn.setEnabled(False)
             btn.setStyleSheet(style_QButton_disabled)
-
-
-    # Attrezzatura btn
-    #att_btn = QPushButton("Aggiungi Attrezzatura")
-    #att_btn.setStyleSheet(style_QButton_disabled)
-    #att_btn.setEnabled(False)
-    #tree.itemSelectionChanged.connect(lambda: update_btn(att_btn))
-    #att_btn.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-    #hLayoutBtn.addWidget(att_btn, alignment=Qt.AlignmentFlag.AlignRight)
     
     vLayout.addLayout(hLayoutBtn)
     vLayout.setSpacing(15)
@@ -218,8 +211,8 @@ def view_attrezzaturaSportiva_ui_layout(lista_attrezzatura):
 
     
 class modify_quantity_ui(QDialog):
-    def __init__(self, parent=None, tree=None, controller:AppSportsEquipmentController=None):
-        super().__init__(parent)
+    def __init__(self, tree=None, controller:AppSportsEquipmentController=None):
+        super().__init__()
         self.tree = tree
         self.controller = controller
         self.setWindowTitle("Modifica Quantità Attrezzatura Sportiva")

@@ -243,8 +243,8 @@ class info_Player_ui(QDialog):
         if self.phase == 1:
             nameBar.setText(f"{self.player_to_edit.name}")
             surnameBar.setText(f"{self.player_to_edit.surname}")
-            date = self.player_to_edit.birthday.split("/")
-            birth_day_sel.setDate(QDate(int(date[2]), int(date[1]), int(date[0])))
+            #date = self.player_to_edit.birthday.split("/")
+            birth_day_sel.setDate(self.player_to_edit.birthday)
             genderCheck.setCurrentIndex(list([g.value for g in Gender]).index(self.player_to_edit.gender.value))
             phone_number = self.player_to_edit.phone.split(" ")
             prefix_label.setText(phone_number[0])

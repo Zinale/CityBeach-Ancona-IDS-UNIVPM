@@ -84,7 +84,7 @@ class AppBookingsController:
             dayTimeSlot = DayTimeSlot(day=date_obj,slot=(TIME_SLOTS[timeSlot:timeSlot+3]))
             self.bookings[self.booking_id] = Booking(field=field,nPlayers=nPlayer,nMale=nMale,nFemale=nFemale,
                                                      player=player,price=price,when=dayTimeSlot,lockers_usage=lockerRoomUsage_list,
-                                                     id_booking=self.booking_id,usr_added_by=currentUser)
+                                                     id_booking=self.booking_id,usr_added_by=currentUser, sport=sport)
 
             if nFemale>0:
                 lockerRoomUsageFemale_list = self.assign_locker_rooms(gender=Gender.FEMALE, n_players=nFemale, date_obj=date_obj, timeSlot=timeSlot, lockersList=lockersList)
@@ -139,7 +139,7 @@ class AppBookingsController:
         available_slots = []
         bookings_on_date = [
             b for b in self.bookings.values()
-            if b.field.name == name and b.time.day == date and b.state in (BookingState.REGISTERED,BookingState.IN_PROGRESS)
+            if b.field.name == name and b.time.day == date and b.state in (BookingState.REGISTERED,BookingState.IN_PROGRESS, BookingState.COMPLETED)
         ]
         booked_slot_numbers = set()
         for booking in bookings_on_date:
@@ -319,13 +319,13 @@ class AppBookingsController:
         dict = {}
         for b in self.bookings.values():
             if b.state in (BookingState.REGISTERED,BookingState.COMPLETED,BookingState.IN_PROGRESS) and b.player==player:
-                if b.field.sport in dict:
-                    dict[b.field.sport] += 1
+                if b.sport in dict:
+                    dict[b.sport] += 1
                 else:
-                    dict[b.field.sport] = 1
-        if len(dict.keys())==0:
+                    dict[b.sport] = 1
+        if len(list(dict.keys()))==0:
             return "/"
-        return max(dict,key=dict.get)
+        return max(dict,key=dict.get).value
 
     def getFavoriteTime(self,player:Player):
         dict:Dict[TIME_SLOTS,int] = {}

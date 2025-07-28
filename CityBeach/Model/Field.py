@@ -1,11 +1,11 @@
 import datetime
-from Model.SportsCategory import SportsCategory
+from Model import SportsCategory
 
 class Field:
-    def __init__(self, id:int,sport:SportsCategory,name:str,usr_added_by:str):
+    def __init__(self, id:int,sport:SportsCategory.FieldType,name:str,usr_added_by:str):
         self.id = id
         self.name = name
-        self.sport:SportsCategory = sport
+        self.sport:SportsCategory.FieldType = sport
         self.data_created:datetime = datetime.datetime.now()
         self.added_by = usr_added_by
 

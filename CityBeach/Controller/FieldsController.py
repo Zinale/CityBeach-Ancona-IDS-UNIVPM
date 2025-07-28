@@ -1,6 +1,6 @@
 from typing import Dict
 from Model.Field import Field
-from Model.SportsCategory import SportsCategory
+from Model.SportsCategory import *
 
 
 class AppFieldsController:
@@ -14,7 +14,7 @@ class AppFieldsController:
             sport = data["sport"]
             if usr is None:
                 return False, 1
-            if sport not in [sport for sport in SportsCategory]:
+            if sport not in [sport for sport in FieldType]:
                 return False, 2
             if len(name.strip()) <=0:
                 return False,3

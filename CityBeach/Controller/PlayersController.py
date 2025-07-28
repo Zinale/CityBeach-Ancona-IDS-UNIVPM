@@ -67,6 +67,7 @@ class AppPlayersController:
             surname = data[1]
             birthday = data[2]
             date = birthday.strip().split("/")
+            date_obj = datetime.strptime(birthday, "%d/%m/%Y").date()
             if PyQt6.QtCore.QDate(int(date[2]),int(date[1]),int(date[0])) >= PyQt6.QtCore.QDate.currentDate():
                 return False,1
             gender = data[3]
@@ -81,7 +82,7 @@ class AppPlayersController:
                 return False,4
             self.players[id_player_to_edit].name = name
             self.players[id_player_to_edit].surname = surname
-            self.players[id_player_to_edit].birthday = birthday
+            self.players[id_player_to_edit].birthday = date_obj
             self.players[id_player_to_edit].gender = gender
             self.players[id_player_to_edit].phone = phone
             self.players[id_player_to_edit].email = email

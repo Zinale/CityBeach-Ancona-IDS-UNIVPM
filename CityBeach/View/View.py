@@ -201,7 +201,7 @@ class MainWindow(QWidget):
         main_layout, back_btn, qty_btn, tree, center_text = view_attrezzaturaSportiva_ui_layout(self.sport_equipment_controller.get_all_equipment())
 
         def show_modify_quantity_ui():
-                dlg = modify_quantity_ui(parent=self, tree=tree, controller=self.sport_equipment_controller)
+                dlg = modify_quantity_ui(tree=tree, controller=self.sport_equipment_controller)
                 if dlg.exec():
                     self.init_sport_equipment_ui()
                     
@@ -264,7 +264,7 @@ class MainWindow(QWidget):
                     label_created_by.setText(f"Registrato da: {self.selected_player.added_by}")
                     label_city.setText(f"Città: {self.selected_player.residence}")
                     label_bookings.setText(f"Prenotazioni: {len([b for b in self.bookings_controller.bookings.values() if b.player == self.selected_player])}")
-                    label_fav_sport.setText(f"Sport Preferito: {self.bookings_controller.getFavoriteSport(self.selected_player).value}")
+                    label_fav_sport.setText(f"Sport Preferito: {self.bookings_controller.getFavoriteSport(self.selected_player)}")
                     label_fav_time.setText(f"Orario Preferito: {self.bookings_controller.getFavoriteTime(self.selected_player)}")
                     label_avg_n_player.setText(f"Media pers/pren: {self.bookings_controller.getAvgPersonForBooking(self.selected_player)}")
                 else:

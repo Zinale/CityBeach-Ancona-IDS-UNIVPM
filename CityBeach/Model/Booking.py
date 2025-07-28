@@ -6,6 +6,7 @@ from Model.User import User
 from Model.Field import Field
 from Model.Locker import LockerRoomUsage
 from Model.Player import Player
+from Model.SportsCategory import *
 
 
 class TimeSlot:
@@ -45,7 +46,7 @@ class Booking:
     def __init__(self, field: Field, nPlayers: int, nMale: int, nFemale: int,
                  player: Player, when: DayTimeSlot, price: int=0,
                  id_booking: int=0, usr_added_by: User=None,
-                 lockers_usage: List[LockerRoomUsage] = None):
+                 lockers_usage: List[LockerRoomUsage] = None, sport: Sports = None):
         self.price:int=price
         self.field = field
         self.totalPlayers = nPlayers
@@ -58,6 +59,7 @@ class Booking:
         self.data_created = datetime.now()
         self.state:BookingState=BookingState.REGISTERED
         self.registered_by:User=usr_added_by
+        self.sport:Sports = sport
 
     def __str__(self):
         return (f"Prenotazione: {self.id}\tGiocatore:{self.player.name}\tCampo:{self.field.name} x {self.field.sport}\n\r"
