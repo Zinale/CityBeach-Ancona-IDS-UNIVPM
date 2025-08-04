@@ -459,9 +459,10 @@ class add_booking_ui(QDialog):
                             9: "Fascia oraria inserita non valida.",
                             10: "Numero di giocatori totali inseriti errato",
                             11: "Inserire una prenotazione per una data precedente a quella di oggi",
-                            12: "Fascia oraria non disponibile"
+                            12: "Fascia oraria non disponibile",
+                            13: "Capienza negli spogliatoi INSUFFICIENTE"
                         }
-                        QMessageBox.warning(self, "Errore", error_messages.get(err_id, "Errore sconosciuto."))
+                        QMessageBox.critical(self, "Errore", error_messages.get(err_id, "Errore sconosciuto."))
                     else:
                         QMessageBox.critical(self, "Errore", "Errore")
             except Exception as e:

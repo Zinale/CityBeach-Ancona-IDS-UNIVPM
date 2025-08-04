@@ -202,8 +202,6 @@ def view_fields_lockers_static_ui_layout(field_list: List[Field], locker_list: L
     return (main_layout, usr_center_text, stat_btn, dyna_btn, treeFields, treeLocks,
             IMG_WIDGET, add_field_btn, del_field_btn, add_lock_btn, del_lock_btn, back_btn)
 
-
-
 def view_fields_lockers_dynamic_ui_layout(field_list: List[Field],locker_list:List[Locker],bookingsController:AppBookingsController):
     main_layout = QVBoxLayout()
     main_layout.setContentsMargins(10, 10, 10, 10)
@@ -254,7 +252,7 @@ def view_fields_lockers_dynamic_ui_layout(field_list: List[Field],locker_list:Li
     treeFields = QTreeWidget()
     def populateTreeField():
         treeFields.clear()
-        treeFields.setHeaderLabels(["Nome"] + [st.getAllTime() for st in TIME_SLOTS])
+        treeFields.setHeaderLabels(["Nome/Categoria"] + [st.getAllTime() for st in TIME_SLOTS])
         for sport in FieldType:
             sport_item = QTreeWidgetItem([sport.value.title()])
             treeFields.addTopLevelItem(sport_item)
@@ -282,7 +280,7 @@ def view_fields_lockers_dynamic_ui_layout(field_list: List[Field],locker_list:Li
         return
     def populateTreeLocker():
         treeLocks.clear()
-        treeLocks.setHeaderLabels(["Nome"] + [st.getAllTime() for st in TIME_SLOTS])
+        treeLocks.setHeaderLabels(["Nome/Categoria"] + [st.getAllTime() for st in TIME_SLOTS])
         for Ltype in LockerType:
             lock_item = QTreeWidgetItem([Ltype.value.title()])
             treeLocks.addTopLevelItem(lock_item)
@@ -505,9 +503,19 @@ class info_locker_ui(QDialog):
                 nameBar.setText(f"{self.locker_to_edit.name}")
                 genderCheck.setCurrentIndex([gen.value for gen in Gender].index(self.locker_to_edit.gender.value))
                 capacityBar.setValue(self.locker_to_edit.capacity)
+                typeBar.setCurrentIndex([typ for typ in LockerType].index(self.locker_to_edit.type.value))
         except:
             self.close()
 
+        def update_possible_gender():
+            genderCheck.clear()
+            genders = [g.value for g in Gender]
+            if typeBar.currentText() == LockerType.MAIN.value:
+                genders.remove(Gender.OTHER.value)
+            genderCheck.addItems(genders)
+
+        update_possible_gender()
+        typeBar.currentTextChanged.connect(update_possible_gender)
         main_layout = QVBoxLayout()
         main_layout.addLayout(layout)
         main_layout.addLayout(btn_layout)
