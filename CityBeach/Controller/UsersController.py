@@ -1,3 +1,4 @@
+from types import UnionType
 from typing import List, Dict
 
 import PyQt6.QtCore
@@ -8,7 +9,7 @@ class AppUsersController:
     def __init__(self, users: Dict[int, User],user_id:int):
         self.users = users
         self.user_id = user_id
-        self.current_user = None
+        self.current_user:User|None = None
     def __str__(self):
         return f"AppUsersController, utente attivo:{self.current_user.username}"
     def register(self,data,password:str="") -> bool and int:
@@ -126,7 +127,7 @@ class AppUsersController:
         return next(id for id, user in self.get_all_users() if user.username == username)
     def get_user_by_username(self,username:str)->User | None:
         return next((user for user in self.get_all_users() if user.username == username),None)
-    def get_current_user(self):
+    def get_current_user(self)->User|None:
         return self.current_user
     def get_all_users(self) -> List[User] :
         return list(self.users.values())

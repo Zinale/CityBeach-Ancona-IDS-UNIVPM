@@ -137,9 +137,6 @@ style_text_white_on_red = """
         padding: 6px 20px;
         border-radius: 14px;"""
 
-# da fare per ogni button
-#img_babyTux_url = QUrl.fromLocalFile(image_path("Baby.tux.sit-800x800.png")).toString()
-#print(img_babyTux_url)
 def style_img1_bg(img:str):
     return f"""
     QPushButton {{

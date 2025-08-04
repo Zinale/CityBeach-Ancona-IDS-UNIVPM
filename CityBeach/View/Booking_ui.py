@@ -44,22 +44,21 @@ def view_booking_ui_layout(booking_list:List[Booking]):
          "Stato Prenotazione","Registrata il","Registrata da"])
     if booking_list!=None:
         booking_list.reverse()
-    print("----------------")
     def populate_tree():
         tree.clear()
+        # FILTERS
+        sport = None
+        date = None
+        slot = None
+        if bySportCheckBox.isChecked():
+            sport = Sports(bySportComboBox.currentText())
+        if byDateCheckBox.isChecked():
+            date = byDateSelector.date()
+        if bySlotCheckBox.isChecked():
+            slot = bySlotComboBox.currentIndex() + 1
         for bk in booking_list:
-            #FILTERS
-            #SPORT
-            sport = None
-            date = None
-            slot = None
-            if bySportCheckBox.isChecked():
-                sport = Sports(bySportComboBox.currentText())
-            if byDateCheckBox.isChecked():
-                date = byDateSelector.date()
-            if bySlotCheckBox.isChecked():
-                slot = bySlotComboBox.currentIndex() + 1
-            if  (sport and sport != bk.sport) or (date and date!=bk.time.day) or (slot and slot not in [ts.number for ts in bk.time.slots]):
+            if (sport and sport != bk.sport) or (date and date != bk.time.day) or (
+                    slot and slot not in [ts.number for ts in bk.time.slots]):
                 continue
             item = QTreeWidgetItem([
                 str(bk.id),
@@ -167,7 +166,7 @@ def view_booking_ui_layout(booking_list:List[Booking]):
     bySlotCheckBox.checkStateChanged.connect(populate_tree)
     bySlotComboBox.currentTextChanged.connect(populate_tree)
 
-    # Aggiungi i blocchi al layout dei bottoni
+    #add filters blocks to btns layout
     block1.setStyleSheet(style_app_Dialogs)
     block2.setStyleSheet(style_app_Dialogs)
     block3.setStyleSheet(style_app_Dialogs)
@@ -423,12 +422,10 @@ class add_booking_ui(QDialog):
 
         def submit_data():
             try:
-                print("a")
                 player =  next((player for player in self.playersList
                                 if player.name == playerName.text() and player.surname==playerSurname.text()
                                 and player.birthday==datetime.strptime(usrCheckBirthday.currentText(),"%d/%m/%Y").date() and player.email==usrCheckEmail.currentText()
                                 and player.email==usrCheckEmail.currentText()),None)
-                print("a")
                 field = next((field for field in self.fieldsList
                               if field.name==fieldBox.currentText()))
                 data = {
@@ -442,10 +439,6 @@ class add_booking_ui(QDialog):
                     "date": date_selector.date().toString("dd/MM/yyyy"),
                     "timeSlot": slot_selector.currentData()
                 }
-                print(data)
-                print(len(data))
-                for x in data:
-                    print(f"{x}: {data[x]}")
                 success, err_id = self.bookingsController.register_booking(data,self.currentUser,lockersList=self.lockersList)
                 if success:
                     QMessageBox.information(self, "Successo", "Prenotazione creata.")

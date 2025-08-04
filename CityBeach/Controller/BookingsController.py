@@ -93,7 +93,6 @@ class AppBookingsController:
                 self.bookings[self.booking_id].lockers_usage.extend(lockerRoomUsageFemale_list)
             return True, 0
         except Exception as e:
-            print(f"Errore: {type(e)}")
             print(f"Messaggio: {e}")
             return False, -1
 
@@ -111,12 +110,12 @@ class AppBookingsController:
             for lu in b.lockers_usage:
                 if lu.locker.name == locker.name:
                     count += lu.players
-                    print(count)
-                    print(lu.gender,gender)
+                    #print(count)
+                    #print(lu.gender,gender)
                     if gender is None:
-                        print("none")
+                        #print("none")
                         gender = lu.gender
-                        print(gender)
+                        #print(gender)
         if count==0:
             gender = locker.gender
         return f"{count}/{locker.capacity} {gender.value}"
@@ -164,7 +163,6 @@ class AppBookingsController:
         support_lockers = [l for l in lockersList if l.type == LockerType.SECONDARY]
         individual_lockers = [l for l in lockersList if l.type == LockerType.INDIVIDUAL]
 
-        print(len(preferred_lockers))
         # Fascia oraria richiesta
         requested_slots = TIME_SLOTS[timeSlot:timeSlot + 3]
         requested_start = requested_slots[0].startTime
@@ -195,9 +193,9 @@ class AppBookingsController:
         support_lockers = [l for l in support_lockers if l.name not in occupied_support_lockers]
         individual_lockers = [l for l in individual_lockers if l.name not in occupied_support_lockers]
 
-        print(f"spo prefe: {preferred_lockers}")
-        print(f"spo suppo: {support_lockers}")
-        print(f"spo indivi: {individual_lockers}")
+        #print(f"spo prefe: {preferred_lockers}")
+        #print(f"spo suppo: {support_lockers}")
+        #print(f"spo indivi: {individual_lockers}")
 
         def compute_locker_usage(lock: Locker) -> tuple[int, set[Gender]]:
             usage = 0
@@ -209,11 +207,9 @@ class AppBookingsController:
 
                 booking_start = booking_slots[0].startTime
                 booking_end = booking_slots[-1].endTime
-                print(f"CHECK: {booking_start} {booking_end}")
+                #print(f"CHECK: {booking_start} {booking_end}")
                 if not (requested_end <= booking_start or requested_start >= booking_end):
-                    print("for")
                     for u in b.lockers_usage or []:
-                        print(f"CHECK: Spogliatoio: {lock.name}")
                         if u.locker.name == lock.name:
                             usage += u.players
                             genders.add(u.gender)
@@ -224,11 +220,11 @@ class AppBookingsController:
             nonlocal n_players
             for lock in locker_list:
                 used, genders = compute_locker_usage(lock)
-                print(f"Nome: {lock.name} Usati: {used} Generi: {genders}")
-                print(f"CHECK: Genere:{type(gender)}:{gender}, {genders}")
+                #print(f"Nome: {lock.name} Usati: {used} Generi: {genders}")
+                #print(f"CHECK: Genere:{type(gender)}:{gender}, {genders}")
                 if lock.type in (LockerType.SECONDARY,
                                  LockerType.INDIVIDUAL) and genders and gender not in genders:
-                    print("Spogliatoio occupato da genere diverso, salto")
+                    #print("Spogliatoio occupato da genere diverso, salto")
                     continue
 
                 if used >= lock.capacity:
@@ -242,21 +238,21 @@ class AppBookingsController:
                     break
             return n_players
 
-        print(f"Da allocare: {n_players} {gender}")
+        #print(f"Da allocare: {n_players} {gender}")
         remaining = allocate_from_list(preferred_lockers)
-        print(f"Rimanenti dopo MAIN: {remaining}")
+        #print(f"Rimanenti dopo MAIN: {remaining}")
         if remaining > 0:
             remaining = allocate_from_list(support_lockers)
         if remaining > 0:
             remaining = allocate_from_list(individual_lockers)
 
         if remaining > 0:
-            print("ERRORE: Spazio insufficiente")
+            #print("ERRORE: Spazio insufficiente")
             return []
 
-        for assi in assigned:
-            print(f"Assegnato: {assi.locker.name} {assi.players} {assi.gender}")
-        print("\n\n")
+        #for assi in assigned:
+        #    print(f"Assegnato: {assi.locker.name} {assi.players} {assi.gender}")
+        #print("\n\n")
         return assigned
 
     def print_locker_status_by_slot(self, date_obj: date, lockers_list: List[Locker]):

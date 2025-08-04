@@ -59,7 +59,7 @@ class MainWindow(QWidget):
 
         self.timerToUpdateBookings = QTimer()
         self.timerToUpdateBookings.timeout.connect(self.check_and_update_bookings)
-        self.timerToUpdateBookings.start(10000) #30s
+        self.timerToUpdateBookings.start(30000) #30s
 
         self.init_login_ui()
 
@@ -220,14 +220,15 @@ class MainWindow(QWidget):
         self.setWindowTitle("CityBeach Ancona | Giocatori")
         self.center_window()
 
-        (main_layout, center_text, tree, label_name, label_surname, label_eta, label_created_when,label_created_by, label_city,label_bookings, label_fav_time,
+        (main_layout, center_text, tree, label_name, label_surname, label_eta, label_created_when,label_created_by, label_city,label_bookings,label_book_lastMonth, label_fav_time,
          label_fav_sport, label_avg_n_player, add_play_btn, del_play_btn, back_btn)= view_players_ui_layout(list(self.players_controller.players.values()))
-        labels = (label_name,label_surname,label_eta,label_created_when,label_created_by,label_city,label_bookings,label_fav_time,label_fav_sport,label_avg_n_player)
+        labels = (label_name,label_surname,label_eta,label_created_when,label_created_by,label_city,label_bookings,label_book_lastMonth,label_fav_time,label_fav_sport,label_avg_n_player)
         for lab in labels:
             lab.setText("")
 
         def del_player():
-            if self.selected_player == None:
+            if self.selected_player is None or not self.users_controller.get_current_user().is_admin:
+                QMessageBox.critical(self, "Errore","Solo un amministratore può rimuovere i giocatori")
                 return False
             confirm = self.confirmDeletePlayer()
             if confirm:
@@ -264,6 +265,7 @@ class MainWindow(QWidget):
                     label_created_by.setText(f"Registrato da: {self.selected_player.added_by}")
                     label_city.setText(f"Città: {self.selected_player.residence}")
                     label_bookings.setText(f"Prenotazioni: {len([b for b in self.bookings_controller.bookings.values() if b.player == self.selected_player])}")
+                    label_book_lastMonth.setText(f"Pren. questo mese: {len([b for b in self.bookings_controller.bookings.values() if b.player == self.selected_player and b.time.day.month == date.today().month])}")
                     label_fav_sport.setText(f"Sport Preferito: {self.bookings_controller.getFavoriteSport(self.selected_player)}")
                     label_fav_time.setText(f"Orario Preferito: {self.bookings_controller.getFavoriteTime(self.selected_player)}")
                     label_avg_n_player.setText(f"Media pers/pren: {self.bookings_controller.getAvgPersonForBooking(self.selected_player)}")
@@ -309,14 +311,13 @@ class MainWindow(QWidget):
         self.selected_locker = None
 
         (main_layout, usr_center_text, stat_btn, dyna_btn, treeFields, treeLocks,
-         label_name, label_surname, label_created_when, label_created_by, label_city,
-         label_eta, label_time, label_sport, label_avg_n_player, add_field_btn, del_field_btn,
+         img_widget, add_field_btn, del_field_btn,
          add_lock_btn, del_lock_btn, back_btn) = view_fields_lockers_static_ui_layout(list(self.fields_controller.fields.values()),list(self.lockers_controller.lockers.values()))
-        labels = (label_name,label_surname,label_created_when,label_created_by,label_city,label_eta
-                  ,label_time,label_sport,label_avg_n_player)
+
         dyna_btn.clicked.connect(self.init_fields_lockers_dynamic_ui)
         def del_field():
-            if self.selected_field == None:
+            if self.selected_field is None or not self.users_controller.get_current_user().is_admin:
+                QMessageBox.critical(self, "Errore","Solo un amministratore può rimuovere i Campi da Gioco")
                 return False
             confirm = self.confirmDeleteField()
             if confirm:
@@ -332,7 +333,8 @@ class MainWindow(QWidget):
                     elif err_id == 2:
                         QMessageBox.warning(self, "Errore", "Si è verificato un problema durante l'operazione.")
         def del_lock():
-            if self.selected_locker == None:
+            if self.selected_locker is None or not self.users_controller.get_current_user().is_admin:
+                QMessageBox.critical(self, "Errore","Solo un amministratore può rimuovere gli spogliatoi")
                 return False
             confirm = self.confirmDeleteLocker()
             if confirm:
@@ -367,39 +369,50 @@ class MainWindow(QWidget):
                 self.init_fields_lockers_static_ui()
 
         def item_on_tree_field_selected():
-            selected_field = treeFields.selectedItems()
-            if selected_field and selected_field.__len__() == 1:
-                self.selected_field = self.fields_controller.fields[int(selected_field[0].text(1))]
-                del_field_btn.setStyleSheet(style_QButton_white_16Gotham)
-                del_field_btn.setEnabled(True)
-                treeLocks.clearSelection()
-                del_lock_btn.setStyleSheet(style_QButton_disabled_16)
-                del_lock_btn.setEnabled(False)
-                self.selected_locker = None
-                #MOSTRARE STATS CAMPO
-            else:
-                self.selected_field = None
-                del_field_btn.setStyleSheet(style_QButton_disabled_16)
-                del_field_btn.setEnabled(False)
-                for lab in labels:
-                    lab.setText("")
+            try:
+                selected_field = treeFields.selectedItems()
+                if selected_field and selected_field.__len__() == 1:
+                    self.selected_field = self.fields_controller.fields[int(selected_field[0].text(1))]
+                    del_field_btn.setStyleSheet(style_QButton_white_16Gotham)
+                    del_field_btn.setEnabled(True)
+                    treeLocks.clearSelection()
+                    del_lock_btn.setStyleSheet(style_QButton_disabled_16)
+                    del_lock_btn.setEnabled(False)
+                    self.selected_locker = None
+                    fields_imgs = ("src/img/padel.png","src/img/beach.png")
+                    pixmap = QPixmap(fields_imgs[list(FieldType).index(self.selected_field.sport)])
+                    scaled_pixmap = pixmap.scaled(370,350, Qt.AspectRatioMode.KeepAspectRatioByExpanding,Qt.TransformationMode.SmoothTransformation)
+                    img_widget.setPixmap(scaled_pixmap)
+                else:
+                    self.selected_field = None
+                    del_field_btn.setStyleSheet(style_QButton_disabled_16)
+                    del_field_btn.setEnabled(False)
+                    img_widget.setPixmap(QPixmap(""))
+            except Exception as e:
+                print(e)
+
         def item_on_tree_lockers_selected():
-            selected_locker = treeLocks.selectedItems()
-            if selected_locker and selected_locker.__len__() == 1:
-                self.selected_locker = self.lockers_controller.lockers[int(selected_locker[0].text(1))]
-                del_lock_btn.setStyleSheet(style_QButton_white_16Gotham)
-                del_lock_btn.setEnabled(True)
-                treeFields.clearSelection()
-                del_field_btn.setStyleSheet(style_QButton_disabled_16)
-                del_field_btn.setEnabled(False)
-                self.selected_field = None
-                # MOSTRARE STATS SPOGLIATOIO
-            else:
-                self.selected_locker = None
-                del_lock_btn.setStyleSheet(style_QButton_disabled_16)
-                del_lock_btn.setEnabled(False)
-                for lab in labels:
-                    lab.setText("")
+            try:
+                selected_locker = treeLocks.selectedItems()
+                if selected_locker and selected_locker.__len__() == 1:
+                    self.selected_locker = self.lockers_controller.lockers[int(selected_locker[0].text(1))]
+                    del_lock_btn.setStyleSheet(style_QButton_white_16Gotham)
+                    del_lock_btn.setEnabled(True)
+                    treeFields.clearSelection()
+                    del_field_btn.setStyleSheet(style_QButton_disabled_16)
+                    del_field_btn.setEnabled(False)
+                    self.selected_field = None
+                    pixmap = QPixmap("src/img/lockers.png")
+                    scaled_pixmap = pixmap.scaled(370, 350, Qt.AspectRatioMode.KeepAspectRatioByExpanding,Qt.TransformationMode.SmoothTransformation)
+                    img_widget.setPixmap(scaled_pixmap)
+                else:
+                    self.selected_locker = None
+                    del_lock_btn.setStyleSheet(style_QButton_disabled_16)
+                    del_lock_btn.setEnabled(False)
+                    img_widget.setPixmap(QPixmap(""))
+            except Exception as e:
+                print(e)
+
 
         treeFields.itemSelectionChanged.connect(item_on_tree_field_selected)
         treeLocks.itemSelectionChanged.connect(item_on_tree_lockers_selected)
@@ -449,9 +462,6 @@ class MainWindow(QWidget):
         self.center_window()
 
         main_layout, center_text, tree, book_btn, del_book_btn,back_btn = view_booking_ui_layout(list(self.bookings_controller.bookings.values()))
-        #from datetime import datetime
-        #date_obj = datetime.strptime("25/07/2025", "%d/%m/%Y").date()
-        #self.bookings_controller.print_locker_status_by_slot(date_obj,list(self.lockers_controller.lockers.values()))
         def cancel_booking():
             if self.selected_booking is None:
                 return False

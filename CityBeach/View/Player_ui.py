@@ -5,7 +5,7 @@ from PyQt6.QtGui import QPixmap, QIcon, QFont
 from PyQt6.QtWidgets import (
     QDialog, QLabel, QLineEdit, QPushButton, QSizePolicy,
     QVBoxLayout, QHBoxLayout, QMessageBox, QTreeWidget, QTreeWidgetItem,
-    QDateEdit, QComboBox, QFormLayout, QSplitter, QWidget
+    QDateEdit, QComboBox, QFormLayout, QSplitter, QWidget, QCheckBox
 )
 
 from Controller import AppPlayersController
@@ -37,18 +37,31 @@ def view_players_ui_layout(player_list: List[Player]):
     # ----------------- TREE WIDGET ----------------
     tree = QTreeWidget()
     tree.setHeaderLabels(
-        ["Nome", "Cognome", "Data di Nascita", "Sesso", "Email", "Telefono","Id"])
-    for player in player_list:
-        item = QTreeWidgetItem([
-            str(player.name),
-            str(player.surname),
-            str(player.birthday.strftime("%d/%m/%Y")),
-            str(player.gender.value),
-            str(player.email),
-            str(player.phone),
-            str(player.id)
-        ])
-        tree.addTopLevelItem(item)
+        ["Nome", "Cognome", "Data di Nascita", "Sesso", "Email", "Telefono", "Id"])
+    def populateTree():
+        tree.clear()
+        name_surname = None
+        email = None
+        phone = None
+        if byNameCheckBox.isChecked():
+            name_surname = byNameLine.text()
+        if byEmailCheckBox.isChecked():
+            email = byEmailLine.text()
+        if byPhoneCheckBox.isChecked():
+            phone = byPhoneLine.text().strip()
+        for player in player_list:
+            if (name_surname and name_surname not in f"({player.name} {player.surname})") or (phone and phone not in player.phone) or (email and email not in player.email):
+                continue
+            item = QTreeWidgetItem([
+                str(player.name),
+                str(player.surname),
+                str(player.birthday.strftime("%d/%m/%Y")),
+                str(player.gender.value),
+                str(player.email),
+                str(player.phone),
+                str(player.id)
+            ])
+            tree.addTopLevelItem(item)
     tree.setFocusPolicy(Qt.FocusPolicy.NoFocus)
     tree.setMaximumWidth(750)
     tree.setMinimumWidth(750)
@@ -80,6 +93,9 @@ def view_players_ui_layout(player_list: List[Player]):
     label_bookings = QLabel("Prenotazioni: -")
     label_bookings.setStyleSheet(style_text_gotham_b)
 
+    label_book_lastMonth = QLabel("Pren. questo mese: -")
+    label_book_lastMonth.setStyleSheet(style_text_gotham_b)
+
     label_fav_time = QLabel("Orario Pref.: -")
     label_fav_time.setStyleSheet(style_text_gotham_b)
 
@@ -97,6 +113,7 @@ def view_players_ui_layout(player_list: List[Player]):
     stats_layout.addWidget(label_created_by)
     stats_layout.addWidget(label_city)
     stats_layout.addWidget(label_bookings)
+    stats_layout.addWidget(label_book_lastMonth)
     stats_layout.addWidget(label_fav_time)
     stats_layout.addWidget(label_fav_sport)
     stats_layout.addWidget(label_avg_n_player)
@@ -104,33 +121,95 @@ def view_players_ui_layout(player_list: List[Player]):
     stats_layout.addStretch()
 
     hSplitter.addWidget(stats_widget)
-    # -------------------------------------------------------
     hSplitter.setCollapsible(0,False)
     hSplitter.setStretchFactor(0,0)
     hSplitter.setStretchFactor(1,1)
     hSplitter.handle(1).setEnabled(False)
     vLayout.addWidget(hSplitter)
+    #--------Filter Title--------------------------------------------------------------
+    hLayoutFiltBtn = QHBoxLayout()
+    hLayoutFiltBtn.setContentsMargins(0, 0, 0, 0)
+    hLayoutFiltBtn.setSpacing(20)
+    labelTitle = QLabel("Filtra per")
+    labelTitle.setStyleSheet(style_text_red_on_white)
+    labelTitle.setFixedSize(145, 40)
+    hLayoutFilterTitle = QHBoxLayout()
+    hLayoutFilterTitle.addWidget(labelTitle)
+    hLayoutFilterTitle.addStretch(1)
+    vLayout.addLayout(hLayoutFilterTitle,stretch=0)
+    #-----------------------
+    # FILTER 1: Name
+    byNameCheckBox = QCheckBox("Nome/Cognome:")
+    byNameLine = QLineEdit()
+    block1 = QWidget()
+    bl1_layout = QHBoxLayout(block1)
+    bl1_layout.setContentsMargins(0, 0, 0, 0)
+    bl1_layout.setSpacing(3)
+    bl1_layout.addWidget(byNameCheckBox)
+    bl1_layout.addWidget(byNameLine)
+    byNameCheckBox.setChecked(False)
+    byNameLine.setEnabled(False)
+    byNameCheckBox.checkStateChanged.connect(lambda :byNameLine.setEnabled(byNameCheckBox.isChecked()))
+    byNameCheckBox.checkStateChanged.connect(populateTree)
+    byNameLine.textChanged.connect(populateTree)
+    # FILTER 2: Email
+    byEmailCheckBox = QCheckBox("Email:")
+    byEmailLine = QLineEdit()
+    block2 = QWidget()
+    bl2_layout = QHBoxLayout(block2)
+    bl2_layout.setContentsMargins(0, 0, 0, 0)
+    bl2_layout.setSpacing(3)
+    bl2_layout.addWidget(byEmailCheckBox)
+    bl2_layout.addWidget(byEmailLine)
+    byEmailLine.setPlaceholderText("prova@esempio.it")
+    byEmailCheckBox.setChecked(False)
+    byEmailLine.setEnabled(False)
+    byEmailCheckBox.checkStateChanged.connect(lambda :byEmailLine.setEnabled(byEmailCheckBox.isChecked()))
+    byEmailCheckBox.checkStateChanged.connect(populateTree)
+    byEmailLine.textChanged.connect(populateTree)
+    # FILTER 1: Name
+    byPhoneCheckBox = QCheckBox("Telefono:")
+    byPhoneLine = QLineEdit()
+    block3 = QWidget()
+    bl3_layout = QHBoxLayout(block3)
+    bl3_layout.setContentsMargins(0, 0, 0, 0)
+    bl3_layout.setSpacing(3)
+    bl3_layout.addWidget(byPhoneCheckBox)
+    bl3_layout.addWidget(byPhoneLine)
+    byPhoneLine.setInputMask("999 999 9999;_")
+    byPhoneCheckBox.setChecked(False)
+    byPhoneLine.setEnabled(False)
+    byPhoneCheckBox.checkStateChanged.connect(lambda :byPhoneLine.setEnabled(byPhoneCheckBox.isChecked()))
+    byPhoneCheckBox.checkStateChanged.connect(populateTree)
+    byPhoneLine.textChanged.connect(populateTree)
 
-    hLayoutBtn = QHBoxLayout()
-    hLayoutBtn.addStretch(1)
+    #add filters blocks to btns layout
+    block1.setStyleSheet(style_app_Dialogs)
+    block2.setStyleSheet(style_app_Dialogs)
+    block3.setStyleSheet(style_app_Dialogs)
+    hLayoutFiltBtn.addWidget(block1)
+    hLayoutFiltBtn.addWidget(block2)
+    hLayoutFiltBtn.addWidget(block3)
+    hLayoutFiltBtn.addStretch(1)
+
     #--------------------- Search, Add, Del section-------------------------------------------------------
-    btn_bar_widget = QWidget()
-    btn_bar_widget.setFixedHeight(60)
     # add Player btn
     add_play_btn = QPushButton("Crea Giocatore")
     add_play_btn.setStyleSheet(style_QButton_white_18Gotham)
     add_play_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
-    hLayoutBtn.addWidget(add_play_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
+    hLayoutFiltBtn.addWidget(add_play_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
 
     del_play_btn = QPushButton("Elimina Giocatore")
     del_play_btn.setStyleSheet(style_QButton_disabled)
     del_play_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
     del_play_btn.setEnabled(False)
-    hLayoutBtn.addWidget(del_play_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
-    btn_bar_widget.setLayout(hLayoutBtn)
+    hLayoutFiltBtn.addWidget(del_play_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
+    btnsWidget = QWidget()
+    btnsWidget.setFixedHeight(40)
+    btnsWidget.setLayout(hLayoutFiltBtn)
     #----------------------------------------------------------------------------
 
-    vLayout.addWidget(btn_bar_widget)
+    vLayout.addWidget(btnsWidget)
     vLayout.setSpacing(15)
     main_layout.addLayout(vLayout)
 
@@ -166,7 +245,8 @@ def view_players_ui_layout(player_list: List[Player]):
     #back_btn.clicked.connect(self.init_main_ui)
     bottom_bar.addWidget(back_btn)
     main_layout.addLayout(bottom_bar)
-    return main_layout, center_text, tree, label_name,label_surname,label_eta,label_created_when,label_created_by,label_city,label_bookings,label_fav_time,label_fav_sport,label_avg_n_player,add_play_btn, del_play_btn,back_btn
+    populateTree()
+    return main_layout, center_text, tree, label_name,label_surname,label_eta,label_created_when,label_created_by,label_city,label_bookings,label_book_lastMonth,label_fav_time,label_fav_sport,label_avg_n_player,add_play_btn, del_play_btn,back_btn
 
 class info_Player_ui(QDialog):
     def __init__(self,phase:int,playerController:AppPlayersController,player_to_edit:Player=None,currentUser:User=None):
