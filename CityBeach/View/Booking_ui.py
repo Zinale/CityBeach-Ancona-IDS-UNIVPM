@@ -460,7 +460,7 @@ class add_booking_ui(QDialog):
                             10: "Numero di giocatori totali inseriti errato",
                             11: "Inserire una prenotazione per una data precedente a quella di oggi",
                             12: "Fascia oraria non disponibile",
-                            13: "Capienza negli spogliatoi INSUFFICIENTE"
+                            13: "Capienza degli spogliatoi INSUFFICIENTE"
                         }
                         QMessageBox.critical(self, "Errore", error_messages.get(err_id, "Errore sconosciuto."))
                     else:

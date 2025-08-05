@@ -123,7 +123,7 @@ class MainWindow(QWidget):
         btn_pren.clicked.connect(self.init_bookings_ui)
         btn_dip.clicked.connect(view_dipendenti)
         btn_attspo.clicked.connect(self.init_sport_equipment_ui)
-        btn_play.clicked.connect(self.init_players_ui)
+        btn_play.clicked.connect(lambda: self.init_players_ui())
         # Testo centrale
         center_text.setText(f"{self.users_controller.get_current_user().username}")
         profile_btn.clicked.connect(show_edit_user_ui)
@@ -211,7 +211,7 @@ class MainWindow(QWidget):
         qty_btn.clicked.connect(show_modify_quantity_ui)
         self.setLayout(main_layout)
 
-    def init_players_ui(self):
+    def init_players_ui(self,player:Player = None):
         self.clear_layout()
         self.setStyleSheet("background-color: #FFF0E6;")
         self.setMinimumSize(1280, 720)
@@ -219,7 +219,6 @@ class MainWindow(QWidget):
         self.selected_player = None
         self.setWindowTitle("CityBeach Ancona | Giocatori")
         self.center_window()
-
         (main_layout, center_text, tree, label_name, label_surname, label_eta, label_created_when,label_created_by, label_city,label_bookings,label_book_lastMonth, label_fav_time,
          label_fav_sport, label_avg_n_player, add_play_btn, del_play_btn, back_btn)= view_players_ui_layout(list(self.players_controller.players.values()))
         labels = (label_name,label_surname,label_eta,label_created_when,label_created_by,label_city,label_bookings,label_book_lastMonth,label_fav_time,label_fav_sport,label_avg_n_player)
@@ -278,7 +277,6 @@ class MainWindow(QWidget):
             except Exception as e:
                 print(e)
 
-
         def show_add_player_ui():
             dlg = info_Player_ui(phase=0,playerController=self.players_controller,currentUser=self.users_controller.current_user)
             if dlg.exec():
@@ -298,6 +296,17 @@ class MainWindow(QWidget):
         else:
             center_text.setStyleSheet(style_text_white_on_red)
         back_btn.clicked.connect(self.init_main_ui)
+        try:
+            if player is not None:
+                for i in range(tree.topLevelItemCount()):
+                    item = tree.topLevelItem(i)
+                    if item.text(4) == player.email and item.text(5) == player.phone:
+                        tree.setCurrentItem(item)
+                        item.setSelected(True)
+                        tree.scrollToItem(item)
+                        break
+        except Exception as e:
+            print(e)
         self.setLayout(main_layout)
 
     def init_fields_lockers_static_ui(self):
@@ -498,8 +507,17 @@ class MainWindow(QWidget):
                 self.model.bookings_next_id = self.bookings_controller.booking_id
                 self.model.save_to_file("data.pkl")
                 self.init_bookings_ui()
+        def open_player_profile():
+            try:
+                player = self.players_controller.players[self.selected_booking.player.id]
+                self.init_players_ui(player)
+            except Exception as e:
+                print(e)
+                QMessageBox.warning(self,"Giocatore non trovato","Il profilo del giocatore di questa prenotazione potrebbe essere stato eliminato")
+                return
+
         tree.itemSelectionChanged.connect(item_on_tree_selected)
-        tree.itemDoubleClicked.connect(cancel_booking)
+        tree.itemDoubleClicked.connect(open_player_profile)
 
         book_btn.clicked.connect(show_add_booking_ui)
         del_book_btn.clicked.connect(cancel_booking)
