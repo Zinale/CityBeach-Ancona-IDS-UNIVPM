@@ -187,6 +187,20 @@ style_check_box = """QCheckBox {
         border-radius: 4px;
         padding-left: 5px;
     }"""
+style_spinBox = """
+    QWidget {
+        background-color: #FFF0E6;
+        font-family: 'Segoe UI', sans-serif;
+        font-size: 10pt;
+    }
+
+    QSpinBox {
+        background-color: white;
+        border: 1px solid #ccc;
+        padding: 4px;
+        border-radius: 4px;
+    }
+"""
 style_app_Dialogs = """
  
     QWidget {

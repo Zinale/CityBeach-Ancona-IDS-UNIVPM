@@ -1,8 +1,9 @@
 from datetime import datetime
+from multiprocessing.spawn import prepare
 from typing import List
 
 from PyQt6.QtCore import Qt, QDate
-from PyQt6.QtGui import QPixmap, QIcon, QFont, QBrush, QColor
+from PyQt6.QtGui import QPixmap, QIcon, QFont, QBrush, QColor, QGuiApplication
 from PyQt6.QtWidgets import (QLabel, QPushButton, QSizePolicy,
                              QVBoxLayout, QHBoxLayout, QTreeWidget, QTreeWidgetItem, QSplitter, QWidget, QDialog,
                              QFormLayout, QLineEdit, QComboBox, QMessageBox, QSpinBox, QHeaderView, QDateEdit, QCheckBox
@@ -447,7 +448,6 @@ class add_field_ui(QDialog):
         save_btn.clicked.connect(submit_data)
         self.setLayout(main_layout)
 
-
 class info_locker_ui(QDialog):
     def __init__(self,lockersController:AppLockersController,phase:int=0,locker_to_edit:Locker=None,currentUser:User=None):
         #phase = 0 -> to register new LockerRoom
@@ -569,3 +569,64 @@ class info_locker_ui(QDialog):
                     self.close()
         save_btn.clicked.connect(submit_data)
         self.setLayout(main_layout)
+
+class StatsWindow(QWidget):
+    def __init__(self,bookingController:AppBookingsController):
+        try:
+            super().__init__()
+            self.setWindowIcon(QIcon(image_path("logo.png")))
+            self.setWindowFlag(Qt.WindowType.Dialog)
+            self.setWindowTitle("Grafico")
+            self.index = 0
+            self.plotListNames = ["Grafico Età Media (tutti i campi)"]
+            assert self.index<=len(self.plotListNames)-1
+            self.functions = [bookingController.generate_plot_avg_age_all_fields]
+            assert len(self.functions) == len(self.plotListNames)
+            hLayoutTitle = QHBoxLayout()
+            self.labelTextPlot = QLabel(f"{self.plotListNames[self.index]}")
+            self.labelTextPlot.setStyleSheet(style_text_gotham_b)
+            hLayoutTitle.addWidget(self.labelTextPlot)
+            hLayoutTitle.addStretch(1)
+            self.yearSpinBox = QSpinBox()
+            self.yearSpinBox.setRange(2000,3000)
+            self.yearSpinBox.setValue(int(datetime.today().year))
+            self.yearSpinBox.setStyleSheet(style_spinBox)
+            self.yearSpinBox.valueChanged.connect(self.update_plot)
+            hLayoutTitle.addWidget(self.yearSpinBox)
+
+            layout = QVBoxLayout()
+            self.labelPlot = QLabel()
+            self.labelPlot.setScaledContents(True)
+            self.update_plot()
+            layout.addLayout(hLayoutTitle)
+            layout.addWidget(self.labelPlot,alignment=Qt.AlignmentFlag.AlignCenter)
+
+            pulsanti_layout = QHBoxLayout()
+            self.btn_back = QPushButton("Indietro")
+            self.btn_next = QPushButton("Avanti")
+            self.btn_next.setStyleSheet(style_QButton_white)
+            self.btn_back.setStyleSheet(style_QButton_white)
+            self.setStyleSheet("background-color: #FFF0E6;")
+            pulsanti_layout.addWidget(self.btn_back)
+            pulsanti_layout.addWidget(self.btn_next)
+            layout.addLayout(pulsanti_layout)
+            self.setFixedSize(600,600)
+            self.setLayout(layout)
+            self.center_window()
+
+        except Exception as e:
+            print(e)
+            return
+
+    def update_plot(self):
+        self.labelPlot.setPixmap(self.functions[self.index](self.yearSpinBox.value()))
+
+
+
+    def center_window(self):
+        screen = QGuiApplication.primaryScreen()
+        screen_geometry = screen.availableGeometry()
+        window_geometry = self.frameGeometry()
+        center_point = screen_geometry.center()
+        window_geometry.moveCenter(center_point)
+        self.move(window_geometry.topLeft())

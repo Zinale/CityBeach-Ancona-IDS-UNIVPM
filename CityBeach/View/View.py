@@ -259,7 +259,7 @@ class MainWindow(QWidget):
                     #UPDATE STATS
                     label_name.setText(self.selected_player.name.upper())
                     label_surname.setText(self.selected_player.surname.upper())
-                    label_eta.setText(f"Età: {get_age(self.selected_player)}")
+                    label_eta.setText(f"Età: {self.selected_player.get_age()}")
                     label_created_when.setText(f"Registrato il: {self.selected_player.data_created.date()}")
                     label_created_by.setText(f"Registrato da: {self.selected_player.added_by}")
                     label_city.setText(f"Città: {self.selected_player.residence}")
@@ -422,8 +422,14 @@ class MainWindow(QWidget):
             except Exception as e:
                 print(e)
 
+        def open_stats_window():
+            self.window_stats = StatsWindow(self.bookings_controller)
+            self.window_stats.show()
+            return
+
 
         treeFields.itemSelectionChanged.connect(item_on_tree_field_selected)
+        treeFields.itemDoubleClicked.connect(open_stats_window)
         treeLocks.itemSelectionChanged.connect(item_on_tree_lockers_selected)
         add_field_btn.clicked.connect(show_add_field_ui)
         add_lock_btn.clicked.connect(show_add_locker_ui)

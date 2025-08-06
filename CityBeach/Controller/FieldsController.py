@@ -37,4 +37,4 @@ class AppFieldsController:
             return False, 1
 
     def checkName(self,name:str,sport:str)->bool:
-        return any((getattr(field,"name",None) == name and getattr(field,"sport",None)==sport for field in list(self.fields.values())))
+        return any((getattr(field,"name",None) == name for field in list(self.fields.values())))

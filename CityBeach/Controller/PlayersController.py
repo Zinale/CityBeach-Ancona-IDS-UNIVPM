@@ -6,15 +6,6 @@ import PyQt6.QtCore
 from Model.Gender import Gender
 from Model.Player import Player
 
-
-def get_age(player:Player):
-    today = date.today()
-    age = today.year - player.birthday.year
-    if (today.month, today.day) < (player.birthday.month, player.birthday.day):
-        age -= 1
-    return age
-
-
 class AppPlayersController:
     def __init__(self, players: Dict[int, Player],player_id:int):
         self.players = players

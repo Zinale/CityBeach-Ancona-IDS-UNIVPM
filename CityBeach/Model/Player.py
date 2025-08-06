@@ -21,3 +21,10 @@ class Player:
     def __repr__(self):
         return f"{self.id}'{self.name}' \t|\t '{self.surname}' \t|\t '{self.phone}' \t|\t '{self.email}')\n\r"
 
+    def get_age(self,day:datetime.date=datetime.date.today()):
+        #day = day to compare the birthday
+        age = day.year - self.birthday.year
+        if (day.month, day.day) < (self.birthday.month, self.birthday.day):
+            age -= 1
+        return age
+

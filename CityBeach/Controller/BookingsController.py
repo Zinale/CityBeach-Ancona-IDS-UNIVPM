@@ -1,14 +1,21 @@
+from calendar import month
 from dataclasses import field
 from typing import Dict
 
 import PyQt6
+import matplotlib.pyplot as plt
 from PyQt6.QtCore import QTimer
+from PyQt6.QtGui import QPixmap, QImage
 from PyQt6.QtWidgets import QMessageBox
 from datetime import datetime
+
+from mpl_toolkits.mplot3d.art3d import rotate_axes
+
 from Model.Booking import *
 from Model.Data import TIME_SLOTS
 from Model.Gender import Gender
 from Model.Locker import Locker, LockerType
+from io import BytesIO
 
 
 class AppBookingsController:
@@ -346,3 +353,30 @@ class AppBookingsController:
         if nB==0:
             return "/"
         return sum//nB
+
+    def generate_plot_avg_age_all_fields(self,year:int):
+        month = ["Gen","Feb","Mar","Apr","Mag","Giu","Lug","Ago","Set","Ott","Nov","Dic"]
+        bookings_map = {}       #month -> list(total age, n players)
+        for m in range(1,13):
+            bookings_map[m] = [0,0]
+        for b in list(self.bookings.values()):
+            if b.time.day.year != year:
+                continue
+            bookings_map[b.time.day.month][0] += b.totalPlayers*b.player.get_age(b.time.day)
+            bookings_map[b.time.day.month][1] += b.totalPlayers
+        values = [bookings_map[month][0]//bookings_map[month][1] if bookings_map[month][1] != 0 else 0 for month in bookings_map]
+        fig, ax = plt.subplots(figsize=(7,7))
+        fig.subplots_adjust()
+        ax.plot(month,values,c = "#E30613")
+        plt.xlabel("Mese")
+        plt.ylabel("Valore")
+        plt.xticks(rotation=45)
+        buf = BytesIO()
+        fig.savefig(buf, format='png',dpi=300)
+        buf.seek(0)
+        plt.close(fig)
+        qimg = QImage()
+        qimg.loadFromData(buf.getvalue(), 'PNG')
+        pixmap = QPixmap.fromImage(qimg)
+        return pixmap
+
