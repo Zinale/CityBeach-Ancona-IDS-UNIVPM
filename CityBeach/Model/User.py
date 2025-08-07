@@ -17,7 +17,6 @@ class User:
         if datebirth is None:
             self.birthday = datetime.date.today()
         self.gender = gender
-        self.article_ids: List[str] = []
         self.is_admin:bool = False
         if is_admin:
             self.is_admin = True

@@ -487,7 +487,7 @@ class MainWindow(QWidget):
 
             self.model.save_to_file("data.pkl")
             self.init_bookings_ui()
-            return None
+            return True
 
         def item_on_tree_selected():
             selected_booking = tree.selectedItems()
