@@ -89,7 +89,8 @@ class MainWindow(QWidget):
         self.resize(a,b)
         self.showMaximized()        #to avoid the bug: fullscreen's icon active while the window isn't
         self.showNormal()
-        self.center_window()
+        if not self.isMaximized():
+            self.center_window()
 
     def init_main_ui(self):
         self.clear_layout()
@@ -102,7 +103,8 @@ class MainWindow(QWidget):
         self.selected_field = None
         self.selected_booking = None
         self.setWindowTitle("CityBeach Ancona | Menù")
-        self.center_window()
+        if not self.isMaximized():
+            self.center_window()
         #Dipendenti
         def view_dipendenti():
             if self.users_controller.get_current_user().is_admin:
@@ -138,7 +140,8 @@ class MainWindow(QWidget):
         self.setMaximumSize(10000, 10000)
         self.selected_user = None
         self.setWindowTitle("CityBeach Ancona | Dipendenti")
-        self.center_window()
+        if not self.isMaximized():
+            self.center_window()
 
         main_layout, center_text, tree, dip_btn, del_dip_btn,back_btn = view_dipendenti_ui_layout(self.users_controller.get_all_users())
         def show_edit_user_ui():
@@ -196,7 +199,8 @@ class MainWindow(QWidget):
         self.setMinimumSize(1280, 720)
         self.setMaximumSize(10000, 10000)
         self.setWindowTitle("CityBeach Ancona | Attrezzatura Sportiva")
-        self.center_window()
+        if self.isMaximized():
+            self.center_window()
 
         main_layout, back_btn, qty_btn, tree, center_text = view_attrezzaturaSportiva_ui_layout(self.sport_equipment_controller.get_all_equipment())
 
@@ -218,7 +222,8 @@ class MainWindow(QWidget):
         self.setMaximumSize(10000, 10000)
         self.selected_player = None
         self.setWindowTitle("CityBeach Ancona | Giocatori")
-        self.center_window()
+        if not self.isMaximized():
+            self.center_window()
         (main_layout, center_text, tree, label_name, label_surname, label_eta, label_created_when,label_created_by, label_city,label_bookings,label_book_lastMonth, label_fav_time,
          label_fav_sport, label_avg_n_player, add_play_btn, del_play_btn, back_btn)= view_players_ui_layout(list(self.players_controller.players.values()))
         labels = (label_name,label_surname,label_eta,label_created_when,label_created_by,label_city,label_bookings,label_book_lastMonth,label_fav_time,label_fav_sport,label_avg_n_player)
@@ -315,13 +320,14 @@ class MainWindow(QWidget):
         self.setMinimumSize(1280, 720)
         self.setMaximumSize(10000, 10000)
         self.setWindowTitle("CityBeach Ancona | Campi e Spogliatoi")
-        self.center_window()
+        if not self.isMaximized():
+            self.center_window()
         self.selected_field = None
         self.selected_locker = None
 
         (main_layout, usr_center_text, stat_btn, dyna_btn, treeFields, treeLocks,
          img_widget, add_field_btn, del_field_btn,
-         add_lock_btn, del_lock_btn, back_btn) = view_fields_lockers_static_ui_layout(list(self.fields_controller.fields.values()),list(self.lockers_controller.lockers.values()))
+         add_lock_btn, del_lock_btn, back_btn,view_graphs_btn) = view_fields_lockers_static_ui_layout(list(self.fields_controller.fields.values()),list(self.lockers_controller.lockers.values()))
 
         dyna_btn.clicked.connect(self.init_fields_lockers_dynamic_ui)
         def del_field():
@@ -421,13 +427,12 @@ class MainWindow(QWidget):
                     img_widget.setPixmap(QPixmap(""))
             except Exception as e:
                 print(e)
-
         def open_stats_window():
             self.window_stats = StatsWindow(self.bookings_controller)
             self.window_stats.show()
             return
 
-
+        view_graphs_btn.clicked.connect(open_stats_window)
         treeFields.itemSelectionChanged.connect(item_on_tree_field_selected)
         treeFields.itemDoubleClicked.connect(open_stats_window)
         treeLocks.itemSelectionChanged.connect(item_on_tree_lockers_selected)
@@ -450,7 +455,8 @@ class MainWindow(QWidget):
         self.setMinimumSize(1280, 720)
         self.setMaximumSize(10000, 10000)
         self.setWindowTitle("CityBeach Ancona | Campi e Spogliatoi")
-        self.center_window()
+        if not self.isMaximized():
+            self.center_window()
         self.selected_field = None
         self.selected_locker = None
 
@@ -474,7 +480,8 @@ class MainWindow(QWidget):
         self.setMaximumSize(10000, 10000)
         self.selected_booking = None
         self.setWindowTitle("CityBeach Ancona | Prenotazioni")
-        self.center_window()
+        if not self.isMaximized():
+            self.center_window()
 
         main_layout, center_text, tree, book_btn, del_book_btn,back_btn = view_booking_ui_layout(list(self.bookings_controller.bookings.values()))
         def cancel_booking():

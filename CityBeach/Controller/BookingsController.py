@@ -1,15 +1,9 @@
-from calendar import month
-from dataclasses import field
 from typing import Dict
-
 import PyQt6
 import matplotlib.pyplot as plt
 from PyQt6.QtCore import QTimer
 from PyQt6.QtGui import QPixmap, QImage
-from PyQt6.QtWidgets import QMessageBox
-from datetime import datetime
 
-from mpl_toolkits.mplot3d.art3d import rotate_axes
 
 from Model.Booking import *
 from Model.Data import TIME_SLOTS
@@ -96,6 +90,7 @@ class AppBookingsController:
             if nFemale>0:
                 lockerRoomUsageFemale_list = self.assign_locker_rooms(gender=Gender.FEMALE, n_players=nFemale, date_obj=date_obj, timeSlot=timeSlot, lockersList=lockersList)
                 if not lockerRoomUsageFemale_list:
+                    del self.bookings[self.booking_id]
                     return False, 13
                 self.bookings[self.booking_id].lockers_usage.extend(lockerRoomUsageFemale_list)
             return True, 0
@@ -262,61 +257,6 @@ class AppBookingsController:
         #print("\n\n")
         return assigned
 
-    def print_locker_status_by_slot(self, date_obj: date, lockers_list: List[Locker]):
-        from collections import defaultdict
-        from Model.Data import TIME_SLOTS
-        from Model.Locker import LockerType
-        from Model.Gender import Gender
-
-        # Dict: slot_label -> locker_name ->  gender -> count
-        slot_map = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
-
-        locker_gender_map = {locker.name: locker.gender for locker in lockers_list}
-        locker_type_map = {locker.name: locker.type for locker in lockers_list}
-
-        # Prenotazioni attive per quella data
-        active_bookings = [
-            b for b in self.bookings.values()
-            if b.time.day == date_obj and b.state in (BookingState.REGISTERED, BookingState.IN_PROGRESS)
-        ]
-
-        for booking in active_bookings:
-            for ts in booking.time.slots:
-                slot_label = f"{ts.startTime.strftime('%H:%M')}-{ts.endTime.strftime('%H:%M')}"
-                for usage in booking.lockers_usage or []:
-                    gender = usage.gender.name.capitalize()
-                    slot_map[slot_label][usage.locker.name][gender] += usage.players
-
-        # slot (str)
-        all_slot_labels = [f"{ts.startTime.strftime('%H:%M')}-{ts.endTime.strftime('%H:%M')}" for ts in TIME_SLOTS]
-        all_locker_names = sorted({locker.name for locker in lockers_list})
-
-        print(f"\nStato spogliatoi per il {date_obj.strftime('%d/%m/%Y')} (analisi ogni 30 minuti)\n")
-
-        for slot_label in all_slot_labels:
-            print(f"Fascia: {slot_label}")
-            lockers_in_slot = slot_map.get(slot_label, {})
-
-            for locker_name in all_locker_names:
-                locker_gender = locker_gender_map.get(locker_name, Gender.OTHER)
-                locker_type = locker_type_map.get(locker_name, LockerType.SECONDARY)
-
-                gender_counts = lockers_in_slot.get(locker_name, {})
-
-                print(f"  Spogliatoio {locker_name}:")
-
-                if not gender_counts:
-                    print("     - Vuoto")
-                    continue
-
-                if locker_type in (LockerType.SECONDARY.value, LockerType.INDIVIDUAL.value) and len(gender_counts) > 1:
-                    print("     ERRORE: contiene più generi!")
-                    for gender, count in gender_counts.items():
-                        print(f"     - {gender}: {count} giocatori")
-                else:
-                    for gender, count in gender_counts.items():
-                        print(f"     - {gender}: {count} giocatori")
-            print()
 
     def getFavoriteSport(self,player:Player):
         dict = {}
@@ -357,7 +297,7 @@ class AppBookingsController:
     def generate_plot_avg_age_all_fields(self,year:int):
         month = ["Gen","Feb","Mar","Apr","Mag","Giu","Lug","Ago","Set","Ott","Nov","Dic"]
         bookings_map = {}       #month -> list(total age, n players)
-        for m in range(1,13):
+        for m in range(12):
             bookings_map[m] = [0,0]
         for b in list(self.bookings.values()):
             if b.time.day.year != year:
@@ -379,4 +319,108 @@ class AppBookingsController:
         qimg.loadFromData(buf.getvalue(), 'PNG')
         pixmap = QPixmap.fromImage(qimg)
         return pixmap
+
+    def generate_plot_total_genders_all_fields(self,year:int):
+        months = ["Gen","Feb","Mar","Apr","Mag","Giu","Lug","Ago","Set","Ott","Nov","Dic"]
+        bookings_map = {}  #month -> [M,F]
+        for m in range(12):
+            bookings_map[m] = [0,0]
+        for b in list(self.bookings.values()):
+            if b.time.day.year != year:
+                continue
+            bookings_map[b.time.day.month][0] += b.male
+            bookings_map[b.time.day.month][1] += b.female
+        fig, ax = plt.subplots(figsize=(7, 7))
+        fig.subplots_adjust()
+        ax.plot(months, [a[0] for a in list(bookings_map.values())], c="#00d0ff",label="Maschi")
+        ax.plot(months, [a[1] for a in list(bookings_map.values())], c="#f772b7",label="Femmine")
+        plt.xlabel("Mese")
+        plt.ylabel("Numero Giocatori")
+        ax.legend(title="Sesso")
+        plt.xticks(rotation=45)
+        buf = BytesIO()
+        fig.savefig(buf, format='png', dpi=300)
+        buf.seek(0)
+        plt.close(fig)
+        qimg = QImage()
+        qimg.loadFromData(buf.getvalue(), 'PNG')
+        pixmap = QPixmap.fromImage(qimg)
+        return pixmap
+
+    def generate_top5_fields(self,year:int):
+        colors = [
+            "#1f77b4",
+            "#ff7f0e",
+            "#2ca02c",
+            "#d62728",
+            "#9467bd",
+            "#8c564b",
+            "#e377c2",
+            "#7f7f7f",
+            "#bcbd22",
+            "#17becf"
+        ]
+        months = ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"]
+        bookings_map = {}  # month -> {Field-name,Total Hours}
+        setNames = set(b.field.name for b in list(self.bookings.values()))
+        tracker = {}
+        for m in range(12):
+            bookings_map[m] = {}
+            for name in setNames:
+                bookings_map[m][name] = 0
+        for name in setNames:
+            tracker[name] = 0
+        #print(bookings_map)
+        for b in list(self.bookings.values()):
+            if b.time.day.year != year:
+                continue
+            bookings_map[b.time.day.month][b.field.name] += 1.5
+            tracker[b.field.name] +=1.5         #save the total hours
+
+        #get TOP 5
+        top5_field_names = list(dict(sorted(tracker.items(), key=lambda x: x[1], reverse=True)[:5]).keys())
+
+        fig, ax = plt.subplots(figsize=(7, 7))
+        fig.subplots_adjust()
+        for i in range(len(top5_field_names)):
+            ax.plot(months, [a[top5_field_names[i]] for a in list(bookings_map.values())], c=colors[i],label=top5_field_names[i])
+        plt.xlabel("Mese")
+        plt.ylabel("Ore Prenotate")
+        plt.xticks(rotation=45)
+        ax.legend(title="Campi")
+        buf = BytesIO()
+        fig.savefig(buf, format='png', dpi=300)
+        buf.seek(0)
+        plt.close(fig)
+        qimg = QImage()
+        qimg.loadFromData(buf.getvalue(), 'PNG')
+        pixmap = QPixmap.fromImage(qimg)
+        return pixmap
+
+    def generate_earning_trend(self,year:int):
+        months = ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"]
+        bookings_map = {}  # month -> total earn
+        for m in range(12):
+            bookings_map[m] = 0
+        for b in list(self.bookings.values()):
+            if b.time.day.year != year:
+                continue
+            bookings_map[b.time.day.month] += b.price
+        print(bookings_map)
+        fig, ax = plt.subplots(figsize=(7, 7))
+        fig.subplots_adjust()
+        ax.plot(months, [bookings_map[m] for m in range(12)], c="#E30613")
+        plt.xlabel("Mese")
+        plt.ylabel("Valore")
+        plt.xticks(rotation=45)
+        buf = BytesIO()
+        fig.savefig(buf, format='png', dpi=300)
+        buf.seek(0)
+        plt.close(fig)
+        qimg = QImage()
+        qimg.loadFromData(buf.getvalue(), 'PNG')
+        pixmap = QPixmap.fromImage(qimg)
+        return pixmap
+
+
 

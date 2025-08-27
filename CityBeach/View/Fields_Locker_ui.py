@@ -155,6 +155,11 @@ def view_fields_lockers_static_ui_layout(field_list: List[Field], locker_list: L
     hLayoutBtn.addWidget(del_field_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
 
     hLayoutBtn.addStretch(1)
+    view_graphs_btn = QPushButton("Visualizza Grafici")
+    view_graphs_btn.setStyleSheet(style_QButton_red)
+    view_graphs_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
+    hLayoutBtn.addWidget(view_graphs_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
+    hLayoutBtn.addStretch(1)
 
     add_lock_btn = QPushButton("Crea Spogliatoio")
     add_lock_btn.setStyleSheet(style_QButton_white_16Gotham)
@@ -201,7 +206,7 @@ def view_fields_lockers_static_ui_layout(field_list: List[Field], locker_list: L
     main_layout.addLayout(bottom_bar)
 
     return (main_layout, usr_center_text, stat_btn, dyna_btn, treeFields, treeLocks,
-            IMG_WIDGET, add_field_btn, del_field_btn, add_lock_btn, del_lock_btn, back_btn)
+            IMG_WIDGET, add_field_btn, del_field_btn, add_lock_btn, del_lock_btn, back_btn,view_graphs_btn)
 
 def view_fields_lockers_dynamic_ui_layout(field_list: List[Field],locker_list:List[Locker],bookingsController:AppBookingsController):
     main_layout = QVBoxLayout()
@@ -578,9 +583,16 @@ class StatsWindow(QWidget):
             self.setWindowFlag(Qt.WindowType.Dialog)
             self.setWindowTitle("Grafico")
             self.index = 0
-            self.plotListNames = ["Grafico Età Media (tutti i campi)"]
+            self.plotListNames = ["Grafico Età Media (tutti i campi)",
+                                  "Grafico n° Giocatori (tutti i campi)",
+                                  "Grafico Ore prenotate (top 5 Campi attivi)",
+                                  "Grafico Andamento Guadagni"]
+
             assert self.index<=len(self.plotListNames)-1
-            self.functions = [bookingController.generate_plot_avg_age_all_fields]
+            self.functions = [bookingController.generate_plot_avg_age_all_fields,
+                              bookingController.generate_plot_total_genders_all_fields,
+                              bookingController.generate_top5_fields,
+                              bookingController.generate_earning_trend]
             assert len(self.functions) == len(self.plotListNames)
             hLayoutTitle = QHBoxLayout()
             self.labelTextPlot = QLabel(f"{self.plotListNames[self.index]}")
@@ -600,12 +612,13 @@ class StatsWindow(QWidget):
             self.update_plot()
             layout.addLayout(hLayoutTitle)
             layout.addWidget(self.labelPlot,alignment=Qt.AlignmentFlag.AlignCenter)
-
             pulsanti_layout = QHBoxLayout()
             self.btn_back = QPushButton("Indietro")
             self.btn_next = QPushButton("Avanti")
             self.btn_next.setStyleSheet(style_QButton_white)
             self.btn_back.setStyleSheet(style_QButton_white)
+            self.btn_next.clicked.connect(self.go_next)
+            self.btn_back.clicked.connect(self.go_back)
             self.setStyleSheet("background-color: #FFF0E6;")
             pulsanti_layout.addWidget(self.btn_back)
             pulsanti_layout.addWidget(self.btn_next)
@@ -615,12 +628,24 @@ class StatsWindow(QWidget):
             self.center_window()
 
         except Exception as e:
-            print(e)
+            print(f"Eccezione: {e} {e.args}")
             return
 
     def update_plot(self):
-        self.labelPlot.setPixmap(self.functions[self.index](self.yearSpinBox.value()))
+        try:
+            self.labelPlot.setPixmap(self.functions[self.index](self.yearSpinBox.value()))
+            self.labelTextPlot.setText(self.plotListNames[self.index])
+        except Exception as e:
+            print(f"Eccezione: {e} {e.args}")
+            return
 
+    def go_next(self):
+        self.index = (self.index+ 1) % len(self.plotListNames)
+        self.update_plot()
+
+    def go_back(self):
+        self.index = (self.index - 1) % len(self.plotListNames)
+        self.update_plot()
 
 
     def center_window(self):
