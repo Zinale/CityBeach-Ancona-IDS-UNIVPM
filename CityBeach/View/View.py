@@ -4,7 +4,7 @@ from Controller import *
 from Model.Data import AppData
 from PyQt6.QtGui import QFontDatabase,QGuiApplication
 from PyQt6.QtCore import QTimer
-
+from .Restaurant_ui import *
 from .Booking_ui import *
 from .Employee_ui import *
 from .Fields_Locker_ui import *
@@ -127,6 +127,7 @@ class MainWindow(QWidget):
         btn_dip.clicked.connect(view_dipendenti)
         btn_attspo.clicked.connect(self.init_sport_equipment_ui)
         btn_play.clicked.connect(lambda: self.init_players_ui())
+        btn_rist.clicked.connect(self.init_restaurant_ui)
         # Testo centrale
         center_text.setText(f"{self.users_controller.get_current_user().username}")
         profile_btn.clicked.connect(show_edit_user_ui)
@@ -544,6 +545,17 @@ class MainWindow(QWidget):
         back_btn.clicked.connect(self.init_main_ui)
         self.setLayout(main_layout)
 
+    def init_restaurant_ui(self):
+        self.clear_layout()
+        self.setStyleSheet("background-color: #FFF0E6;")
+        self.setMinimumSize(1280, 720)
+        self.setMaximumSize(10000, 10000)
+        self.selected_booking = None
+        self.setWindowTitle("CityBeach Ancona | Area Ristoro")
+        if not self.isMaximized():
+            self.center_window()
+        main_ui_layout=view_restaurant_ui_layout(self.product_controller.products)
+        self.setLayout(main_ui_layout)
 
 
 
@@ -632,3 +644,5 @@ class MainWindow(QWidget):
     def check_and_update_bookings(self):
         self.bookings_controller.check_and_update()
         self.model.save_to_file("data.pkl")
+        
+        
