@@ -146,13 +146,13 @@ def view_fields_lockers_static_ui_layout(field_list: List[Field], locker_list: L
     add_field_btn = QPushButton("Crea Campo")
     add_field_btn.setStyleSheet(style_QButton_white_16Gotham)
     add_field_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
-    add_field_btn.setFixedWidth(250)
+    add_field_btn.setFixedWidth(200)
     hLayoutBtn.addWidget(add_field_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
 
     del_field_btn = QPushButton("Elimina Campo")
     del_field_btn.setStyleSheet(style_QButton_disabled_16)
     del_field_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
-    del_field_btn.setFixedWidth(250)
+    del_field_btn.setFixedWidth(200)
     del_field_btn.setEnabled(False)
     hLayoutBtn.addWidget(del_field_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
 
@@ -163,16 +163,16 @@ def view_fields_lockers_static_ui_layout(field_list: List[Field], locker_list: L
     hLayoutBtn.addWidget(view_graphs_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
     hLayoutBtn.addStretch(1)
 
-    add_lock_btn = QPushButton("Crea Spogliatoio")
+    add_lock_btn = QPushButton("Crea Spog.")
     add_lock_btn.setStyleSheet(style_QButton_white_16Gotham)
     add_lock_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
-    add_lock_btn.setFixedWidth(250)
+    add_lock_btn.setFixedWidth(200)
     hLayoutBtn.addWidget(add_lock_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
 
-    del_lock_btn = QPushButton("Elimina Spogliatoio")
+    del_lock_btn = QPushButton("Elimina Spog.")
     del_lock_btn.setStyleSheet(style_QButton_disabled_16)
     del_lock_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
-    del_lock_btn.setFixedWidth(250)
+    del_lock_btn.setFixedWidth(200)
     del_lock_btn.setEnabled(False)
     hLayoutBtn.addWidget(del_lock_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
 

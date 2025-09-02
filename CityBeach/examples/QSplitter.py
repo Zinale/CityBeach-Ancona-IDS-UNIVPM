@@ -28,7 +28,7 @@ splitter.addWidget(left_widget)
 splitter.addWidget(right_widget)
 
 # Imposta le proporzioni (metà e metà)
-splitter.setSizes([1, 1])  # Puoi anche usare [300, 300] se vuoi dimensioni iniziali precise
+splitter.setSizes([1, 1])
 
 # Aggiungi lo splitter al layout principale
 main_layout.addWidget(splitter)

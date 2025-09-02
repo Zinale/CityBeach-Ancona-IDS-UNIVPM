@@ -6,8 +6,7 @@ from PyQt6.QtGui import QPixmap, QIcon
 from PyQt6.QtWidgets import QVBoxLayout, QPushButton, QHBoxLayout, QLabel, QLineEdit, QSizePolicy, \
     QMessageBox
 
-from View.styles import style_img1_bg, style_text_gotham_b, style_QButton_white, style_QButton_red, \
-    style_text_red_on_white, style_text_white_on_red, style_QButton_white_18Gotham
+from View.styles import *
 from View.topBar import topBar
 from paths import image_path
 

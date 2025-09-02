@@ -4,15 +4,7 @@ from PyQt6.QtGui import QPixmap, QIcon, QBrush, QColor, QIntValidator
 from PyQt6.QtWidgets import QVBoxLayout, QApplication, QPushButton, QHBoxLayout, QLabel, QLineEdit, QSizePolicy, \
     QMessageBox, QGridLayout, QTreeWidget, QTreeWidgetItem, QDialog, QComboBox, QSpinBox
 
-from View.styles import (
-    style_app_Dialogs,
-    style_blackText,
-    style_text_gotham_b,
-    style_QButton_red,
-    style_QButton_white_18Gotham,
-    style_QButton_enabled,
-    style_QButton_disabled,
-)
+from View.styles import *
 from View.topBar import topBar
 from Model import Data
 from Model.SportsEquipment import *
@@ -171,7 +163,7 @@ def view_attrezzaturaSportiva_ui_layout(lista_attrezzatura):
         button_layout = QHBoxLayout()
         
         save_button = QPushButton("Salva")
-        save_button.setStyleSheet(style_QButton_white_18Gotham)
+        save_button.setStyleSheet(style_QButton_white_17Gotham)
         button_layout.addWidget(save_button)
         def submit_data():
             if hasattr(self.parent().sport_equipment_controller, 'add_equipment'):
@@ -238,7 +230,7 @@ class modify_quantity_ui(QDialog):
         button_layout = QHBoxLayout()
         
         save_button = QPushButton("Salva")
-        save_button.setStyleSheet(style_QButton_white_18Gotham)
+        save_button.setStyleSheet(style_QButton_white_17Gotham)
         button_layout.addWidget(save_button)
 
         def submit_data():

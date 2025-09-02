@@ -51,9 +51,9 @@ style_QButton_white = """
         background-color: #EEEEEE;
     }
 """
-style_QButton_white_18Gotham ="""
+style_QButton_white_17Gotham ="""
     QPushButton {
-        font-family: Gotham; font-size: 18pt;
+        font-family: Gotham; font-size: 17pt;
         background-color: #FFFFFF;
         color: #444444;
         border: 1px solid #E30613;
@@ -63,6 +63,20 @@ style_QButton_white_18Gotham ="""
     QPushButton:hover {
         background-color: #EEEEEE;
         border: 2px solid #E30613;
+    }
+"""
+style_QButton_green_16Gotham ="""
+    QPushButton {
+        font-family: Gotham; font-size: 16pt;
+        background-color: #4CAF50;
+        color: #ffffff;
+        border: 2px solid #22b600;
+        border-radius: 14px;
+        padding: 6px 20px;
+    }
+    QPushButton:hover {
+        background-color: #22b600;
+        border: 2px solid #009c1a;
     }
 """
 style_QButton_white_16Gotham ="""
@@ -76,6 +90,20 @@ style_QButton_white_16Gotham ="""
     }
     QPushButton:hover {
         background-color: #EEEEEE;
+        border: 2px solid #E30613;
+    }
+"""
+style_QButton_red_16Gotham ="""
+    QPushButton {
+        font-family: Gotham; font-size: 16pt;
+        background-color: #E30613;
+        color: #ffffff;
+        border: 1px solid #E30613;
+        border-radius: 14px;
+        padding: 6px 20px;
+    }
+    QPushButton:hover {
+        background-color: #B20510;
         border: 2px solid #E30613;
     }
 """

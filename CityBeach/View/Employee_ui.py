@@ -4,18 +4,14 @@ from PyQt6.QtCore import Qt, QDate
 from PyQt6.QtGui import QPixmap, QIcon, QBrush, QColor, QFont
 from PyQt6.QtWidgets import (
     QApplication, QDialog, QLabel, QLineEdit, QPushButton, QSizePolicy,
-    QVBoxLayout, QHBoxLayout, QMessageBox, QTreeWidget, QTreeWidgetItem,
-    QDateEdit, QComboBox, QCheckBox, QFormLayout
+    QVBoxLayout, QHBoxLayout, QMessageBox,
+    QDateEdit, QComboBox, QCheckBox, QFormLayout, QTableWidget, QTableWidgetItem, QHeaderView
 )
 from typing import List
 
 from Controller import AppUsersController
-from View.styles import (
-    style_QButton_white_18Gotham,
-    style_QButton_red,
-    style_QButton_white,
-    style_app_Dialogs,          # usato per il dialog
-)
+from Model.User import User
+from View.styles import *
 from View.topBar import topBar
 from Model.Gender import Gender
 
@@ -34,43 +30,48 @@ def view_dipendenti_ui_layout(lista_dipendenti):
     contextText.setStyleSheet("""font-family: Gotham; color: #000000;font-size: 20pt;""")
     vLayout.addWidget(contextText)
 
-    tree = QTreeWidget()
-    tree.setHeaderLabels(
-        ["Nome", "Cognome", "id", "Amministratore", "Username", "Data di Nascita", "Sesso", "Creato il", "Creato da"])
-    for user in lista_dipendenti:
-        item = QTreeWidgetItem([
+    table = QTableWidget()
+    table.setColumnCount(9)
+    table.setHorizontalHeaderLabels(
+        ["Nome", "Cognome", "ID", "Amministratore", "Username",
+         "Data di Nascita", "Sesso", "Creato il", "Creato da"]
+    )
+    visible_users = [u for u in lista_dipendenti if u.id != 1]      #not "root" user
+    table.setRowCount(len(visible_users))
+
+    for row, user in enumerate(visible_users):
+        values = [
             str(user.name),
             str(user.surname),
             str(user.id),
-            str(user.is_admin),
+            "Si" if user.is_admin else "No",
             str(user.username),
             str(user.birthday),
             str(user.gender.value),
             str(user.data_created),
             str(user.added_by)
-        ])
-        if user.is_admin:
-            item.setBackground(0, QBrush(QColor("#E30613")))
-            item.setBackground(2, QBrush(QColor("#E30613")))
-            item.setForeground(0, QBrush(QColor("#ffffff")))
-            item.setForeground(2, QBrush(QColor("#ffffff")))
-            item.setBackground(3, QBrush(QColor("#E30613")))
-            item.setForeground(3, QBrush(QColor("#ffffff")))
-        tree.addTopLevelItem(item)
-
-    vLayout.addWidget(tree)
-    tree.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        ]
+        for col, val in enumerate(values):
+            item = QTableWidgetItem(val)
+            if user.is_admin:
+                item.setBackground(QBrush(QColor("#E30613")))
+                item.setForeground(QBrush(QColor("#ffffff")))
+            item.setFlags(Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled)
+            table.setItem(row, col, item)
+    table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+    table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+    vLayout.addWidget(table)
 
     hLayoutBtn = QHBoxLayout()
     hLayoutBtn.addStretch(1)
     # add Dipendente btn
     dip_btn = QPushButton("Crea Dipendente")
-    dip_btn.setStyleSheet(style_QButton_white_18Gotham)
+    dip_btn.setStyleSheet(style_QButton_white_17Gotham)
     dip_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
     hLayoutBtn.addWidget(dip_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
 
     del_dip_btn = QPushButton("Elimina Dipendente")
-    del_dip_btn.setStyleSheet(style_QButton_white_18Gotham)
+    del_dip_btn.setStyleSheet(style_QButton_white_17Gotham)
     del_dip_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
     hLayoutBtn.addWidget(del_dip_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
 
@@ -110,7 +111,7 @@ def view_dipendenti_ui_layout(lista_dipendenti):
     #back_btn.clicked.connect(self.init_main_ui)
     bottom_bar.addWidget(back_btn)
     main_layout.addLayout(bottom_bar)
-    return main_layout,center_text, tree, dip_btn, del_dip_btn,back_btn
+    return main_layout,center_text, table, dip_btn, del_dip_btn,back_btn
 
 class add_Dipendete_ui(QDialog):
     def __init__(self,controller:AppUsersController = None):

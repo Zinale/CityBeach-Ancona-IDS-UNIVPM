@@ -96,13 +96,15 @@ class MainWindow(QWidget):
     def init_main_ui(self):
         self.clear_layout()
         self.setStyleSheet("background-color: #FFF0E6;")
-        #self.setMinimumSize(1280, 720)
-        #self.setMaximumSize(10000,10000)
         self.selected_user = None
         self.selected_player = None
         self.selected_locker = None
         self.selected_field = None
         self.selected_booking = None
+        a, b = 1100, 700
+        self.setMinimumSize(a, b)
+        if int(self.width()) < a:
+            self.resize(a,b)
         self.setWindowTitle("CityBeach Ancona | Menù")
         if not self.isMaximized():
             self.center_window()
@@ -113,10 +115,11 @@ class MainWindow(QWidget):
             else:
                 QMessageBox.warning(self, "Permesso negato", "Non sei amministratore")
         def show_edit_user_ui():
+            if self.users_controller.get_current_user().id==1:
+                return      #doesn't show admin edit page
             dlg = edit_user_ui(user_to_edit=self.users_controller.current_user,controller_user=self.users_controller)
             if dlg.exec():
                 self.init_main_ui()
-
         main_layout, btn_fields_locks, btn_pren,btn_play,btn_attspo,btn_dip,btn_rist,center_text,profile_btn,log_btn = main_ui_layout()
         if not self.users_controller.get_current_user().is_admin:
            center_text.setStyleSheet(style_text_red_on_white)
@@ -138,16 +141,17 @@ class MainWindow(QWidget):
     def init_dipendenti_ui(self):
         self.clear_layout()
         self.setStyleSheet("background-color: #FFF0E6;")
-        self.setMinimumSize(1280, 720)
-        self.setMaximumSize(10000, 10000)
         self.selected_user = None
         self.setWindowTitle("CityBeach Ancona | Dipendenti")
         if not self.isMaximized():
             self.center_window()
 
-        main_layout, center_text, tree, dip_btn, del_dip_btn,back_btn = view_dipendenti_ui_layout(self.users_controller.get_all_users())
+        main_layout, center_text, table, dip_btn, del_dip_btn,back_btn = view_dipendenti_ui_layout(self.users_controller.get_all_users())
+
         def show_edit_user_ui():
-            dlg = edit_user_ui(user_to_edit=self.selected_user,controller_user=self.users_controller)
+            if not self.selected_user:
+                return
+            dlg = edit_user_ui(user_to_edit=self.selected_user, controller_user=self.users_controller)
             if dlg.exec():
                 self.model.save_to_file("data.pkl")
                 self.init_dipendenti_ui()
@@ -168,10 +172,13 @@ class MainWindow(QWidget):
                 elif err_id == 3:
                     QMessageBox.warning(self, "Errore", "Si è verificato un problema durante l'operazione.")
 
-        def tree_on_item_selected():
-            selected_user = tree.selectedItems()
-            if selected_user and selected_user.__len__() == 1:
-                self.selected_user = self.users_controller.get_user_by_username(selected_user[0].text(4))  # it is an QTree Object
+        def table_on_item_selected():
+            selected_items = table.selectedItems()
+            if selected_items:
+                row = selected_items[0].row()
+                username_item = table.item(row, 4)  #username
+                if username_item:
+                    self.selected_user = self.users_controller.get_user_by_username(username_item.text())
 
         def show_add_dipendente_ui():
             dlg = add_Dipendete_ui(controller=self.users_controller)
@@ -179,9 +186,9 @@ class MainWindow(QWidget):
                 self.model.users_next_id = self.users_controller.user_id
                 self.model.save_to_file("data.pkl")
                 self.init_dipendenti_ui()
-        tree.itemSelectionChanged.connect(tree_on_item_selected)
+        table.itemSelectionChanged.connect(table_on_item_selected)
 
-        tree.itemDoubleClicked.connect(show_edit_user_ui)
+        table.itemDoubleClicked.connect(show_edit_user_ui)
 
         dip_btn.clicked.connect(show_add_dipendente_ui)
 
@@ -198,8 +205,6 @@ class MainWindow(QWidget):
     def init_sport_equipment_ui(self):
         self.clear_layout()
         self.setStyleSheet("background-color: #FFF0E6;")
-        self.setMinimumSize(1280, 720)
-        self.setMaximumSize(10000, 10000)
         self.setWindowTitle("CityBeach Ancona | Attrezzatura Sportiva")
         if self.isMaximized():
             self.center_window()
@@ -220,13 +225,11 @@ class MainWindow(QWidget):
     def init_players_ui(self,player:Player = None):
         self.clear_layout()
         self.setStyleSheet("background-color: #FFF0E6;")
-        self.setMinimumSize(1280, 720)
-        self.setMaximumSize(10000, 10000)
         self.selected_player = None
         self.setWindowTitle("CityBeach Ancona | Giocatori")
         if not self.isMaximized():
             self.center_window()
-        (main_layout, center_text, tree, label_name, label_surname, label_eta, label_created_when,label_created_by, label_city,label_bookings,label_book_lastMonth, label_fav_time,
+        (main_layout, center_text, table, label_name, label_surname, label_eta, label_created_when,label_created_by, label_city,label_bookings,label_book_lastMonth, label_fav_time,
          label_fav_sport, label_avg_n_player, add_play_btn, del_play_btn, back_btn)= view_players_ui_layout(list(self.players_controller.players.values()))
         labels = (label_name,label_surname,label_eta,label_created_when,label_created_by,label_city,label_bookings,label_book_lastMonth,label_fav_time,label_fav_sport,label_avg_n_player)
         for lab in labels:
@@ -252,16 +255,22 @@ class MainWindow(QWidget):
         def show_edit_player_ui():
             #phase = 0 -> register
             #phase = 1 -> edit player
+            print(self.selected_player.id)
             dlg = info_Player_ui(phase=1,player_to_edit = self.selected_player,playerController=self.players_controller)
             if dlg.exec():
-                self.model.save_to_file("data.pkl")
+                self.model.save_to_file("data.p"
+                                        "kl")
                 self.init_players_ui()
-        def tree_on_item_selected():
-            selected_player = tree.selectedItems()
+        def table_on_item_selected():
+            selected_player = table.selectedItems()
             try:
                 if selected_player and selected_player.__len__() == 1:
-                    self.selected_player = self.players_controller.findByEmail(selected_player[0].text(4)) #find by email
-                    del_play_btn.setStyleSheet(style_QButton_white_18Gotham)
+                    row = selected_player[0].row()
+                    player_item = table.item(row,4) #email
+                    if not player_item:
+                        return
+                    self.selected_player = self.players_controller.findByEmail(player_item.text()) #find by email
+                    del_play_btn.setStyleSheet(style_QButton_white_17Gotham)
                     del_play_btn.setEnabled(True)
                     #UPDATE STATS
                     label_name.setText(self.selected_player.name.upper())
@@ -291,8 +300,7 @@ class MainWindow(QWidget):
                 self.model.save_to_file("data.pkl")
                 self.init_players_ui()
 
-        tree.itemSelectionChanged.connect(tree_on_item_selected)
-        tree.itemDoubleClicked.connect(show_edit_player_ui)
+        table.itemDoubleClicked.connect(show_edit_player_ui)
 
         add_play_btn.clicked.connect(show_add_player_ui)
 
@@ -305,22 +313,32 @@ class MainWindow(QWidget):
         back_btn.clicked.connect(self.init_main_ui)
         try:
             if player is not None:
-                for i in range(tree.topLevelItemCount()):
-                    item = tree.topLevelItem(i)
-                    if item.text(4) == player.email and item.text(5) == player.phone:
-                        tree.setCurrentItem(item)
-                        item.setSelected(True)
-                        tree.scrollToItem(item)
+                for row in range(table.rowCount()):
+                    email_item = table.item(row, 4)
+                    phone_item = table.item(row, 5)
+                    if email_item is None or phone_item is None:
+                        continue
+                    #print(email_item.text(), type(email_item.text()))
+                    #print(phone_item.text(), type(phone_item.text()))
+                    if email_item and phone_item:
+                        if email_item.text() == player.email and phone_item.text() == player.phone:
+                            self.selected_player = player
+                            table.blockSignals(True)
+                            table.setCurrentCell(row, 4)
+                            table.selectRow(row)
+                            table.scrollToItem(email_item)
+                            table.blockSignals(False)
+                            break
                         break
         except Exception as e:
-            print(e)
+            import traceback
+            traceback.print_exc()
+        table.itemSelectionChanged.connect(table_on_item_selected)
         self.setLayout(main_layout)
 
     def init_fields_lockers_static_ui(self):
         self.clear_layout()
         self.setStyleSheet("background-color: #FFF0E6;")
-        self.setMinimumSize(1280, 720)
-        self.setMaximumSize(10000, 10000)
         self.setWindowTitle("CityBeach Ancona | Campi e Spogliatoi")
         if not self.isMaximized():
             self.center_window()
@@ -454,8 +472,6 @@ class MainWindow(QWidget):
     def init_fields_lockers_dynamic_ui(self):
         self.clear_layout()
         self.setStyleSheet("background-color: #FFF0E6;")
-        self.setMinimumSize(1280, 720)
-        self.setMaximumSize(10000, 10000)
         self.setWindowTitle("CityBeach Ancona | Campi e Spogliatoi")
         if not self.isMaximized():
             self.center_window()
@@ -478,14 +494,12 @@ class MainWindow(QWidget):
     def init_bookings_ui(self):
         self.clear_layout()
         self.setStyleSheet("background-color: #FFF0E6;")
-        self.setMinimumSize(1280, 720)
-        self.setMaximumSize(10000, 10000)
         self.selected_booking = None
         self.setWindowTitle("CityBeach Ancona | Prenotazioni")
         if not self.isMaximized():
             self.center_window()
 
-        main_layout, center_text, tree, book_btn, del_book_btn,back_btn = view_booking_ui_layout(list(self.bookings_controller.bookings.values()))
+        main_layout, center_text, table, book_btn, del_book_btn,back_btn = view_booking_ui_layout(list(self.bookings_controller.bookings.values()))
         def cancel_booking():
             if self.selected_booking is None:
                 return False
@@ -498,10 +512,14 @@ class MainWindow(QWidget):
             self.init_bookings_ui()
             return True
 
-        def item_on_tree_selected():
-            selected_booking = tree.selectedItems()
+        def table_on_item_selected():
+            selected_booking = table.selectedItems()
             if selected_booking and selected_booking.__len__() == 1:
-                self.selected_booking = self.bookings_controller.bookings[int(selected_booking[0].text(0))]
+                row = selected_booking[0].row()
+                bk_item = table.item(row,0)
+                if not bk_item:
+                    return
+                self.selected_booking = self.bookings_controller.bookings[int(bk_item.text())]
                 if self.selected_booking.state in (BookingState.REGISTERED,BookingState.CANCELLED):
                     del_book_btn.setStyleSheet(style_QButton_white_16Gotham)
                     del_book_btn.setEnabled(True)
@@ -523,6 +541,8 @@ class MainWindow(QWidget):
                 self.model.save_to_file("data.pkl")
                 self.init_bookings_ui()
         def open_player_profile():
+            #@TODO: Fix this
+            return
             try:
                 player = self.players_controller.players[self.selected_booking.player.id]
                 self.init_players_ui(player)
@@ -531,8 +551,8 @@ class MainWindow(QWidget):
                 QMessageBox.warning(self,"Giocatore non trovato","Il profilo del giocatore di questa prenotazione potrebbe essere stato eliminato")
                 return
 
-        tree.itemSelectionChanged.connect(item_on_tree_selected)
-        tree.itemDoubleClicked.connect(open_player_profile)
+        table.itemSelectionChanged.connect(table_on_item_selected)
+        table.itemDoubleClicked.connect(open_player_profile)
 
         book_btn.clicked.connect(show_add_booking_ui)
         del_book_btn.clicked.connect(cancel_booking)
@@ -548,13 +568,12 @@ class MainWindow(QWidget):
     def init_restaurant_ui(self):
         self.clear_layout()
         self.setStyleSheet("background-color: #FFF0E6;")
-        self.setMinimumSize(1280, 720)
-        self.setMaximumSize(10000, 10000)
         self.selected_booking = None
         self.setWindowTitle("CityBeach Ancona | Area Ristoro")
         if not self.isMaximized():
             self.center_window()
-        main_ui_layout=view_restaurant_ui_layout(self.product_controller.products)
+        main_ui_layout, back_btn, history_btn =view_restaurant_ui_layout(self.product_controller.products)
+        back_btn.clicked.connect(self.init_main_ui)
         self.setLayout(main_ui_layout)
 
 
@@ -633,7 +652,6 @@ class MainWindow(QWidget):
 
 
     def center_window(self):
-        return
         screen = QGuiApplication.primaryScreen()
         screen_geometry = screen.availableGeometry()
         window_geometry = self.frameGeometry()

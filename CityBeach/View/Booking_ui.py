@@ -5,8 +5,9 @@ from PyQt6.QtCore import Qt, QDate
 from PyQt6.QtGui import QPixmap, QIcon, QBrush, QColor, QFont
 from PyQt6.QtWidgets import (
     QApplication, QDialog, QLabel, QLineEdit, QPushButton, QSizePolicy,
-    QVBoxLayout, QHBoxLayout, QMessageBox, QTreeWidget, QTreeWidgetItem,
-    QDateEdit, QComboBox, QFormLayout, QCompleter, QSpinBox, QHeaderView, QWidget, QCheckBox
+    QVBoxLayout, QHBoxLayout, QMessageBox,
+    QDateEdit, QComboBox, QFormLayout, QCompleter, QSpinBox, QHeaderView, QWidget, QCheckBox, QTableWidget,
+    QTableWidgetItem
 )
 
 from Controller import AppBookingsController
@@ -38,18 +39,21 @@ def view_booking_ui_layout(booking_list:List[Booking]):
     contextText.setStyleSheet("""font-family: Gotham; color: #000000;font-size: 20pt;""")
     vLayout.addWidget(contextText)
 
-    tree = QTreeWidget()
-    tree.setHeaderLabels(
-        ["Numero", "Sport", "Campo", "Giocatore", "#Giocatori", "Prezzo (€)", "Data", "Fascia Oraria",
-         "Stato Prenotazione","Registrata il","Registrata da"])
+    table = QTableWidget()
+
     if booking_list!=None:
         booking_list.reverse()
-    def populate_tree():
-        tree.clear()
+    def populate_table():
+        table.clear()
+        table.setColumnCount(11)
+        table.setHorizontalHeaderLabels(
+            ["Numero", "Sport", "Campo", "Giocatore", "#Giocatori", "Prezzo (€)", "Data", "Fascia Oraria",
+             "Stato Prenotazione", "Registrata il", "Registrata da"])
         # FILTERS
         sport = None
         date = None
         slot = None
+        bookings = []
         if bySportCheckBox.isChecked():
             sport = Sports(bySportComboBox.currentText())
         if byDateCheckBox.isChecked():
@@ -60,7 +64,10 @@ def view_booking_ui_layout(booking_list:List[Booking]):
             if (sport and sport != bk.sport) or (date and date != bk.time.day) or (
                     slot and slot not in [ts.number for ts in bk.time.slots]):
                 continue
-            item = QTreeWidgetItem([
+            bookings.append(bk)
+        table.setRowCount(len(bookings))
+        for row, bk in enumerate(bookings):
+            values = ([
                 str(bk.id),
                 str(bk.sport.value),
                 str(bk.field.name),
@@ -72,35 +79,34 @@ def view_booking_ui_layout(booking_list:List[Booking]):
                 str(bk.state.value),
                 str(f"{bk.data_created.time().strftime("%H:%M")} | {bk.data_created.date().strftime("%d/%m/%Y")}"),
                 str(bk.registered_by.username)
-            ])
-            if bk.state == BookingState.CANCELLED:
-                for i in range(11):
-                    item.setForeground(i, QBrush(QColor("#F2F2F2")))
-                    item.setBackground(i, QBrush(QColor("#A0A0A0")))
-            elif bk.state == BookingState.IN_PROGRESS:
-                for i in range(11):
-                    item.setForeground(i, QBrush(QColor(IN_PROGRESS_COLOR_FG)))
-                    item.setBackground(i, QBrush(QColor(IN_PROGRESS_COLOR_BG)))
-            else:
-                if colorsActivatedCheckBox.isChecked():
-                    if bk.sport==Sports.PADEL:
-                        for i in range(11):
-                            item.setBackground(i, QBrush(QColor(PADEL_COLOR_BG)))
-                            item.setForeground(i, QBrush(QColor(PADEL_COLOR_FG)))
-                    elif bk.sport==Sports.BEACH_TENNIS:
-                        for i in range(11):
-                            item.setBackground(i, QBrush(QColor(BEACHTENNIS_COLOR_BG)))
-                            item.setForeground(i, QBrush(QColor(BEACHTENNIS_COLOR_FG)))
-                    elif bk.sport==Sports.BEACH_VOLLEY:
-                        for i in range(11):
-                            item.setBackground(i, QBrush(QColor(BEACHVOLLEY_COLOR_BG)))
-                            item.setForeground(i, QBrush(QColor(BEACHVOLLEY_COLOR_FG)))
-            tree.addTopLevelItem(item)
-        for col in range(tree.columnCount()):
-            tree.resizeColumnToContents(col)
-    tree.header().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-    tree.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-    vLayout.addWidget(tree)
+                ])
+            for col, val in enumerate(values):
+                item = QTableWidgetItem(val)
+                if bk.state == BookingState.CANCELLED:
+                    for i in range(11):
+                        item.setForeground(i, QBrush(QColor("#F2F2F2")))
+                        item.setBackground(i, QBrush(QColor("#A0A0A0")))
+                elif bk.state == BookingState.IN_PROGRESS:
+                    for i in range(11):
+                        item.setForeground(i, QBrush(QColor(IN_PROGRESS_COLOR_FG)))
+                        item.setBackground(i, QBrush(QColor(IN_PROGRESS_COLOR_BG)))
+                else:
+                    if colorsActivatedCheckBox.isChecked():
+                        if bk.sport==Sports.PADEL:
+                            item.setBackground(QBrush(QColor(PADEL_COLOR_BG)))
+                            item.setForeground(QBrush(QColor(PADEL_COLOR_FG)))
+                        elif bk.sport==Sports.BEACH_TENNIS:
+                            item.setBackground(QBrush(QColor(BEACHTENNIS_COLOR_BG)))
+                            item.setForeground(QBrush(QColor(BEACHTENNIS_COLOR_FG)))
+                        elif bk.sport==Sports.BEACH_VOLLEY:
+                            item.setBackground(QBrush(QColor(BEACHVOLLEY_COLOR_BG)))
+                            item.setForeground(QBrush(QColor(BEACHVOLLEY_COLOR_FG)))
+                item.setFlags(Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled)
+                table.setItem(row, col, item)
+        table.verticalHeader().setVisible(False)
+        table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+    vLayout.addWidget(table)
 
     # --- Filter + Btns Bar -------------------------
     hLayoutFiltBtn = QHBoxLayout()
@@ -115,7 +121,7 @@ def view_booking_ui_layout(booking_list:List[Booking]):
     hLayoutFilterTitleColors.addStretch(1)
     colorsActivatedCheckBox = QCheckBox("Evidenzia Sport")
     colorsActivatedCheckBox.setStyleSheet(style_check_box)
-    colorsActivatedCheckBox.stateChanged.connect(populate_tree)
+    colorsActivatedCheckBox.stateChanged.connect(populate_table)
     hLayoutFilterTitleColors.addWidget(colorsActivatedCheckBox)
     vLayout.addLayout(hLayoutFilterTitleColors,stretch=0)
     # FILTER 1: Sport
@@ -131,8 +137,8 @@ def view_booking_ui_layout(booking_list:List[Booking]):
     bySportCheckBox.setChecked(False)
     bySportComboBox.setEnabled(False)
     bySportCheckBox.checkStateChanged.connect(lambda :bySportComboBox.setEnabled(bySportCheckBox.isChecked()))
-    bySportCheckBox.checkStateChanged.connect(populate_tree)
-    bySportComboBox.currentTextChanged.connect(populate_tree)
+    bySportCheckBox.checkStateChanged.connect(populate_table)
+    bySportComboBox.currentTextChanged.connect(populate_table)
     # FILTER 2: Date
     byDateCheckBox = QCheckBox("Data:")
     byDateSelector = QDateEdit()
@@ -148,8 +154,8 @@ def view_booking_ui_layout(booking_list:List[Booking]):
     byDateCheckBox.setChecked(False)
     byDateSelector.setEnabled(False)
     byDateCheckBox.checkStateChanged.connect(lambda :byDateSelector.setEnabled(byDateCheckBox.isChecked()))
-    byDateCheckBox.checkStateChanged.connect(populate_tree)
-    byDateSelector.dateChanged.connect(populate_tree)
+    byDateCheckBox.checkStateChanged.connect(populate_table)
+    byDateSelector.dateChanged.connect(populate_table)
     # FILTER 3: TIMESLOT
     bySlotCheckBox = QCheckBox("Fascia:")
     bySlotComboBox = QComboBox()
@@ -163,8 +169,8 @@ def view_booking_ui_layout(booking_list:List[Booking]):
     bySlotCheckBox.setChecked(False)
     bySlotComboBox.setEnabled(False)
     bySlotCheckBox.checkStateChanged.connect(lambda :bySlotComboBox.setEnabled(bySlotCheckBox.isChecked()))
-    bySlotCheckBox.checkStateChanged.connect(populate_tree)
-    bySlotComboBox.currentTextChanged.connect(populate_tree)
+    bySlotCheckBox.checkStateChanged.connect(populate_table)
+    bySlotComboBox.currentTextChanged.connect(populate_table)
 
     #add filters blocks to btns layout
     block1.setStyleSheet(style_app_Dialogs)
@@ -225,9 +231,9 @@ def view_booking_ui_layout(booking_list:List[Booking]):
     #back_btn.clicked.connect(self.init_main_ui)
     bottom_bar.addWidget(back_btn)
     main_layout.addLayout(bottom_bar)
-    populate_tree()
+    populate_table()
 
-    return main_layout,center_text, tree, book_btn, del_book_btn,back_btn
+    return main_layout,center_text, table, book_btn, del_book_btn,back_btn
 
 class add_booking_ui(QDialog):
     def __init__(self,bookingController:AppBookingsController,fields_list:List[Field],

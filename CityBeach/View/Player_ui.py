@@ -4,8 +4,8 @@ from PyQt6.QtCore import Qt, QDate
 from PyQt6.QtGui import QPixmap, QIcon, QFont
 from PyQt6.QtWidgets import (
     QDialog, QLabel, QLineEdit, QPushButton, QSizePolicy,
-    QVBoxLayout, QHBoxLayout, QMessageBox, QTreeWidget, QTreeWidgetItem,
-    QDateEdit, QComboBox, QFormLayout, QSplitter, QWidget, QCheckBox
+    QVBoxLayout, QHBoxLayout, QMessageBox,
+    QDateEdit, QComboBox, QFormLayout, QSplitter, QWidget, QCheckBox, QTableWidget, QTableWidgetItem, QHeaderView
 )
 
 from Controller import AppPlayersController
@@ -35,11 +35,14 @@ def view_players_ui_layout(player_list: List[Player]):
     hSplitter = QSplitter(Qt.Orientation.Horizontal)
 
     # ----------------- TREE WIDGET ----------------
-    tree = QTreeWidget()
-    tree.setHeaderLabels(
-        ["Nome", "Cognome", "Data di Nascita", "Sesso", "Email", "Telefono", "Id"])
-    def populateTree():
-        tree.clear()
+    table = QTableWidget()
+    def populateTable():
+        players = []
+        table.clear()
+        table.setColumnCount(7)
+        table.setHorizontalHeaderLabels(
+            ["Nome", "Cognome", "Data di Nascita", "Sesso", "Email", "Telefono", "Id"])
+        #filters
         name_surname = None
         email = None
         phone = None
@@ -52,7 +55,10 @@ def view_players_ui_layout(player_list: List[Player]):
         for player in player_list:
             if (name_surname and name_surname not in f"({player.name} {player.surname})") or (phone and phone not in player.phone) or (email and email not in player.email):
                 continue
-            item = QTreeWidgetItem([
+            players.append(player)
+        table.setRowCount(len(players))
+        for row, player in enumerate(players):
+            values =([
                 str(player.name),
                 str(player.surname),
                 str(player.birthday.strftime("%d/%m/%Y")),
@@ -61,11 +67,17 @@ def view_players_ui_layout(player_list: List[Player]):
                 str(player.phone),
                 str(player.id)
             ])
-            tree.addTopLevelItem(item)
-    tree.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-    tree.setMaximumWidth(750)
-    tree.setMinimumWidth(750)
-    hSplitter.addWidget(tree)
+            for col, val in enumerate(values):
+                item = QTableWidgetItem(val)
+                item.setFlags(Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled)
+                table.setItem(row, col, item)
+
+    table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+    table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+
+    table.setMaximumWidth(750)
+    table.setMinimumWidth(750)
+    hSplitter.addWidget(table)
     #-------------------------------------------------------
     #--------------Player Stats------------------------------
     stats_widget = QWidget()
@@ -150,8 +162,8 @@ def view_players_ui_layout(player_list: List[Player]):
     byNameCheckBox.setChecked(False)
     byNameLine.setEnabled(False)
     byNameCheckBox.checkStateChanged.connect(lambda :byNameLine.setEnabled(byNameCheckBox.isChecked()))
-    byNameCheckBox.checkStateChanged.connect(populateTree)
-    byNameLine.textChanged.connect(populateTree)
+    byNameCheckBox.checkStateChanged.connect(populateTable)
+    byNameLine.textChanged.connect(populateTable)
     # FILTER 2: Email
     byEmailCheckBox = QCheckBox("Email:")
     byEmailLine = QLineEdit()
@@ -165,8 +177,8 @@ def view_players_ui_layout(player_list: List[Player]):
     byEmailCheckBox.setChecked(False)
     byEmailLine.setEnabled(False)
     byEmailCheckBox.checkStateChanged.connect(lambda :byEmailLine.setEnabled(byEmailCheckBox.isChecked()))
-    byEmailCheckBox.checkStateChanged.connect(populateTree)
-    byEmailLine.textChanged.connect(populateTree)
+    byEmailCheckBox.checkStateChanged.connect(populateTable)
+    byEmailLine.textChanged.connect(populateTable)
     # FILTER 1: Name
     byPhoneCheckBox = QCheckBox("Telefono:")
     byPhoneLine = QLineEdit()
@@ -180,8 +192,8 @@ def view_players_ui_layout(player_list: List[Player]):
     byPhoneCheckBox.setChecked(False)
     byPhoneLine.setEnabled(False)
     byPhoneCheckBox.checkStateChanged.connect(lambda :byPhoneLine.setEnabled(byPhoneCheckBox.isChecked()))
-    byPhoneCheckBox.checkStateChanged.connect(populateTree)
-    byPhoneLine.textChanged.connect(populateTree)
+    byPhoneCheckBox.checkStateChanged.connect(populateTable)
+    byPhoneLine.textChanged.connect(populateTable)
 
     #add filters blocks to btns layout
     block1.setStyleSheet(style_app_Dialogs)
@@ -195,7 +207,7 @@ def view_players_ui_layout(player_list: List[Player]):
     #--------------------- Search, Add, Del section-------------------------------------------------------
     # add Player btn
     add_play_btn = QPushButton("Crea Giocatore")
-    add_play_btn.setStyleSheet(style_QButton_white_18Gotham)
+    add_play_btn.setStyleSheet(style_QButton_white_17Gotham)
     add_play_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
     hLayoutFiltBtn.addWidget(add_play_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
 
@@ -245,8 +257,8 @@ def view_players_ui_layout(player_list: List[Player]):
     #back_btn.clicked.connect(self.init_main_ui)
     bottom_bar.addWidget(back_btn)
     main_layout.addLayout(bottom_bar)
-    populateTree()
-    return main_layout, center_text, tree, label_name,label_surname,label_eta,label_created_when,label_created_by,label_city,label_bookings,label_book_lastMonth,label_fav_time,label_fav_sport,label_avg_n_player,add_play_btn, del_play_btn,back_btn
+    populateTable()
+    return main_layout, center_text, table, label_name,label_surname,label_eta,label_created_when,label_created_by,label_city,label_bookings,label_book_lastMonth,label_fav_time,label_fav_sport,label_avg_n_player,add_play_btn, del_play_btn,back_btn
 
 class info_Player_ui(QDialog):
     def __init__(self,phase:int,playerController:AppPlayersController,player_to_edit:Player=None,currentUser:User=None):

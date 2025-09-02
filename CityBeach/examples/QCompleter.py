@@ -11,7 +11,7 @@ class AutoCompleteDemo(QWidget):
 
         layout = QVBoxLayout()
 
-        # Lista dei nomi (puoi metterci quello che vuoi)
+        # Lista dei nomi
         self.nomi = ['Alice', 'Alessandro', 'Andrea', 'Antonio', 'Anna', 'Beatrice', 'Bruno', 'Carla']
 
         # Campo di testo
