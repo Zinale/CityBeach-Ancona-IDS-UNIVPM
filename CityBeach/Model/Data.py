@@ -2,6 +2,7 @@ import pickle
 from typing import Dict
 
 from Model.Locker import Locker
+from Model.Product import *
 from Model.SportsEquipment import *
 from Model.Booking import *
 from Model.SportsCategory import *
@@ -35,6 +36,7 @@ class AppData:
         self.lockers_next_id: int = 0
         self.bookings:Dict[int,Booking] = {}
         self.bookings_next_id:int = 0
+        self.products:List[Product] = []
 
     def save_to_file(self, path: str):
         with open(path, 'wb') as f:

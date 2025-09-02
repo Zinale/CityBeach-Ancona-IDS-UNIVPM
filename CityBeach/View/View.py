@@ -28,6 +28,7 @@ class MainWindow(QWidget):
 
         #CONTROLLERS
         self.model = AppData.load_from_file("data.pkl")
+        self.product_controller=ProductsController(self.model.products)
         self.users_controller = AppUsersController(self.model.users,self.model.users_next_id)
         self.sport_equipment_controller = AppSportsEquipmentController(self.model.equipment)
         self.players_controller = AppPlayersController(self.model.players,self.model.players_next_id)
@@ -85,18 +86,18 @@ class MainWindow(QWidget):
         close_btn.clicked.connect(self.closeEvent)
         self.setLayout(layoutMain)
 
-        a, b = 450, 250
+        a, b = 300, 150
         self.resize(a,b)
-        self.showMaximized()        #to avoid the bug: fullscreen's icon active while the window isn't
-        self.showNormal()
+        #self.showMaximized()        #to avoid the bug: fullscreen's icon active while the window isn't
+        #self.showNormal()
         if not self.isMaximized():
             self.center_window()
 
     def init_main_ui(self):
         self.clear_layout()
         self.setStyleSheet("background-color: #FFF0E6;")
-        self.setMinimumSize(1280, 720)
-        self.setMaximumSize(10000,10000)
+        #self.setMinimumSize(1280, 720)
+        #self.setMaximumSize(10000,10000)
         self.selected_user = None
         self.selected_player = None
         self.selected_locker = None
@@ -618,7 +619,9 @@ class MainWindow(QWidget):
             except:
                 pass
 
+
     def center_window(self):
+        return
         screen = QGuiApplication.primaryScreen()
         screen_geometry = screen.availableGeometry()
         window_geometry = self.frameGeometry()
