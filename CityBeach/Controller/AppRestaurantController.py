@@ -1,11 +1,11 @@
-from PyQt6.QtGui import qAlpha
-
 from Model.Product import *
 from typing import List
+from Model.Order import *
+
 class AppRestaurantController:
-    def __init__(self, products: List[Product]):
+    def __init__(self, products: List[Product], orders:List[Order]):
         self.products = products
-        print(self.products)
+        self.orders = orders
     def register_product(self,data) -> bool and int:
         try:
             name:str = data["name"]
@@ -40,3 +40,19 @@ class AppRestaurantController:
 
     def get_product_by_name(self,name:str)-> Product:
         return next((prod for prod in self.products if prod.name == name), None)
+    
+    def finalize_order(self, data):
+        try:
+            if not data:
+                return False
+            total_price = sum(prod.price * data[prod] for prod in data)
+
+            for prod in data:
+                prod.quantity -= data[prod]
+
+            completed_order = Order(items=data, total_price=total_price)
+            self.orders.append(completed_order)
+            return True
+        except Exception as e:
+            print(f"Errore finalizzazione ordine: {e}")
+            return False

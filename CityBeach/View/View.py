@@ -28,7 +28,7 @@ class MainWindow(QWidget):
 
         #CONTROLLERS
         self.model = AppData.load_from_file("data.pkl")
-        self.restaurant_controller=AppRestaurantController(self.model.products)
+        self.restaurant_controller=AppRestaurantController(self.model.products, self.model.orders)
         self.users_controller = AppUsersController(self.model.users,self.model.users_next_id)
         self.sport_equipment_controller = AppSportsEquipmentController(self.model.equipment)
         self.players_controller = AppPlayersController(self.model.players,self.model.players_next_id)
@@ -582,15 +582,15 @@ class MainWindow(QWidget):
             self.delete_mode = not self.delete_mode
             del_prod.setStyleSheet(style_QButton_red_17Gotham if self.delete_mode else style_QButton_white_17Gotham)
 
-        main_layout, back_btn, history_btn, add_prod, del_prod =view_restaurant_ui_layout(self.restaurant_controller.products,lambda :self.delete_mode,self.restaurant_controller.remove_product)
+        main_layout, back_btn, history_btn, add_prod, del_prod =view_restaurant_ui_layout(self.restaurant_controller.products,lambda :self.delete_mode,self.restaurant_controller.remove_product, self.restaurant_controller.get_product_by_name, self.restaurant_controller.finalize_order)
         back_btn.clicked.connect(self.init_main_ui)
         add_prod.clicked.connect(show_add_product_ui)
         del_prod.clicked.connect(change_delete_mode)
 
 
+        print(self.restaurant_controller)
 
         self.setLayout(main_layout)
-
 
 
 

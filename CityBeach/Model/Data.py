@@ -6,6 +6,7 @@ from Model.Product import *
 from Model.SportsEquipment import *
 from Model.Booking import *
 from Model.SportsCategory import *
+from Model.Order import *
 
 #all the time_slots available
 TIME_SLOTS = []
@@ -37,6 +38,7 @@ class AppData:
         self.bookings:Dict[int,Booking] = {}
         self.bookings_next_id:int = 0
         self.products:List[Product] = []
+        self.orders:List[Order] = []
 
     def save_to_file(self, path: str):
         with open(path, 'wb') as f:

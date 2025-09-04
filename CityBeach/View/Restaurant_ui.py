@@ -16,7 +16,7 @@ from View.topBar import topBar
 from View.styles import *
 
 
-def view_restaurant_ui_layout(products_list:List[Product],delete_mode,remove_product):
+def view_restaurant_ui_layout(products_list:List[Product],delete_mode,remove_product, get_prod_by_name, finalize_order):
     main_layout = QVBoxLayout()
     main_layout.setContentsMargins(10, 10, 10, 10)
     main_layout.setSpacing(10)
@@ -45,11 +45,27 @@ def view_restaurant_ui_layout(products_list:List[Product],delete_mode,remove_pro
         total_label.setText(f"TOTALE: € {total:.2f}")
     
     def add_to_order(product_name):
-        if product_name in current_order:
-            current_order[product_name]["qty"] += 1
-        else:
-            current_order[product_name] = {"qty": 1, "price":[p.price for p in products_list if p.name==product_name][0]}
-        update_order_table()
+        prod = get_prod_by_name(product_name)
+        if prod and prod.quantity > 0:
+            if product_name in current_order and current_order[product_name]["qty"] < prod.quantity:
+                current_order[product_name]["qty"] += 1
+            else:
+                current_order[product_name] = {"qty": 1, "price":[p.price for p in products_list if p.name==product_name][0]}
+            update_order_table()
+        return
+
+    def complete_order():
+        if not current_order:
+            return
+        
+        data = {}
+
+        for product_name in current_order:
+            data[get_prod_by_name(product_name)] = current_order[product_name]["qty"]
+
+        if finalize_order(data):
+            clear_order()
+        return
 
     def display_products(category,clicked):
         for btn in categoryButtons:
@@ -127,7 +143,7 @@ def view_restaurant_ui_layout(products_list:List[Product],delete_mode,remove_pro
     send_btn = QPushButton("Invia Ordine")
     send_btn.setStyleSheet(style_QButton_green_16Gotham)
     #send_btn.setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold;")
-    #send_btn.clicked.connect(self.finalize_order)
+    send_btn.clicked.connect(complete_order)
 
     action_buttons_layout.addWidget(clear_btn)
     action_buttons_layout.addWidget(send_btn)
@@ -272,6 +288,47 @@ class add_product_ui(QDialog):
         save_btn.clicked.connect(submit_data)
         self.setLayout(main_layout)
     
-    
+class OrdersOverviewDialog(QDialog):
+    def __init__(self, orders):
+        super().__init__(parent)
+        self.setWindowTitle("Storico Ordini")
+        self.setGeometry(200, 200, 700, 500)
 
-    
+        layout = QVBoxLayout(self)
+
+        # Crea l'albero per visualizzare gli ordini
+        self.tree = QTreeWidget()
+        self.tree.setHeaderLabels(["Dettaglio", "Quantità", "Subtotale"])
+        self.tree.setColumnWidth(0, 350) # Imposta la larghezza della prima colonna
+
+        # Popola l'albero con i dati degli ordini
+        self.populate_tree(orders)
+
+        layout.addWidget(self.tree)
+
+        # Pulsante di chiusura
+        close_button = QPushButton("Chiudi")
+        close_button.clicked.connect(self.accept) # self.accept() chiude la finestra di dialogo
+        layout.addWidget(close_button)
+
+    def populate_tree(self, orders):
+        self.tree.clear()
+        for order_data in orders:
+            # Crea la riga principale per ogni ordine
+            order_item = QTreeWidgetItem(self.tree)
+            order_item.setText(0, f"Ordine #{order_data['id']} ({order_data['timestamp']})")
+            order_item.setText(2, f"€ {order_data['total']:.2f}")
+            order_item.setFont(0, QFont("Arial", 12, QFont.Weight.Bold))
+
+            # Aggiungi i prodotti come figli di questa riga
+            for product_name, details in order_data['items'].items():
+                qty = details['qty']
+                subtotal = qty * details['price']
+
+                product_item = QTreeWidgetItem(order_item)
+                product_item.setText(0, f"  - {product_name}") # Indentazione per chiarezza
+                product_item.setText(1, str(qty))
+                product_item.setText(2, f"€ {subtotal:.2f}")
+
+            # Espandi tutti gli ordini di default per una visione immediata
+            order_item.setExpanded(True)
