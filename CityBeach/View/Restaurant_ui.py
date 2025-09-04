@@ -1,19 +1,22 @@
 from datetime import datetime
 
-from PyQt6.QtGui import QPixmap
+from PyQt6.QtGui import QPixmap, QIcon, QFont
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QHBoxLayout, QVBoxLayout,
     QPushButton, QGridLayout, QLabel, QTableWidget, QTableWidgetItem,
-    QHeaderView, QDialog, QTreeWidget, QTreeWidgetItem, QSizePolicy
+    QHeaderView, QDialog, QTreeWidget, QTreeWidgetItem, QSizePolicy, QFormLayout, QLineEdit, QComboBox, QSpinBox,
+    QDoubleSpinBox, QMessageBox
 )
 from PyQt6.QtCore import Qt
 from typing import List
+
+from Controller import AppRestaurantController
 from Model.Product import *
 from View.topBar import topBar
 from View.styles import *
 
 
-def view_restaurant_ui_layout(products_list:List[Product]):
+def view_restaurant_ui_layout(products_list:List[Product],delete_mode,remove_product):
     main_layout = QVBoxLayout()
     main_layout.setContentsMargins(10, 10, 10, 10)
     main_layout.setSpacing(10)
@@ -26,7 +29,7 @@ def view_restaurant_ui_layout(products_list:List[Product]):
     products_widget = QWidget()
     products_grid = QGridLayout(products_widget)
     current_order={}
-    
+
     def update_order_table():
         order_table.setRowCount(0)
         total = 0.0
@@ -51,25 +54,37 @@ def view_restaurant_ui_layout(products_list:List[Product]):
     def display_products(category,clicked):
         for btn in categoryButtons:
             if btn == clicked:
-                btn.setStyleSheet(style_QButton_red_16Gotham)
+                btn.setStyleSheet(style_QButton_red_17Gotham)
             else:
                 btn.setStyleSheet(style_QButton_white_16Gotham)
         for i in reversed(range(products_grid.count())):
             widget = products_grid.itemAt(i).widget()
             if widget is not None:
                 widget.setParent(None)
+        def check_if_add_or_delete(prod):
+            if delete_mode():
+                if remove_product(prod):
+                    display_products(category,clicked)
+            else:
+                add_to_order(prod)
 
         products =[p.name  for p in products_list if p.type.value==category]
         row, col = 0, 0
         for product in products:
             btn = QPushButton(product)
             btn.setMinimumSize(120, 80)
-            btn.clicked.connect(lambda ch, p=product: add_to_order(p))
+            btn.setStyleSheet(style_products_button)
+            btn.clicked.connect(lambda ch, p=product: check_if_add_or_delete(p))
             products_grid.addWidget(btn, row, col)
             col += 1
             if col > 3:
                 col = 0
                 row += 1
+
+    def clear_order():
+        print("cleaning")
+        current_order.clear()
+        update_order_table()
 
     categories_widget = QWidget()
     categories_layout = QVBoxLayout(categories_widget)
@@ -108,7 +123,7 @@ def view_restaurant_ui_layout(products_list:List[Product]):
     action_buttons_layout = QHBoxLayout()
     clear_btn = QPushButton("Svuota")
     clear_btn.setStyleSheet(style_QButton_white_16Gotham)
-   # clear_btn.clicked.connect(self.clear_order)
+    clear_btn.clicked.connect(lambda ch: clear_order())
     send_btn = QPushButton("Invia Ordine")
     send_btn.setStyleSheet(style_QButton_green_16Gotham)
     #send_btn.setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold;")
@@ -174,7 +189,88 @@ def view_restaurant_ui_layout(products_list:List[Product]):
     main_layout.addLayout(bottom_bar)
 
 
-    return main_layout, back_btn, history_btn
+    return main_layout, back_btn, history_btn, add_prod, del_prod
+
+class add_product_ui(QDialog):
+    def __init__(self, controller:AppRestaurantController, prod_list:List[Product]):
+        super().__init__()
+        self.setWindowTitle("Aggiungi Prodotto")
+        self.setFixedSize(300, 200)
+        self.setStyleSheet(style_app_Dialogs)
+        self.setWindowIcon(QIcon("src/img/logo.png"))
+        self.controller = controller
+        self.init_ui()
+
+    def init_ui(self):
+        layout = QFormLayout()
+        nameBar = QLineEdit()
+        categoryBar = QComboBox()
+        categoryBar.addItems([cat.value for cat in ProductType])
+        quantSpin = QSpinBox()
+        quantSpin.setRange(0,150)
+        priceSpin = QDoubleSpinBox()
+        priceSpin.setPrefix("€ ")
+        priceSpin.setDecimals(2)
+        priceSpin.setRange(0.00, 499)
+        priceSpin.setSingleStep(0.10)
+
+        save_btn = QPushButton("Salva")
+        save_btn.setStyleSheet(style_QButton_red)
+
+        back_btn = QPushButton("Indietro")
+        back_btn.setStyleSheet(style_QButton_white)
+        back_btn.clicked.connect(self.close)
+
+        btn_layout = QHBoxLayout()
+        btn_layout.addStretch(1)
+        btn_layout.addWidget(back_btn)
+        btn_layout.addWidget(save_btn)
+
+        # Styling
+        font = QFont()
+        font.setPointSize(12)
+        self.setFont(font)
+
+        layout.addRow("Nome:", nameBar)
+        layout.addRow("Categoria:", categoryBar)
+        layout.addRow("Quantità: ",quantSpin)
+        layout.addRow("Prezzo: ", priceSpin)
+
+        main_layout = QVBoxLayout()
+        main_layout.addLayout(layout)
+        main_layout.addLayout(btn_layout)
+
+        self.setLayout(main_layout)
+
+        def submit_data():
+            data = {
+                "name": nameBar.text(),
+                "type": ProductType(categoryBar.currentText()),
+                "quantity":quantSpin.value(),
+                "price": priceSpin.value()
+            }
+            # call his parent
+            try:
+                success, err_id = self.controller.register_product(data)
+                if success:
+                    QMessageBox.information(self, "Successo", "Prodotto aggiunto.")
+                    self.accept()
+                else:
+                    # the controller said: "no!"
+                    if err_id != -1:
+                        error_messages = {
+                            1: "Nome non valido.",
+                            2: "Quantità non valida.",
+                            3: "Prezzo non valido.",
+                        }
+                        QMessageBox.warning(self, "Errore", error_messages.get(err_id, "Errore sconosciuto."))
+                    else:
+                        QMessageBox.critical(self, "Errore", "Errore")
+            except:
+                QMessageBox.critical(self, "Errore", "Controller non valido.")
+                self.close()
+        save_btn.clicked.connect(submit_data)
+        self.setLayout(main_layout)
     
     
 

@@ -28,7 +28,7 @@ class MainWindow(QWidget):
 
         #CONTROLLERS
         self.model = AppData.load_from_file("data.pkl")
-        self.product_controller=ProductsController(self.model.products)
+        self.restaurant_controller=AppRestaurantController(self.model.products)
         self.users_controller = AppUsersController(self.model.users,self.model.users_next_id)
         self.sport_equipment_controller = AppSportsEquipmentController(self.model.equipment)
         self.players_controller = AppPlayersController(self.model.players,self.model.players_next_id)
@@ -566,15 +566,30 @@ class MainWindow(QWidget):
         self.setLayout(main_layout)
 
     def init_restaurant_ui(self):
+        self.delete_mode = False
         self.clear_layout()
         self.setStyleSheet("background-color: #FFF0E6;")
         self.selected_booking = None
         self.setWindowTitle("CityBeach Ancona | Area Ristoro")
         if not self.isMaximized():
             self.center_window()
-        main_ui_layout, back_btn, history_btn =view_restaurant_ui_layout(self.product_controller.products)
+        def show_add_product_ui():
+            dlg = add_product_ui(controller=self.restaurant_controller,prod_list=self.restaurant_controller.products)
+            if dlg.exec():
+                self.model.save_to_file("data.pkl")
+                self.init_restaurant_ui()
+        def change_delete_mode():
+            self.delete_mode = not self.delete_mode
+            del_prod.setStyleSheet(style_QButton_red_17Gotham if self.delete_mode else style_QButton_white_17Gotham)
+
+        main_layout, back_btn, history_btn, add_prod, del_prod =view_restaurant_ui_layout(self.restaurant_controller.products,lambda :self.delete_mode,self.restaurant_controller.remove_product)
         back_btn.clicked.connect(self.init_main_ui)
-        self.setLayout(main_ui_layout)
+        add_prod.clicked.connect(show_add_product_ui)
+        del_prod.clicked.connect(change_delete_mode)
+
+
+
+        self.setLayout(main_layout)
 
 
 

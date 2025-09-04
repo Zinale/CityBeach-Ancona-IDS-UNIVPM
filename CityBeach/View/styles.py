@@ -93,9 +93,9 @@ style_QButton_white_16Gotham ="""
         border: 2px solid #E30613;
     }
 """
-style_QButton_red_16Gotham ="""
+style_QButton_red_17Gotham = """
     QPushButton {
-        font-family: Gotham; font-size: 16pt;
+        font-family: Gotham; font-size: 17pt;
         background-color: #E30613;
         color: #ffffff;
         border: 1px solid #E30613;
@@ -237,7 +237,7 @@ style_app_Dialogs = """
         font-size: 10pt;
     }
 
-    QLineEdit, QDateEdit, QComboBox,QSpinBox,QCheckBox {
+    QLineEdit, QDateEdit, QComboBox,QSpinBox,QCheckBox,QDoubleSpinBox {
         background-color: white;
         border: 1px solid #ccc;
         padding: 4px;
@@ -291,6 +291,24 @@ style_check_box = """
     QLabel {
         color: #333;
     }
+"""
+
+style_products_button = """
+QPushButton {
+    background-color: #fff5f0;       
+    border: 2px solid #d43f3a;    
+    border-radius: 12px;             
+    padding: 10px 20px;          
+    font-size: 14px;               
+    font-weight: bold;
+    color: #333333;               
+}
+
+QPushButton:hover {
+    background-color: #d43f3a;       
+    color: white;                 
+}
+
 """
 PADEL_COLOR_FG = "#1D6F63"
 PADEL_COLOR_BG =  "#D1F2EB"
