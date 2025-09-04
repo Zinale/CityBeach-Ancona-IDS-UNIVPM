@@ -586,12 +586,15 @@ class MainWindow(QWidget):
             if dlg.exec():
                 self.model.save_to_file("data.pkl")
                 self.init_restaurant_ui()
-
+        def show_history_ui():
+            dlg = OrdersOverviewDialog(self.restaurant_controller.orders)
+            dlg.exec()
         main_layout, back_btn, qty_btn, history_btn, add_prod, del_prod = view_restaurant_ui_layout(self.restaurant_controller.products,lambda :self.delete_mode,self.restaurant_controller.remove_product, self.restaurant_controller.get_product_by_name, self.restaurant_controller.finalize_order)
         back_btn.clicked.connect(self.init_main_ui)
         add_prod.clicked.connect(show_add_product_ui)
         del_prod.clicked.connect(change_delete_mode)
         qty_btn.clicked.connect(show_edit_qty_ui)
+        history_btn.clicked.connect(show_history_ui)
 
         self.setLayout(main_layout)
 

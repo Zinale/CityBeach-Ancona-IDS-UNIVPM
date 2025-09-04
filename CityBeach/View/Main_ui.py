@@ -93,7 +93,7 @@ def main_ui_layout() -> QVBoxLayout() and QPushButton()and QPushButton()and QPus
     # Area Ristoro
     btn_rist = QPushButton()
     btn_rist.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-    btn_rist.setStyleSheet(style_img1_bg("Baby.tux.sit-800x800.png"))
+    btn_rist.setStyleSheet(style_img1_bg("restaurant.png"))
     label_rist = QLabel("Area ristoro")
     label_rist.setAlignment(Qt.AlignmentFlag.AlignHCenter)
     label_rist.setStyleSheet(style_text_gotham_b)

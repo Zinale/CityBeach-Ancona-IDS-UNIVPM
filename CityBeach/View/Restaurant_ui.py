@@ -12,6 +12,7 @@ from typing import List
 
 from Controller import AppRestaurantController
 from Model.Product import *
+from Model.Order import *
 from View.topBar import topBar
 from View.styles import *
 
@@ -296,7 +297,6 @@ class add_product_ui(QDialog):
 class edit_qty_product_ui(QDialog):
     def __init__(self, prod_list:List[Product],search_funct,edit_funct):
         super().__init__()
-        print("afsafsa")
         self.edit_funct = edit_funct
         self.search_funct = search_funct
         self.setWindowTitle("Modifica Quantità Prodotto")
@@ -305,9 +305,7 @@ class edit_qty_product_ui(QDialog):
         self.setWindowIcon(QIcon("src/img/logo.png"))
         self.prod_list = prod_list
         self.selected_prod:Product|None = None
-        print("afsafsa")
         self.init_ui()
-        print("aaa")
 
     def init_ui(self):
         layout = QFormLayout()
@@ -384,45 +382,39 @@ class edit_qty_product_ui(QDialog):
 
 class OrdersOverviewDialog(QDialog):
     def __init__(self, orders):
-        super().__init__(parent)
+        super().__init__()
         self.setWindowTitle("Storico Ordini")
-        self.setGeometry(200, 200, 700, 500)
-
+        #self.setGeometry(200, 200, 700, 500)
         layout = QVBoxLayout(self)
+        self.setWindowIcon(QIcon("src/img/logo.png"))
 
-        # Crea l'albero per visualizzare gli ordini
         self.tree = QTreeWidget()
         self.tree.setHeaderLabels(["Dettaglio", "Quantità", "Subtotale"])
-        self.tree.setColumnWidth(0, 350) # Imposta la larghezza della prima colonna
-
-        # Popola l'albero con i dati degli ordini
+        self.tree.setColumnWidth(0, 350)
         self.populate_tree(orders)
-
         layout.addWidget(self.tree)
-
-        # Pulsante di chiusura
         close_button = QPushButton("Chiudi")
-        close_button.clicked.connect(self.accept) # self.accept() chiude la finestra di dialogo
+        close_button.clicked.connect(self.accept)
+        close_button.setStyleSheet(style_QButton_white)
         layout.addWidget(close_button)
+        self.setStyleSheet(style_app_Dialogs)
 
-    def populate_tree(self, orders):
+    def populate_tree(self, orders:List[Order]):
         self.tree.clear()
         for order_data in orders:
-            # Crea la riga principale per ogni ordine
             order_item = QTreeWidgetItem(self.tree)
-            order_item.setText(0, f"Ordine #{order_data['id']} ({order_data['timestamp']})")
-            order_item.setText(2, f"€ {order_data['total']:.2f}")
-            order_item.setFont(0, QFont("Arial", 12, QFont.Weight.Bold))
-
-            # Aggiungi i prodotti come figli di questa riga
-            for product_name, details in order_data['items'].items():
-                qty = details['qty']
-                subtotal = qty * details['price']
-
+            order_item.setText(0, f"Ordine #{order_data.id}")
+            order_item.setText(2, f"€ {order_data.total_price:.2f}")
+            order_item.setFont(0, QFont("Arial", 11, QFont.Weight.Bold))
+            timestamp = QTreeWidgetItem(order_item)
+            timestamp.setText(0,f"Giorno: {order_data.timestamp.date().strftime("%d/%m/%Y")} Ora: {order_data.timestamp.time().strftime("%H:%M:%S")}")
+            timestamp.setText(1,"")
+            timestamp.setText(2,"")
+            for product, qty in order_data.items.items():
+                subtotal = qty * product.price
                 product_item = QTreeWidgetItem(order_item)
-                product_item.setText(0, f"  - {product_name}") # Indentazione per chiarezza
+                product_item.setText(0, f"  - {product.name}")
                 product_item.setText(1, str(qty))
                 product_item.setText(2, f"€ {subtotal:.2f}")
 
-            # Espandi tutti gli ordini di default per una visione immediata
             order_item.setExpanded(True)
