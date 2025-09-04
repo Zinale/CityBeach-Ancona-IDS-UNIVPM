@@ -581,14 +581,17 @@ class MainWindow(QWidget):
         def change_delete_mode():
             self.delete_mode = not self.delete_mode
             del_prod.setStyleSheet(style_QButton_red_17Gotham if self.delete_mode else style_QButton_white_17Gotham)
+        def show_edit_qty_ui():
+            dlg = edit_qty_product_ui(self.restaurant_controller.products,self.restaurant_controller.get_product_by_name,self.restaurant_controller.edit_product)
+            if dlg.exec():
+                self.model.save_to_file("data.pkl")
+                self.init_restaurant_ui()
 
-        main_layout, back_btn, history_btn, add_prod, del_prod =view_restaurant_ui_layout(self.restaurant_controller.products,lambda :self.delete_mode,self.restaurant_controller.remove_product, self.restaurant_controller.get_product_by_name, self.restaurant_controller.finalize_order)
+        main_layout, back_btn, qty_btn, history_btn, add_prod, del_prod = view_restaurant_ui_layout(self.restaurant_controller.products,lambda :self.delete_mode,self.restaurant_controller.remove_product, self.restaurant_controller.get_product_by_name, self.restaurant_controller.finalize_order)
         back_btn.clicked.connect(self.init_main_ui)
         add_prod.clicked.connect(show_add_product_ui)
         del_prod.clicked.connect(change_delete_mode)
-
-
-        print(self.restaurant_controller)
+        qty_btn.clicked.connect(show_edit_qty_ui)
 
         self.setLayout(main_layout)
 

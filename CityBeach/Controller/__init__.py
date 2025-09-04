@@ -4,4 +4,4 @@ from .FieldsController import AppFieldsController
 from .LockersController import AppLockersController
 from .PlayersController import *
 from .UsersController import AppUsersController
-from .AppRestaurantController import AppRestaurantController
+from .RestaurantController import AppRestaurantController

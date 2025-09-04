@@ -47,8 +47,9 @@ def view_restaurant_ui_layout(products_list:List[Product],delete_mode,remove_pro
     def add_to_order(product_name):
         prod = get_prod_by_name(product_name)
         if prod and prod.quantity > 0:
-            if product_name in current_order and current_order[product_name]["qty"] < prod.quantity:
-                current_order[product_name]["qty"] += 1
+            if product_name in current_order:
+                if current_order[product_name]["qty"] < prod.quantity:
+                    current_order[product_name]["qty"] += 1
             else:
                 current_order[product_name] = {"qty": 1, "price":[p.price for p in products_list if p.name==product_name][0]}
             update_order_table()
@@ -98,7 +99,6 @@ def view_restaurant_ui_layout(products_list:List[Product],delete_mode,remove_pro
                 row += 1
 
     def clear_order():
-        print("cleaning")
         current_order.clear()
         update_order_table()
 
@@ -162,6 +162,11 @@ def view_restaurant_ui_layout(products_list:List[Product],delete_mode,remove_pro
 
     #-----------------BUTTONS BAR---------------
     hLayoutBtn = QHBoxLayout()
+    #add quantity btn
+    qty_btn = QPushButton("Modifica Quantità")
+    qty_btn.setStyleSheet(style_QButton_white)
+    qty_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
+    hLayoutBtn.addWidget(qty_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
     hLayoutBtn.addStretch(1)
     # add Product btn
     add_prod = QPushButton("Aggiungi Prodotto")
@@ -205,7 +210,7 @@ def view_restaurant_ui_layout(products_list:List[Product],delete_mode,remove_pro
     main_layout.addLayout(bottom_bar)
 
 
-    return main_layout, back_btn, history_btn, add_prod, del_prod
+    return main_layout, back_btn, qty_btn, history_btn, add_prod, del_prod
 
 class add_product_ui(QDialog):
     def __init__(self, controller:AppRestaurantController, prod_list:List[Product]):
@@ -287,7 +292,96 @@ class add_product_ui(QDialog):
                 self.close()
         save_btn.clicked.connect(submit_data)
         self.setLayout(main_layout)
-    
+
+class edit_qty_product_ui(QDialog):
+    def __init__(self, prod_list:List[Product],search_funct,edit_funct):
+        super().__init__()
+        print("afsafsa")
+        self.edit_funct = edit_funct
+        self.search_funct = search_funct
+        self.setWindowTitle("Modifica Quantità Prodotto")
+        self.setFixedSize(300, 200)
+        self.setStyleSheet(style_app_Dialogs)
+        self.setWindowIcon(QIcon("src/img/logo.png"))
+        self.prod_list = prod_list
+        self.selected_prod:Product|None = None
+        print("afsafsa")
+        self.init_ui()
+        print("aaa")
+
+    def init_ui(self):
+        layout = QFormLayout()
+        categoryBar = QComboBox()
+        categoryBar.addItems([cat.value for cat in ProductType])
+        prodBar = QComboBox()
+        quantSpin = QSpinBox()
+        quantSpin.setRange(0,999)
+
+        line_old_qty = QLineEdit("0")
+        line_new_qty = QLineEdit("0")
+        line_new_qty.setReadOnly(True)
+        line_old_qty.setReadOnly(True)
+        def update_prod_list():
+            prodBar.clear()
+            prodBar.addItems([p.name for p in self.prod_list if p.type.value==categoryBar.currentText()])
+            quantSpin.setValue(0)
+            update_texts()
+        def update_selected_prod():
+            self.selected_prod = self.search_funct(prodBar.currentText())
+            update_texts()
+        def update_texts():
+            try:
+                line_old_qty.setText(f"{self.selected_prod.quantity}")
+                line_new_qty.setText(f"{self.selected_prod.quantity + quantSpin.value()}")
+            except Exception:
+                line_old_qty.setText("0")
+                line_new_qty.setText("0")
+        prodBar.currentTextChanged.connect(update_selected_prod)
+        categoryBar.currentTextChanged.connect(update_prod_list)
+        quantSpin.textChanged.connect(update_texts)
+        save_btn = QPushButton("Salva")
+        save_btn.setStyleSheet(style_QButton_red)
+        back_btn = QPushButton("Indietro")
+        back_btn.setStyleSheet(style_QButton_white)
+        back_btn.clicked.connect(self.close)
+        update_prod_list()
+
+        btn_layout = QHBoxLayout()
+        btn_layout.addStretch(1)
+        btn_layout.addWidget(back_btn)
+        btn_layout.addWidget(save_btn)
+
+        # Styling
+        font = QFont()
+        font.setPointSize(12)
+        self.setFont(font)
+
+        layout.addRow("Categoria:", categoryBar)
+        layout.addRow("Prodotto:", prodBar)
+        layout.addRow("Quantità attuale: ", line_old_qty)
+        layout.addRow("Quantità da aggiungere: ",quantSpin)
+        layout.addRow("Nuova Quantità: ", line_new_qty)
+
+        main_layout = QVBoxLayout()
+        main_layout.addLayout(layout)
+        main_layout.addLayout(btn_layout)
+
+        self.setLayout(main_layout)
+
+        def submit_data():
+            try:
+                success = self.edit_funct(self.selected_prod,quantSpin.value())
+                if success:
+                    QMessageBox.information(self, "Successo", "Quantità modificata.")
+                    self.accept()
+                else:
+                    QMessageBox.critical(self, "Errore", "Errore")
+            except:
+                QMessageBox.critical(self, "Errore", "Controller non valido.")
+                self.close()
+        save_btn.clicked.connect(submit_data)
+        self.setLayout(main_layout)
+
 class OrdersOverviewDialog(QDialog):
     def __init__(self, orders):
         super().__init__(parent)

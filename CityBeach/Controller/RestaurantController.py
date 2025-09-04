@@ -24,9 +24,13 @@ class AppRestaurantController:
         except Exception as e:
             return False, -1
 
-    def edit_product(self,product,new_quantity):
+    def edit_product(self,product,new_quantity)->bool:
         try:
-            self.products[self.products.index(product)].quantity = new_quantity
+            print(product)
+            print(new_quantity)
+            print(self.products.index(product))
+            print("aasdadfs")
+            self.products[self.products.index(product)].quantity += new_quantity
             return True
         except:
             return False

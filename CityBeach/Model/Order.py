@@ -12,4 +12,4 @@ class Order:
         self.timestamp = datetime.datetime.now()
 
     def __repr__(self):
-        return f"Order(id={self.id}, total_price={self.total_price})"
+        return f"Order(id={self.id}, total_price={self.total_price:.2f})"
