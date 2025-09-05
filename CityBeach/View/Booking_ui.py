@@ -22,6 +22,7 @@ from Model.User import User
 from View.styles import *
 from View.topBar import topBar
 from Model import Gender
+from Model.SportsEquipment import *
 
 
 
@@ -237,15 +238,16 @@ def view_booking_ui_layout(booking_list:List[Booking]):
 
 class add_booking_ui(QDialog):
     def __init__(self,bookingController:AppBookingsController,fields_list:List[Field],
-                 lockers_list:List[Locker],players_list:List[Player],currentUser:User=None):
+                 lockers_list:List[Locker],players_list:List[Player],currentUser:User=None, se_list: List[SportsEquipment]=None):
         super().__init__()
         self.bookingsController = bookingController
         self.fieldsList = fields_list
         self.lockersList = lockers_list
         self.playersList = players_list
         self.currentUser = currentUser
+        self.se_list = se_list
         self.setWindowTitle("Crea Prenotazione")
-        self.setFixedSize(450, 420)
+        self.setFixedSize(450, 450)
         self.setStyleSheet(style_app_Dialogs)
         self.setWindowIcon(QIcon("src/img/logo.png"))
         self.init_ui()
@@ -386,6 +388,9 @@ class add_booking_ui(QDialog):
         fieldBox.currentTextChanged.connect(update_availability_field)
         date_selector.dateChanged.connect(update_availability_field)
 
+        se_selector = QCheckBox("Noleggia Attrezzatura")
+
+
         save_btn = QPushButton("Salva")
         save_btn.setStyleSheet(style_QButton_red)
 
@@ -418,6 +423,7 @@ class add_booking_ui(QDialog):
         layout.addRow("Prezzo €:", price)
         layout.addRow("Data:", date_selector)
         layout.addRow("Fascia oraria:", slot_selector)
+        layout.addRow(se_selector)
 
 
         main_layout = QVBoxLayout()
@@ -443,12 +449,14 @@ class add_booking_ui(QDialog):
                     "nFemale":nFemale.value(),
                     "price":price.value(),
                     "date": date_selector.date().toString("dd/MM/yyyy"),
-                    "timeSlot": slot_selector.currentData()
+                    "timeSlot": slot_selector.currentData(),
+                    "se": se_selector.isChecked()
                 }
-                success, err_id = self.bookingsController.register_booking(data,self.currentUser,lockersList=self.lockersList)
+                success, err_id = self.bookingsController.register_booking(data,self.currentUser,lockersList=self.lockersList, se_list=self.se_list)
                 if success:
                     QMessageBox.information(self, "Successo", "Prenotazione creata.")
-                    #print("REGISTRATO: ",data)
+                    if err_id == 1:
+                        QMessageBox.warning(self, "Attenzione", "Attrezzatura sportiva insufficiente per il numero di giocatori richiesto.")
                     self.accept()
                 else:
                     # the controller said: "no!"

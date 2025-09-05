@@ -1,5 +1,6 @@
-import datetime
+from datetime import datetime
 from enum import Enum
+import uuid
 from Model import SportsCategory
 
 class EquipmentType(Enum):
@@ -16,10 +17,21 @@ class SportsEquipment:
         self.equipmentType = equipmentType
         self.sportCategory = sportCategory
         self.quantity = 0
-        self.date_added = datetime.datetime.now()
+        self.date_added = datetime.now()
 
     def __str__(self):
         return f"Name: '{self.name}', Equipment Type: '{self.equipmentType}', Quantity: {self.quantity}, Date Added: {self.date_added}"
     def __repr__(self):
         return f"SportsEquipment(name='{self.name}', equipment_type='{self.equipmentType}', quantity={self.quantity}, date_added={self.date_added})"
-    
+
+
+class SportsEquipmentUsage:
+    def __init__(self,equipment: SportsEquipment, quantity: int):
+        self.id = str(uuid.uuid4())
+        self.equipment = equipment
+        self.quantity = quantity
+
+    def __str__(self):
+        return f"{self.id}"
+    def __repr__(self):
+        return f"{self.id}"

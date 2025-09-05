@@ -60,6 +60,7 @@ class Booking:
         self.state:BookingState=BookingState.REGISTERED
         self.registered_by:User=usr_added_by
         self.sport:Sports = sport
+        self.se_list = []
 
     def __str__(self):
         return (f"Prenotazione: {self.id}\tGiocatore:{self.player.name}\tCampo:{self.field.name} x {self.field.sport}\n\r"

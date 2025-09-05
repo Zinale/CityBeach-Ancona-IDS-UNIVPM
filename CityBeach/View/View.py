@@ -535,7 +535,7 @@ class MainWindow(QWidget):
         def show_add_booking_ui():
             dlg = add_booking_ui(bookingController=self.bookings_controller,fields_list=list(self.fields_controller.fields.values()),
                                  lockers_list=list(self.lockers_controller.lockers.values()),players_list=list(self.players_controller.players.values()),
-                                 currentUser=self.users_controller.current_user)
+                                 currentUser=self.users_controller.current_user, se_list=list(self.sport_equipment_controller.equipment.values()))
             if dlg.exec():
                 self.model.bookings_next_id = self.bookings_controller.booking_id
                 self.model.save_to_file("data.pkl")
@@ -597,29 +597,6 @@ class MainWindow(QWidget):
         history_btn.clicked.connect(show_history_ui)
 
         self.setLayout(main_layout)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     def logout(self):

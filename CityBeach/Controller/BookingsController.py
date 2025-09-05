@@ -4,11 +4,11 @@ import matplotlib.pyplot as plt
 from PyQt6.QtCore import QTimer
 from PyQt6.QtGui import QPixmap, QImage
 
-
 from Model.Booking import *
 from Model.Data import TIME_SLOTS
 from Model.Gender import Gender
 from Model.Locker import Locker, LockerType
+from Model.SportsEquipment import *
 from io import BytesIO
 
 
@@ -34,7 +34,7 @@ class AppBookingsController:
                         if hour > b.time.slots[2].endTime.hour or (hour == b.time.slots[2].endTime.hour and minute >= b.time.slots[2].endTime.minute):
                             b.state = BookingState.COMPLETED
 
-    def register_booking(self,data,currentUser:User,lockersList:List[Locker])->bool and int:
+    def register_booking(self,data,currentUser:User,lockersList:List[Locker], se_list: List[SportsEquipment])->bool and int:
         try:
             #validate data
             if data["sport"] is None:
@@ -93,10 +93,54 @@ class AppBookingsController:
                     del self.bookings[self.booking_id]
                     return False, 13
                 self.bookings[self.booking_id].lockers_usage.extend(lockerRoomUsageFemale_list)
-            return True, 0
+
+            missing_se = 0
+            if data["se"]:
+                #check availability of sports equipment
+                new_se_list = []
+                print(se_list)
+                for se in list(se_list):
+                    if se.sportCategory == sport:
+                        print("1")
+                        reserved = self.chechAvailabilitySEAtTimeSlot(se,date_obj,timeSlot)
+                        if reserved <= se.quantity:
+                            print("2")
+                            if se.equipmentType in (EquipmentType.PADEL_RACKETS,EquipmentType.BEACH_TENNIS_RACKETS):
+                                if se.quantity - reserved >= nPlayer:
+                                    new_se_list.append(SportsEquipmentUsage(equipment=se,quantity=nPlayer))
+                                else:
+                                    new_se_list.append(SportsEquipmentUsage(equipment=se, quantity=se.quantity - reserved))
+                                    missing_se = 1
+                            elif se.equipmentType in (EquipmentType.PADEL_BALLS,EquipmentType.BEACH_TENNIS_BALLS):
+                                needed = nPlayer * 2
+                                if se.quantity - reserved >= needed:
+                                    new_se_list.append(SportsEquipmentUsage(equipment=se, quantity=needed))
+                                else:
+                                    new_se_list.append(SportsEquipmentUsage(equipment=se, quantity=se.quantity - reserved))
+                                    missing_se = 1
+                            elif se.equipmentType == EquipmentType.BEACH_VOLLEYBALLS:
+                                if se.quantity - reserved >= 2:
+                                    new_se_list.append(SportsEquipmentUsage(equipment=se, quantity=2))
+                                elif se.quantity - reserved == 1:
+                                    new_se_list.append(SportsEquipmentUsage(equipment=se, quantity=1))
+                                else:
+                                    missing_se = 1
+                
+                self.bookings[self.booking_id].se_list = new_se_list
+                print(missing_se)
+                return True, missing_se
         except Exception as e:
             print(f"Messaggio: {e}")
             return False, -1
+        
+    def chechAvailabilitySEAtTimeSlot(self,equipment:SportsEquipment,date:date,slot:int)->int:
+        matched_bookings = [b for b in self.bookings.values() if slot in [i.number for i in b.time.slots] and b.time.day == date and b.state in (BookingState.REGISTERED,BookingState.IN_PROGRESS,BookingState.COMPLETED)]
+        count = 0
+        for b in matched_bookings:
+            for se in b.se_list:
+                if se.equipment.name == equipment.name:
+                    count += se.quantity
+        return count
 
     def checkAvailabilityFieldAtTimeSLot(self,field:Field,date:date,slot:int):
         matched_bookings = [b for b in self.bookings.values() if b.field.name == field.name and b.time.day == date and b.state in (BookingState.REGISTERED,BookingState.IN_PROGRESS,BookingState.COMPLETED)]
@@ -370,7 +414,6 @@ class AppBookingsController:
                 bookings_map[m][name] = 0
         for name in setNames:
             tracker[name] = 0
-        #print(bookings_map)
         for b in list(self.bookings.values()):
             if b.time.day.year != year:
                 continue
@@ -406,7 +449,6 @@ class AppBookingsController:
             if b.time.day.year != year:
                 continue
             bookings_map[b.time.day.month] += b.price
-        print(bookings_map)
         fig, ax = plt.subplots(figsize=(7, 7))
         fig.subplots_adjust()
         ax.plot(months, [bookings_map[m] for m in range(12)], c="#E30613")

@@ -19,7 +19,7 @@ class AppSportsEquipmentController:
         return self.equipment.get(equipment_id, None)
     
     def modify_quantity(self, equipment_id: int, new_quantity: int) -> bool:
-        if new_quantity > 0:
+        if new_quantity >= 0:
             self.equipment[equipment_id].quantity = new_quantity
             return True
         return False
