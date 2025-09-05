@@ -14,6 +14,8 @@ class AppUsersController:
         return f"AppUsersController, utente attivo:{self.current_user.username}"
     def register(self,data,password:str="") -> bool and int:
         try:
+            if self.current_user is not None and not self.current_user.is_admin:
+                return False, 6
             name = data["name"].strip()
             surname = data["surname"].strip()
             username = data["username"].strip()
@@ -32,23 +34,24 @@ class AppUsersController:
                 return False, 5
             gender = data["gender"]
             is_admin = data["is_admin"]
-            if self.current_user != None:
+            if self.current_user is not None:
                 addedBy = self.current_user.username
             else:
                 addedBy = "root"
             self.user_id+=1
-            self.users[self.user_id] = User(self.user_id,username, is_admin=is_admin,name=name,surname=surname,
+            self.users[self.user_id] = User(self.user_id,username=username, is_admin=is_admin,name=name,surname=surname,
                                               datebirth=birthday,gender=gender,added_by=addedBy,password=password)
             return True, 0
-        except:
+        except Exception as e:
+            print(e)
             return False, -1
 
-    def login(self, username: str, password: str):
+    def login(self, username: str, password: str)-> bool:
         for user in self.get_all_users():
             if user.username == username and user.password == password:
                 self.current_user = user
-                return True, self.current_user
-        return False, None
+                return True
+        return False
 
     def delete_user(self,user:User)->bool and int:
         try:
@@ -61,8 +64,8 @@ class AppUsersController:
             if user_to_delete:
                 id_to_delete = user_to_delete.id
                 del self.users[id_to_delete]
-                return True,0
-        except:
+                return True, 0
+        except Exception:
             return False, 3
 
     def edit_user(self,user_id,new_name,new_surname,new_username,new_password,new_birthday,new_gender) -> bool and int:
@@ -89,7 +92,7 @@ class AppUsersController:
             self.users[user_id].username = new_username
             if type(new_password) == str:
                 self.users[user_id].password = new_password
-            elif type(new_password) == bool:
+            elif type(new_password) == bool:        #admins can just reset password of other accounts
                 if new_password:
                     self.users[user_id].password = ""
             self.users[user_id].birthday = new_birthday
@@ -98,30 +101,12 @@ class AppUsersController:
         except Exception:
             return False, 0
 
-    def logout(self):
-        self.current_user = None
-
-#    def add_article(self, title: str) -> bool:
-#        user = self.model.current_user
-#        if not user:
-#            return False
-#        article = Article(title, user.username)
-#        self.model.articles[article.id] = article
-#        user.article_ids.append(article.id)
-#        return True
-
- #   def delete_article(self, article_id: str) -> bool:
- #       user = self.model.current_user
- #       if not user:
- #           return False
- #       article = self.model.articles.get(article_id)
- #       if article and user.can_delete(article):
- #           del self.model.articles[article_id]
- #           user.article_ids.remove(article_id)
- #           return True
- #       return False
-   # def get_all_articles(self) -> List[Article]:
-   #     return list(self.model.articles.values())
+    def logout(self) -> bool:
+        try:
+            self.current_user = None
+            return True
+        except Exception as e:
+            return False
 
     def get_id_by_username(self,username:str)->int:
         return next(id for id, user in self.get_all_users() if user.username == username)
@@ -131,3 +116,6 @@ class AppUsersController:
         return self.current_user
     def get_all_users(self) -> List[User] :
         return list(self.users.values())
+
+    def __str__(self):
+        return f"User Controller!"

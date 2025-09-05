@@ -74,9 +74,9 @@ class MainWindow(QWidget):
         self.resize(a,b)
 
         def login():
-            status, current_User = self.users_controller.login(user_input.text(), pass_input.text())
+            status = self.users_controller.login(user_input.text(), pass_input.text())
             if status:
-                self.model.current_user = current_User
+                self.model.current_user = self.users_controller.get_current_user()
                 self.init_main_ui()
             else:
                 QMessageBox.warning(self, "Errore", "Credenziali non valide")

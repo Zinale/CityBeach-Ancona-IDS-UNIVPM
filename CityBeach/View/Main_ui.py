@@ -230,7 +230,6 @@ class edit_user_ui(QDialog):
         main_layout.addLayout(btn_layout)
 
         def submit_data():
-
             gender = Gender(genderCheck.currentText())
             try:
                 if self.opener_is_admin:

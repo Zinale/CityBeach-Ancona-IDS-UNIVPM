@@ -178,7 +178,6 @@ class add_Dipendete_ui(QDialog):
                 "is_admin": flagAmministratore.isChecked(),
                 "gender": Gender(genderCheck.currentText())
             }
-            # call his parent
             try:
                 success, err_id = self.controller.register(data)
                 if success:
@@ -197,6 +196,8 @@ class add_Dipendete_ui(QDialog):
                         QMessageBox.warning(self, "Errore", "Username non può contenere caratteri speciali")
                     elif err_id == 5:
                         QMessageBox.warning(self, "Errore", "Impossibile inserire una data pari o successiva alla corrente")
+                    elif err_id == 6:
+                        QMessageBox.warning(self, "Errore", "Non sei un amministratore!")
                     elif err_id == -1:
                         QMessageBox.critical(self, "Errore", "Errore")
             except Exception:
