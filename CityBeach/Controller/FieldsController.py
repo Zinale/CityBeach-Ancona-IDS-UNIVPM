@@ -38,3 +38,5 @@ class AppFieldsController:
 
     def checkName(self,name:str,sport:str)->bool:
         return any((getattr(field,"name",None) == name for field in list(self.fields.values())))
+    def get_field_by_name(self,name:str)->Field:
+        return next((field for field in list(self.fields.values()) if field.name == name))

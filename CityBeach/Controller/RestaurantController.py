@@ -1,6 +1,9 @@
 from Model.Product import *
 from typing import List
 from Model.Order import *
+import re
+
+pattern = re.compile(r'^[A-Za-z0-9 .]+$')
 
 class AppRestaurantController:
     def __init__(self, products: List[Product], orders:List[Order]):
@@ -12,7 +15,7 @@ class AppRestaurantController:
             type:ProductType = data["type"]
             quantity = data["quantity"]
             price = data["price"]
-            if not name.isalpha() or name in [p.name for p in self.products]:
+            if not bool(pattern.match(name)) or name in [p.name for p in self.products]:
                 return False, 1
             if quantity <= 0:
                 return False, 2
@@ -20,15 +23,17 @@ class AppRestaurantController:
                 return False, 3
             prod = Product(name=name,productType=type,quantity=quantity,price=price)
             self.products.append(prod)
+            print(f"PRODOTTO: {prod}")
             return True, 0
         except Exception as e:
             return False, -1
 
-    def edit_product(self,product,new_quantity)->bool:
+    def edit_product(self, product, qty_to_add)->bool:
         try:
-            self.products[self.products.index(product)].quantity += new_quantity
+            self.products[self.products.index(product)].quantity += qty_to_add
             return True
-        except:
+        except Exception as e:
+            print(e)
             return False
 
     def remove_product(self,product_name:str):
