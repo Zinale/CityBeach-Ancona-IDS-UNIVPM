@@ -1,6 +1,7 @@
 # 🏖️ CityBeach Ancona
 
-[🇬🇧 English](README.md) | [🇮🇹 Italiano](README.it.md)
+[![en](https://img.shields.io/badge/lang-English-blue)](README.md)
+[![it](https://img.shields.io/badge/lang-Italiano-green)](README.it.md)
 
 CityBeach Ancona è un software gestionale **desktop** per il **Palabeach** di Ancona, sviluppato come parte del corso di **Ingegneria del Software (IDS)** presso l’**Università Politecnica delle Marche (UNIVPM)**.  
 
