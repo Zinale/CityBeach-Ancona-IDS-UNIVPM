@@ -46,10 +46,10 @@ def view_booking_ui_layout(booking_list:List[Booking]):
         booking_list.reverse()
     def populate_table():
         table.clear()
-        table.setColumnCount(11)
+        table.setColumnCount(12)
         table.setHorizontalHeaderLabels(
             ["Numero", "Sport", "Campo", "Giocatore", "#Giocatori", "Prezzo (€)", "Data", "Fascia Oraria",
-             "Stato Prenotazione", "Registrata il", "Registrata da"])
+             "Stato","Noleggio Att." ,"Registrata il", "Registrata da"])
         # FILTERS
         sport = None
         date = None
@@ -78,19 +78,18 @@ def view_booking_ui_layout(booking_list:List[Booking]):
                 str(bk.time.day.strftime("%d/%m/%Y")),
                 str(bk.time.getAllTime()),
                 str(bk.state.value),
+                "Si" if len(bk.se_list)>0 else "No",
                 str(f"{bk.data_created.time().strftime("%H:%M")} | {bk.data_created.date().strftime("%d/%m/%Y")}"),
                 str(bk.registered_by.username)
                 ])
             for col, val in enumerate(values):
                 item = QTableWidgetItem(val)
                 if bk.state == BookingState.CANCELLED:
-                    for i in range(11):
-                        item.setForeground(i, QBrush(QColor("#F2F2F2")))
-                        item.setBackground(i, QBrush(QColor("#A0A0A0")))
+                    item.setForeground(QBrush(QColor("#F2F2F2")))
+                    item.setBackground(QBrush(QColor("#A0A0A0")))
                 elif bk.state == BookingState.IN_PROGRESS:
-                    for i in range(11):
-                        item.setForeground(i, QBrush(QColor(IN_PROGRESS_COLOR_FG)))
-                        item.setBackground(i, QBrush(QColor(IN_PROGRESS_COLOR_BG)))
+                    item.setForeground(QBrush(QColor(IN_PROGRESS_COLOR_FG)))
+                    item.setBackground(QBrush(QColor(IN_PROGRESS_COLOR_BG)))
                 else:
                     if colorsActivatedCheckBox.isChecked():
                         if bk.sport==Sports.PADEL:
@@ -480,7 +479,7 @@ class add_booking_ui(QDialog):
                     else:
                         QMessageBox.critical(self, "Errore", "Errore")
             except Exception as e:
-                print(e)
+                print(f"ECCEZIONE: {e}")
                 QMessageBox.critical(self, "Errore", "Controller non valido.")
                 self.close()
         save_btn.clicked.connect(submit_data)

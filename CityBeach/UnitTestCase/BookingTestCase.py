@@ -69,17 +69,17 @@ class BookingTestCase(unittest.TestCase):
                 "player": player,"nPlayer":4,"nMale":4,
                 "nFemale":0,"price":50,
                 "date": (date.today()+timedelta(days=1)).strftime("%d/%m/%Y"),
-                "timeSlot": 0}
+                "timeSlot": 0,"se":False}
         success, state = self.booking_controller.register_booking(data_booking,
                 self.user_controller.current_user,
-                list(self.locker_controller.lockers.values()))
+                list(self.locker_controller.lockers.values()),[])
         self.assertTrue(success)
         self.assertEqual(state,0)       #Prenotazione effettuata
 
         data_not_booking = data_booking.copy()
         success, state = self.booking_controller.register_booking(data_not_booking,
                 self.user_controller.current_user,
-                list(self.locker_controller.lockers.values()))
+                list(self.locker_controller.lockers.values()),[])
         self.assertFalse(success)
         self.assertEqual(state,12)              #Campo Occupato
 

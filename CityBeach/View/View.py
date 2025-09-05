@@ -255,7 +255,7 @@ class MainWindow(QWidget):
         def show_edit_player_ui():
             #phase = 0 -> register
             #phase = 1 -> edit player
-            print(self.selected_player.id)
+            #print(self.selected_player.id)
             dlg = info_Player_ui(phase=1,player_to_edit = self.selected_player,playerController=self.players_controller)
             if dlg.exec():
                 self.model.save_to_file("data.p"
@@ -498,71 +498,73 @@ class MainWindow(QWidget):
         self.setWindowTitle("CityBeach Ancona | Prenotazioni")
         if not self.isMaximized():
             self.center_window()
+        try:
+            main_layout, center_text, table, book_btn, del_book_btn,back_btn = view_booking_ui_layout(list(self.bookings_controller.bookings.values()))
+            def cancel_booking():
+                if self.selected_booking is None:
+                    return False
+                if self.selected_booking.state == BookingState.REGISTERED:
+                    self.selected_booking.state = BookingState.CANCELLED
+                elif self.selected_booking.state == BookingState.CANCELLED:
+                    self.selected_booking.state = BookingState.REGISTERED
 
-        main_layout, center_text, table, book_btn, del_book_btn,back_btn = view_booking_ui_layout(list(self.bookings_controller.bookings.values()))
-        def cancel_booking():
-            if self.selected_booking is None:
-                return False
-            if self.selected_booking.state == BookingState.REGISTERED:
-                self.selected_booking.state = BookingState.CANCELLED
-            elif self.selected_booking.state == BookingState.CANCELLED:
-                self.selected_booking.state = BookingState.REGISTERED
-
-            self.model.save_to_file("data.pkl")
-            self.init_bookings_ui()
-            return True
-
-        def table_on_item_selected():
-            selected_booking = table.selectedItems()
-            if selected_booking and selected_booking.__len__() == 1:
-                row = selected_booking[0].row()
-                bk_item = table.item(row,0)
-                if not bk_item:
-                    return
-                self.selected_booking = self.bookings_controller.bookings[int(bk_item.text())]
-                if self.selected_booking.state in (BookingState.REGISTERED,BookingState.CANCELLED):
-                    del_book_btn.setStyleSheet(style_QButton_white_16Gotham)
-                    del_book_btn.setEnabled(True)
-                    if self.selected_booking.state == BookingState.CANCELLED:
-                        del_book_btn.setText("Attiva Prenotazione")
-                    else:
-                        del_book_btn.setText("Annulla Prenotazione")
-            else:
-                self.selected_booking = None
-                del_book_btn.setStyleSheet(style_QButton_disabled_16)
-                del_book_btn.setEnabled(False)
-
-        def show_add_booking_ui():
-            dlg = add_booking_ui(bookingController=self.bookings_controller,fields_list=list(self.fields_controller.fields.values()),
-                                 lockers_list=list(self.lockers_controller.lockers.values()),players_list=list(self.players_controller.players.values()),
-                                 currentUser=self.users_controller.current_user, se_list=list(self.sport_equipment_controller.equipment.values()))
-            if dlg.exec():
-                self.model.bookings_next_id = self.bookings_controller.booking_id
                 self.model.save_to_file("data.pkl")
                 self.init_bookings_ui()
-        def open_player_profile():
-            #@TODO: Fix this
-            return
-            try:
-                player = self.players_controller.players[self.selected_booking.player.id]
-                self.init_players_ui(player)
-            except Exception as e:
-                print(e)
-                QMessageBox.warning(self,"Giocatore non trovato","Il profilo del giocatore di questa prenotazione potrebbe essere stato eliminato")
+                return True
+
+            def table_on_item_selected():
+                selected_booking = table.selectedItems()
+                if selected_booking and selected_booking.__len__() == 1:
+                    row = selected_booking[0].row()
+                    bk_item = table.item(row,0)
+                    if not bk_item:
+                        return
+                    self.selected_booking = self.bookings_controller.bookings[int(bk_item.text())]
+                    if self.selected_booking.state in (BookingState.REGISTERED,BookingState.CANCELLED):
+                        del_book_btn.setStyleSheet(style_QButton_white_16Gotham)
+                        del_book_btn.setEnabled(True)
+                        if self.selected_booking.state == BookingState.CANCELLED:
+                            del_book_btn.setText("Attiva Prenotazione")
+                        else:
+                            del_book_btn.setText("Annulla Prenotazione")
+                else:
+                    self.selected_booking = None
+                    del_book_btn.setStyleSheet(style_QButton_disabled_16)
+                    del_book_btn.setEnabled(False)
+
+            def show_add_booking_ui():
+                dlg = add_booking_ui(bookingController=self.bookings_controller,fields_list=list(self.fields_controller.fields.values()),
+                                     lockers_list=list(self.lockers_controller.lockers.values()),players_list=list(self.players_controller.players.values()),
+                                     currentUser=self.users_controller.current_user, se_list=list(self.sport_equipment_controller.equipment.values()))
+                if dlg.exec():
+                    self.model.bookings_next_id = self.bookings_controller.booking_id
+                    self.model.save_to_file("data.pkl")
+                    self.init_bookings_ui()
+            def open_player_profile():
+                #@TODO: Fix this
                 return
+                try:
+                    player = self.players_controller.players[self.selected_booking.player.id]
+                    self.init_players_ui(player)
+                except Exception as e:
+                    print(e)
+                    QMessageBox.warning(self,"Giocatore non trovato","Il profilo del giocatore di questa prenotazione potrebbe essere stato eliminato")
+                    return
 
-        table.itemSelectionChanged.connect(table_on_item_selected)
-        table.itemDoubleClicked.connect(open_player_profile)
+            table.itemSelectionChanged.connect(table_on_item_selected)
+            table.itemDoubleClicked.connect(open_player_profile)
 
-        book_btn.clicked.connect(show_add_booking_ui)
-        del_book_btn.clicked.connect(cancel_booking)
-        center_text.setText(f"{self.users_controller.get_current_user().username}")
-        if not self.users_controller.get_current_user().is_admin:
-            center_text.setStyleSheet(style_text_red_on_white)
-        else:
-            center_text.setStyleSheet(style_text_white_on_red)
+            book_btn.clicked.connect(show_add_booking_ui)
+            del_book_btn.clicked.connect(cancel_booking)
+            center_text.setText(f"{self.users_controller.get_current_user().username}")
+            if not self.users_controller.get_current_user().is_admin:
+                center_text.setStyleSheet(style_text_red_on_white)
+            else:
+                center_text.setStyleSheet(style_text_white_on_red)
 
-        back_btn.clicked.connect(self.init_main_ui)
+            back_btn.clicked.connect(self.init_main_ui)
+        except Exception as e:
+            print(e)
         self.setLayout(main_layout)
 
     def init_restaurant_ui(self):

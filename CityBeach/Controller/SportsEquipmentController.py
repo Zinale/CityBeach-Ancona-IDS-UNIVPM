@@ -10,7 +10,6 @@ from Model.SportsCategory import *
 class AppSportsEquipmentController:
     def __init__(self, equipment: Dict[int, SportsEquipment] = None):
         self.equipment = equipment
-        #self.equipment_id = equipment_id
 
     def get_all_equipment(self) -> List[SportsEquipment]:
         return list(self.equipment.values())

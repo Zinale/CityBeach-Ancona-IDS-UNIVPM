@@ -37,6 +37,7 @@ class AppBookingsController:
     def register_booking(self,data,currentUser:User,lockersList:List[Locker], se_list: List[SportsEquipment])->bool and int:
         try:
             #validate data
+            se_needed = data["se"]
             if data["sport"] is None:
                 return False, 1
             sport = data["sport"]
@@ -95,16 +96,13 @@ class AppBookingsController:
                 self.bookings[self.booking_id].lockers_usage.extend(lockerRoomUsageFemale_list)
 
             missing_se = 0
-            if data["se"]:
+            if se_needed:
                 #check availability of sports equipment
                 new_se_list = []
-                print(se_list)
                 for se in list(se_list):
                     if se.sportCategory == sport:
-                        print("1")
-                        reserved = self.chechAvailabilitySEAtTimeSlot(se,date_obj,timeSlot)
+                        reserved = self.getReservedSEAtTimeSlot(se, date_obj, timeSlot)
                         if reserved <= se.quantity:
-                            print("2")
                             if se.equipmentType in (EquipmentType.PADEL_RACKETS,EquipmentType.BEACH_TENNIS_RACKETS):
                                 if se.quantity - reserved >= nPlayer:
                                     new_se_list.append(SportsEquipmentUsage(equipment=se,quantity=nPlayer))
@@ -127,19 +125,19 @@ class AppBookingsController:
                                     missing_se = 1
                 
                 self.bookings[self.booking_id].se_list = new_se_list
-                print(missing_se)
-                return True, missing_se
+            return True, missing_se
         except Exception as e:
             print(f"Messaggio: {e}")
             return False, -1
         
-    def chechAvailabilitySEAtTimeSlot(self,equipment:SportsEquipment,date:date,slot:int)->int:
+    def getReservedSEAtTimeSlot(self, equipment:SportsEquipment, date:date, slot:int)->int:
         matched_bookings = [b for b in self.bookings.values() if slot in [i.number for i in b.time.slots] and b.time.day == date and b.state in (BookingState.REGISTERED,BookingState.IN_PROGRESS,BookingState.COMPLETED)]
         count = 0
         for b in matched_bookings:
             for se in b.se_list:
                 if se.equipment.name == equipment.name:
                     count += se.quantity
+        #print(f"{equipment.name}: {count}")
         return count
 
     def checkAvailabilityFieldAtTimeSLot(self,field:Field,date:date,slot:int):

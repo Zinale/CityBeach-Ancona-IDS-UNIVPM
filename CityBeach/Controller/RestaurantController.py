@@ -23,7 +23,7 @@ class AppRestaurantController:
                 return False, 3
             prod = Product(name=name,productType=type,quantity=quantity,price=price)
             self.products.append(prod)
-            print(f"PRODOTTO: {prod}")
+            #print(f"PRODOTTO: {prod}")
             return True, 0
         except Exception as e:
             return False, -1

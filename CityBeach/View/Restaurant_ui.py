@@ -387,6 +387,7 @@ class OrdersOverviewDialog(QDialog):
         #self.setGeometry(200, 200, 700, 500)
         layout = QVBoxLayout(self)
         self.setWindowIcon(QIcon("src/img/logo.png"))
+        self.setFixedSize(700,500)
 
         self.tree = QTreeWidget()
         self.tree.setHeaderLabels(["Dettaglio", "Quantità", "Subtotale"])
@@ -403,7 +404,7 @@ class OrdersOverviewDialog(QDialog):
         self.tree.clear()
         for order_data in orders:
             order_item = QTreeWidgetItem(self.tree)
-            order_item.setText(0, f"Ordine #{order_data.id}")
+            order_item.setText(0, f"Ordine #{orders.index(order_data)+1}")
             order_item.setText(2, f"€ {order_data.total_price:.2f}")
             order_item.setFont(0, QFont("Arial", 11, QFont.Weight.Bold))
             timestamp = QTreeWidgetItem(order_item)

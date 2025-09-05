@@ -1,4 +1,4 @@
-from .AttrrezzaturaSportivaController import AppSportsEquipmentController
+from .SportsEquipmentController import AppSportsEquipmentController
 from .BookingsController import AppBookingsController
 from .FieldsController import AppFieldsController
 from .LockersController import AppLockersController
