@@ -7,7 +7,7 @@ style_input_bar_white = """
         background-color: #FFFFFF;
         color: #444444;
         border: 1px solid #CCCCCC;
-        border-radius: 6px;
+        border-radius: 14px;
         padding: 4px 12px;
     }
     QLineEdit:hover {
@@ -19,7 +19,7 @@ style_input_bar_red = """
         background-color: #E30613;
         color: #FFFFFF;
         border: 1px solid #B20510;
-        border-radius: 6px;
+        border-radius: 14px;
         padding: 4px 12px;
     }
     QLineEdit:hover {

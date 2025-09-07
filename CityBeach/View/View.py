@@ -57,6 +57,8 @@ class MainWindow(QWidget):
         self.selected_locker:Locker | None = None
         self.selected_field:Field | None = None
         self.selected_booking:Booking | None= None
+        self.delete_mode = False
+
 
         self.timerToUpdateBookings = QTimer()
         self.timerToUpdateBookings.timeout.connect(self.check_and_update_bookings)
@@ -156,7 +158,7 @@ class MainWindow(QWidget):
                 self.model.save_to_file("data.pkl")
                 self.init_dipendenti_ui()
         def del_dipendente():
-            if self.selected_user == None:
+            if self.selected_user is None:
                 return False
             status, err_id = self.users_controller.delete_user(self.selected_user)
             if status:
@@ -164,6 +166,7 @@ class MainWindow(QWidget):
                 self.model = AppData.load_from_file("data.pkl")
                 QMessageBox.information(self, "Rimosso", "Utente eliminato.")
                 self.init_dipendenti_ui()
+                return True
             else:
                 if err_id==1:
                     QMessageBox.warning(self, "Errore", "Non puoi eliminare il tuo account.")
@@ -171,6 +174,7 @@ class MainWindow(QWidget):
                     QMessageBox.critical(self, "Errore", "Errore")
                 elif err_id == 3:
                     QMessageBox.warning(self, "Errore", "Si è verificato un problema durante l'operazione.")
+                return False
 
         def table_on_item_selected():
             selected_items = table.selectedItems()
@@ -212,9 +216,14 @@ class MainWindow(QWidget):
         main_layout, back_btn, qty_btn, tree, center_text = view_attrezzaturaSportiva_ui_layout(self.sport_equipment_controller.get_all_equipment())
 
         def show_modify_quantity_ui():
-                dlg = modify_quantity_ui(tree=tree, controller=self.sport_equipment_controller)
-                if dlg.exec():
-                    self.init_sport_equipment_ui()
+            if not self.users_controller.get_current_user().is_admin:
+                QMessageBox.critical(self, "Errore", "Solo un amministratore può modificare le quantità degli strumenti di gioco")
+                return False
+            dlg = modify_quantity_ui(tree=tree, controller=self.sport_equipment_controller)
+            if dlg.exec():
+                self.init_sport_equipment_ui()
+                return True
+            return False
                     
 
         # att_btn.clicked.connect(show_add_attrezzatura_ui)
@@ -247,11 +256,14 @@ class MainWindow(QWidget):
                     self.model = AppData.load_from_file("data.pkl")
                     QMessageBox.information(self, "Rimosso", f"Il profilo di {self.selected_player.name} {self.selected_player.surname} è stato rimosso")
                     self.init_players_ui()
+                    return True
                 else:
                     if err_id==1:
                         QMessageBox.critical(self, "Errore", "Errore")
                     elif err_id == 2:
                         QMessageBox.warning(self, "Errore", "Si è verificato un problema durante l'operazione.")
+            return False
+
         def show_edit_player_ui():
             #phase = 0 -> register
             #phase = 1 -> edit player
@@ -448,9 +460,12 @@ class MainWindow(QWidget):
             except Exception as e:
                 print(e)
         def open_stats_window():
+            if not self.users_controller.get_current_user().is_admin:
+                QMessageBox.critical(self, "Errore", "Solo un amministratore può visualizzare le statistiche")
+                return False
             self.window_stats = StatsWindow(self.bookings_controller)
             self.window_stats.show()
-            return
+            return True
 
         view_graphs_btn.clicked.connect(open_stats_window)
         treeFields.itemSelectionChanged.connect(item_on_tree_field_selected)
@@ -576,18 +591,32 @@ class MainWindow(QWidget):
         if not self.isMaximized():
             self.center_window()
         def show_add_product_ui():
+            if  not self.users_controller.get_current_user().is_admin:
+                QMessageBox.critical(self, "Errore","Solo un amministratore può aggiungere nuovi prodotti")
+                return False
             dlg = add_product_ui(controller=self.restaurant_controller,prod_list=self.restaurant_controller.products)
             if dlg.exec():
                 self.model.save_to_file("data.pkl")
                 self.init_restaurant_ui()
+                return True
+            return False
         def change_delete_mode():
+            if not self.users_controller.get_current_user().is_admin:
+                QMessageBox.critical(self, "Errore", "Solo un amministratore può eliminare i prodotti del magazzino")
+                return False
             self.delete_mode = not self.delete_mode
             del_prod.setStyleSheet(style_QButton_red_17Gotham if self.delete_mode else style_QButton_white_17Gotham)
+            return True
         def show_edit_qty_ui():
+            if  not self.users_controller.get_current_user().is_admin:
+                QMessageBox.critical(self, "Errore","Solo un amministratore può cambiare la quantità dei prodotti")
+                return False
             dlg = edit_qty_product_ui(self.restaurant_controller.products,self.restaurant_controller.get_product_by_name,self.restaurant_controller.edit_product)
             if dlg.exec():
                 self.model.save_to_file("data.pkl")
                 self.init_restaurant_ui()
+                return True
+            return False
         def show_history_ui():
             dlg = OrdersOverviewDialog(self.restaurant_controller.orders)
             dlg.exec()

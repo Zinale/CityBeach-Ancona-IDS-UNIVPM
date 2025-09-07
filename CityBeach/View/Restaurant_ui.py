@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QHBoxLayout, QVBoxLayout,
     QPushButton, QGridLayout, QLabel, QTableWidget, QTableWidgetItem,
     QHeaderView, QDialog, QTreeWidget, QTreeWidgetItem, QSizePolicy, QFormLayout, QLineEdit, QComboBox, QSpinBox,
-    QDoubleSpinBox, QMessageBox
+    QDoubleSpinBox, QMessageBox, QCheckBox
 )
 from PyQt6.QtCore import Qt
 from typing import List
@@ -28,8 +28,23 @@ def view_restaurant_ui_layout(products_list:List[Product],delete_mode,remove_pro
     #main_widget = QWidget()
     mid_layout = QHBoxLayout()
     products_widget = QWidget()
-    products_grid = QGridLayout(products_widget)
+
+    products_layout = QVBoxLayout(products_widget)
+    products_grid = QGridLayout()
+    products_layout.addLayout(products_grid)
+
+    search_bar = QLineEdit()
+    search_bar.setPlaceholderText("Cerca prodotto...")
+    search_bar.setFixedHeight(35)
+    search_bar.setStyleSheet(style_input_bar_white)
+    products_layout.addStretch(1)
+    products_layout.addWidget(search_bar)
     current_order={}
+
+    category_active = None
+    last_clicked = None
+    filter_combo_box = QComboBox()
+    filter_check_box = QCheckBox("Filtra")
 
     def update_order_table():
         order_table.setRowCount(0)
@@ -45,16 +60,15 @@ def view_restaurant_ui_layout(products_list:List[Product],delete_mode,remove_pro
             order_table.setItem(row_pos, 2, QTableWidgetItem(f"€ {subtotal:.2f}"))
         total_label.setText(f"TOTALE: € {total:.2f}")
     
-    def add_to_order(product_name):
-        prod = get_prod_by_name(product_name)
+    def add_to_order(prod):
         if prod and prod.quantity > 0:
-            if product_name in current_order:
-                if current_order[product_name]["qty"] < prod.quantity:
-                    current_order[product_name]["qty"] += 1
+            if prod.name in current_order:
+                if current_order[prod.name]["qty"] < prod.quantity:
+                    current_order[prod.name]["qty"] += 1
             else:
-                current_order[product_name] = {"qty": 1, "price":[p.price for p in products_list if p.name==product_name][0]}
+                current_order[prod.name] = {"qty": 1, "price":[p.price for p in products_list if p.name==prod.name][0]}
             update_order_table()
-        return
+        return True
 
     def complete_order():
         if not current_order:
@@ -70,6 +84,10 @@ def view_restaurant_ui_layout(products_list:List[Product],delete_mode,remove_pro
         return
 
     def display_products(category,clicked):
+        nonlocal category_active
+        category_active= category
+        nonlocal last_clicked
+        last_clicked= clicked
         for btn in categoryButtons:
             if btn == clicked:
                 btn.setStyleSheet(style_QButton_red_17Gotham)
@@ -79,17 +97,35 @@ def view_restaurant_ui_layout(products_list:List[Product],delete_mode,remove_pro
             widget = products_grid.itemAt(i).widget()
             if widget is not None:
                 widget.setParent(None)
-        def check_if_add_or_delete(prod):
-            if delete_mode():
-                if remove_product(prod):
-                    display_products(category,clicked)
+        def check_if_add_or_delete(prod:Product):
+            if delete_mode() :
+                if not prod.isAvailable():
+                    if remove_product(prod):
+                        display_products(category,clicked)
+                else:
+                    msg = QMessageBox()
+                    msg.setIcon(QMessageBox.Icon.Warning)
+                    msg.setWindowTitle("Eliminazione prodotto")
+                    msg.setWindowIcon(QIcon("src/img/logo.png"))
+                    msg.setText("Non puoi eliminare un prodotto che è presente in magazzino (quantità > 0).")
+                    msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+                    msg.exec()
             else:
                 add_to_order(prod)
 
-        products =[p.name  for p in products_list if p.type.value==category]
+        products =[p for p in products_list if p.type.value==category]
         row, col = 0, 0
         for product in products:
-            btn = QPushButton(product)
+            if filter_check_box.isChecked():
+                if filter_combo_box.currentIndex() == 0:
+                    if not product.isAvailable():
+                        continue
+                elif filter_combo_box.currentIndex() == 1:
+                    if product.isAvailable():
+                        continue
+            if search_bar.text().strip().lower() not in product.name.lower():
+                continue
+            btn = QPushButton(product.name)
             btn.setMinimumSize(120, 80)
             btn.setStyleSheet(style_products_button)
             btn.clicked.connect(lambda ch, p=product: check_if_add_or_delete(p))
@@ -117,8 +153,7 @@ def view_restaurant_ui_layout(products_list:List[Product],delete_mode,remove_pro
 
     categories_layout.addStretch()
     history_btn = QPushButton("Storico Ordini")
-    history_btn.setMinimumHeight(50)
-   # history_btn.clicked.connect(show_orders_overview)
+    history_btn.setMinimumHeight(35)
     history_btn.setStyleSheet(style_QButton_white)
     categories_layout.addWidget(history_btn)
 
@@ -159,8 +194,6 @@ def view_restaurant_ui_layout(products_list:List[Product],delete_mode,remove_pro
     mid_layout.addWidget(order_widget)
     main_layout.addLayout(mid_layout)
 
-    btn_bar = QHBoxLayout()
-
     #-----------------BUTTONS BAR---------------
     hLayoutBtn = QHBoxLayout()
     #add quantity btn
@@ -168,6 +201,18 @@ def view_restaurant_ui_layout(products_list:List[Product],delete_mode,remove_pro
     qty_btn.setStyleSheet(style_QButton_white)
     qty_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
     hLayoutBtn.addWidget(qty_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
+    filter_check_box.setStyleSheet(style_check_box)
+    filter_combo_box.addItems(["Disponibili","Non disponibili"])
+    filter_combo_box.setCurrentIndex(0)
+    filter_combo_box.setStyleSheet(style_app_Dialogs)
+    filter_check_box.stateChanged.connect(lambda c: display_products(category_active,last_clicked))
+    filter_combo_box.currentIndexChanged.connect(lambda c: display_products(category_active,last_clicked))
+    filter_check_box.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
+    filter_combo_box.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
+    hLayoutBtn.addWidget(filter_check_box)
+    hLayoutBtn.addWidget(filter_combo_box)
+    search_bar.textChanged.connect(lambda text: display_products(category_active, last_clicked))
+
     hLayoutBtn.addStretch(1)
     # add Product btn
     add_prod = QPushButton("Aggiungi Prodotto")

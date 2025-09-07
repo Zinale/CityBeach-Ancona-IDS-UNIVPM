@@ -17,8 +17,8 @@ class Product:
         self.quantity = quantity
         self.price= price
         
-    def isAvailable (self):  
-        if self.quantity>0 : 
+    def isAvailable (self):
+        if self.quantity>0:
             return True
         return False
     def __str__(self):
