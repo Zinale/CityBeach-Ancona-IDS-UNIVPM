@@ -256,7 +256,7 @@ def view_restaurant_ui_layout(products_list:List[Product],delete_mode,remove_pro
     main_layout.addLayout(bottom_bar)
 
 
-    return main_layout, back_btn, qty_btn, history_btn, add_prod, del_prod
+    return main_layout, back_btn, qty_btn, history_btn, add_prod, del_prod, center_text
 
 class add_product_ui(QDialog):
     def __init__(self, controller:AppRestaurantController, prod_list:List[Product]):

@@ -398,17 +398,27 @@ class MainWindow(QWidget):
                         QMessageBox.warning(self, "Errore", "Si è verificato un problema durante l'operazione.")
 
         def show_add_field_ui():
+            if not self.users_controller.get_current_user().is_admin:
+                QMessageBox.critical(self, "Errore","Solo un amministratore può creare Campi da Gioco")
+                return False
             dlg = add_field_ui(fieldController=self.fields_controller,currentUser=self.users_controller.current_user)
             if dlg.exec():
                 self.model.fields_next_id = self.fields_controller.field_id
                 self.model.save_to_file("data.pkl")
                 self.init_fields_lockers_static_ui()
+                return True
+            return False
         def show_add_locker_ui():
+            if not self.users_controller.get_current_user().is_admin:
+                QMessageBox.critical(self, "Errore","Solo un amministratore può aggiungere Spogliatoi")
+                return False
             dlg = info_locker_ui(self.lockers_controller,phase=0,currentUser=self.users_controller.current_user)
             if dlg.exec():
                 self.model.lockers_next_id = self.lockers_controller.locker_id
                 self.model.save_to_file("data.pkl")
                 self.init_fields_lockers_static_ui()
+                return True
+            return False
         def show_edit_locker_ui():
             dlg = info_locker_ui(lockersController=self.lockers_controller,phase=1,locker_to_edit=self.selected_locker)
             if dlg.exec():
@@ -620,12 +630,17 @@ class MainWindow(QWidget):
         def show_history_ui():
             dlg = OrdersOverviewDialog(self.restaurant_controller.orders)
             dlg.exec()
-        main_layout, back_btn, qty_btn, history_btn, add_prod, del_prod = view_restaurant_ui_layout(self.restaurant_controller.products,lambda :self.delete_mode,self.restaurant_controller.remove_product, self.restaurant_controller.get_product_by_name, self.restaurant_controller.finalize_order)
+        main_layout, back_btn, qty_btn, history_btn, add_prod, del_prod, center_text = view_restaurant_ui_layout(self.restaurant_controller.products,lambda :self.delete_mode,self.restaurant_controller.remove_product, self.restaurant_controller.get_product_by_name, self.restaurant_controller.finalize_order)
         back_btn.clicked.connect(self.init_main_ui)
         add_prod.clicked.connect(show_add_product_ui)
         del_prod.clicked.connect(change_delete_mode)
         qty_btn.clicked.connect(show_edit_qty_ui)
         history_btn.clicked.connect(show_history_ui)
+        center_text.setText(f"{self.users_controller.get_current_user().username}")
+        if not self.users_controller.get_current_user().is_admin:
+            center_text.setStyleSheet(style_text_red_on_white)
+        else:
+            center_text.setStyleSheet(style_text_white_on_red)
 
         self.setLayout(main_layout)
 

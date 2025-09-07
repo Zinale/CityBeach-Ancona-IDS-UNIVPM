@@ -43,9 +43,9 @@ class UserTestCase(unittest.TestCase):
         success = self.user_controller.register(data=self.data_MarioRossi,password="")
         self.assertTrue(success)
         success=(self.user_controller.edit_user(user_id=self.user_controller.user_id,new_name="Mario",
-                                                 new_gender=Gender.MALE,new_surname="Rossi",
-                                                 new_birthday=date(2025,1,1).strftime("%d/%m/%Y"),
-                                                 new_password="mRoss25",new_username="MRoss1"))
+            new_gender=Gender.MALE,new_surname="Rossi",
+            new_birthday=date(2025,1,1).strftime("%d/%m/%Y"),
+            new_password="mRoss25",new_username="MRoss1"))
         self.assertTrue(success)
         self.user_controller.logout()
         new_login = self.user_controller.login("MRoss1","mRoss25")
@@ -62,7 +62,7 @@ class UserTestCase(unittest.TestCase):
 
         not_success, state = self.user_controller.delete_user(self.user_controller.get_current_user())
         self.assertFalse(not_success)
-        self.assertEqual(state,1)       #you can't delete yourself
+        self.assertEqual(state,1)
 
 
 
