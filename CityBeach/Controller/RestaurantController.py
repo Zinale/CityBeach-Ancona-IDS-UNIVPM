@@ -65,3 +65,18 @@ class AppRestaurantController:
         except Exception as e:
             print(f"Errore finalizzazione ordine: {e}")
             return False
+
+    def delete_order(self,order_number:int,reinset:bool):
+        try:
+            if reinset:
+                order = self.orders[order_number-1]
+                for prod in order.items.keys():
+                    try:
+                        prod.quantity+=order.items[prod]
+                    except Exception:
+                        continue
+            del self.orders[order_number - 1]
+            return True
+        except Exception as e:
+            print(e)
+            return False

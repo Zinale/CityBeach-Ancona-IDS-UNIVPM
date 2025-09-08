@@ -89,7 +89,6 @@ CityBeach/
 │   ├── RestaurantTestCase.py
 │   └── UserTestCase.py
 └── View/
-    ├── AttrezzaturaSportiva_ui.py
     ├── Booking_ui.py
     ├── DateTimeLabel.py
     ├── Employee_ui.py
@@ -98,6 +97,7 @@ CityBeach/
     ├── Main_ui.py
     ├── Player_ui.py
     ├── Restaurant_ui.py
+    ├── SportEquipment_ui.py
     ├── styles.py
     ├── topBar.py
     └── View.py
@@ -135,28 +135,28 @@ Al primo avvio utilizzare le credenziali predefinite:
 
 ### 📋 Pannelli Funzionali
 
-- **Employees Panel**  
+- **Area Dipendenti**  
   Gestione di tutti gli utenti del sistema (staff e non staff).  
   - Alla creazione di un nuovo utente, la password è vuota (`""`).  
   - L’amministratore può modificare un utente e reimpostarne la password, ma non recuperarla.
 
-- **Players Panel**  
+- **Area Giocatori**  
   Gestione dei profili giocatori.  
   Per effettuare una prenotazione è necessario selezionare un giocatore registrato.
 
-- **Fields & Lockers Panel**  
+- **Area Campi da Gioco e Spogliatoi**  
   Gestione dei campi e degli spogliatoi disponibili.  
   - **Vista statica:** panoramica completa con caratteristiche principali e grafici statistici.  
   - **Vista dinamica:** selezione data → visualizzazione stato campi/spogliatoi per ogni fascia oraria.  
 
   > Sport supportati: Beach Volley, Padel, Beach Tennis
 
-- **Bookings Panel**  
+- **Area Prenotazioni**  
   Creazione nuove prenotazioni (**solo da oggi in poi**).  
   Stato aggiornato automaticamente:  
   📅 **REGISTERED → IN PROGRESS → COMPLETED**  
 
-- **Restaurant Panel (Area Ristoro)**  
+- **Area Ristorante**  
   Gestione dei prodotti divisi per categoria:  
   - 🥤 Bevande  
   - 🍷 Alcol  
@@ -167,7 +167,7 @@ Al primo avvio utilizzare le credenziali predefinite:
 
 ---
 
-## 💻 Some Mockup
+## 💻 Mockup di Esempio
 <p align="center">
   <table>
     <tr>

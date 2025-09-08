@@ -73,14 +73,13 @@ def view_restaurant_ui_layout(products_list:List[Product],delete_mode,remove_pro
     def complete_order():
         if not current_order:
             return
-        
         data = {}
-
         for product_name in current_order:
             data[get_prod_by_name(product_name)] = current_order[product_name]["qty"]
 
         if finalize_order(data):
             clear_order()
+            display_products(category_active,last_clicked)
         return
 
     def display_products(category,clicked):
@@ -125,7 +124,7 @@ def view_restaurant_ui_layout(products_list:List[Product],delete_mode,remove_pro
                         continue
             if search_bar.text().strip().lower() not in product.name.lower():
                 continue
-            btn = QPushButton(product.name)
+            btn = QPushButton(f"{product.name}\n{product.quantity}")
             btn.setMinimumSize(120, 80)
             btn.setStyleSheet(style_products_button)
             btn.clicked.connect(lambda ch, p=product: check_if_add_or_delete(p))
@@ -426,24 +425,67 @@ class edit_qty_product_ui(QDialog):
         self.setLayout(main_layout)
 
 class OrdersOverviewDialog(QDialog):
-    def __init__(self, orders):
+    def __init__(self, orders:List[Order],can_delete_orders:bool,delete_order_funct):
         super().__init__()
         self.setWindowTitle("Storico Ordini")
-        #self.setGeometry(200, 200, 700, 500)
         layout = QVBoxLayout(self)
         self.setWindowIcon(QIcon("src/img/logo.png"))
-        self.setFixedSize(700,500)
+        self.setFixedSize(600, 450)
 
         self.tree = QTreeWidget()
         self.tree.setHeaderLabels(["Dettaglio", "Quantità", "Subtotale"])
         self.tree.setColumnWidth(0, 350)
         self.populate_tree(orders)
         layout.addWidget(self.tree)
+
+        button_layout = QHBoxLayout()
+        self.delete_button = QPushButton("Elimina Ordine")
+        self.delete_button.setEnabled(False)
+        self.delete_button.setStyleSheet(style_QButton_disabled_16)
+        button_layout.addWidget(self.delete_button)
+
         close_button = QPushButton("Chiudi")
         close_button.clicked.connect(self.accept)
-        close_button.setStyleSheet(style_QButton_white)
-        layout.addWidget(close_button)
+        close_button.setStyleSheet(style_QButton_white_16Gotham)
+        button_layout.addWidget(close_button)
+
+        layout.addLayout(button_layout)
+
         self.setStyleSheet(style_app_Dialogs)
+        self.can_delete_orders = can_delete_orders
+
+        def update_delete_button_state():
+            selected = self.tree.selectedItems()
+            if selected:
+                self.delete_button.setEnabled(True)
+                self.delete_button.setStyleSheet(style_QButton_red_16Gotham)
+            else:
+                self.delete_button.setEnabled(False)
+                self.delete_button.setStyleSheet(style_QButton_disabled_16)
+            return
+        def delete_order():
+            if not can_delete_orders:
+                QMessageBox.warning(self, "Errore", "Solo un amministratore può eliminare un ordine salvato in memoria.")
+                return False
+            selected = self.tree.selectedItems()
+            if selected:
+                item = selected[0]
+                has_parent = item.parent() is None      #true if the topLevel, else False
+                if not has_parent:
+                    item = item.parent()        #to get TopLevel
+                order_number = int(item.text(0).replace("Ordine #",""))
+                reply = QMessageBox.question(self,"Reinserimento prodotti",
+                    "Vuoi reinserire i prodotti nell'inventario?",
+                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                    QMessageBox.StandardButton.No)
+                reinsert = (reply == QMessageBox.StandardButton.Yes)
+                delete_order_funct(order_number,reinsert)
+                self.populate_tree(orders)
+
+            return
+
+        self.tree.itemSelectionChanged.connect(update_delete_button_state)
+        self.delete_button.clicked.connect(delete_order)
 
     def populate_tree(self, orders:List[Order]):
         self.tree.clear()
@@ -462,5 +504,4 @@ class OrdersOverviewDialog(QDialog):
                 product_item.setText(0, f"  - {product.name}")
                 product_item.setText(1, str(qty))
                 product_item.setText(2, f"€ {subtotal:.2f}")
-
             order_item.setExpanded(True)

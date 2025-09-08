@@ -89,7 +89,6 @@ CityBeach/
 │   ├── RestaurantTestCase.py
 │   └── UserTestCase.py
 └── View/
-    ├── AttrezzaturaSportiva_ui.py
     ├── Booking_ui.py
     ├── DateTimeLabel.py
     ├── Employee_ui.py
@@ -98,6 +97,7 @@ CityBeach/
     ├── Main_ui.py
     ├── Player_ui.py
     ├── Restaurant_ui.py
+    ├── SportEquipment_ui.py
     ├── styles.py
     ├── topBar.py
     └── View.py

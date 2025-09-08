@@ -12,7 +12,7 @@ from .Login_ui import *
 from .Main_ui import *
 from .Player_ui import *
 from .styles import *
-from .AttrezzaturaSportiva_ui import *
+from .SportEquipment_ui import *
 from .topBar import *
 import os
 
@@ -628,8 +628,12 @@ class MainWindow(QWidget):
                 return True
             return False
         def show_history_ui():
-            dlg = OrdersOverviewDialog(self.restaurant_controller.orders)
-            dlg.exec()
+            dlg = OrdersOverviewDialog(self.restaurant_controller.orders,self.users_controller.get_current_user().is_admin,self.restaurant_controller.delete_order)
+            if dlg.exec():
+                self.model.save_to_file("data.pkl")
+                self.init_restaurant_ui()
+                return True
+            return False
         main_layout, back_btn, qty_btn, history_btn, add_prod, del_prod, center_text = view_restaurant_ui_layout(self.restaurant_controller.products,lambda :self.delete_mode,self.restaurant_controller.remove_product, self.restaurant_controller.get_product_by_name, self.restaurant_controller.finalize_order)
         back_btn.clicked.connect(self.init_main_ui)
         add_prod.clicked.connect(show_add_product_ui)

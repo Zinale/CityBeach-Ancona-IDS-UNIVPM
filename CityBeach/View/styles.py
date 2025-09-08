@@ -107,6 +107,20 @@ style_QButton_red_17Gotham = """
         border: 2px solid #E30613;
     }
 """
+style_QButton_red_16Gotham = """
+    QPushButton {
+        font-family: Gotham; font-size: 16pt;
+        background-color: #E30613;
+        color: #ffffff;
+        border: 1px solid #E30613;
+        border-radius: 14px;
+        padding: 6px 20px;
+    }
+    QPushButton:hover {
+        background-color: #B20510;
+        border: 2px solid #E30613;
+    }
+"""
 style_QButton_enabled = """
     QPushButton {
         font-family: Gotham; font-size: 18pt;
