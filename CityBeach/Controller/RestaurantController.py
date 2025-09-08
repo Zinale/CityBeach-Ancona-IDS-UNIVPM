@@ -39,12 +39,13 @@ class AppRestaurantController:
     def remove_product(self,product):
         try:
             if type(product)==str:
-                prod = self.get_product_by_name(product)
-            if prod.quantity > 0:
+                product = self.get_product_by_name(product)
+            if product.quantity > 0:
                 return False
             self.products.remove(product)
             return True
-        except:
+        except Exception as e:
+            print(e)
             return False
 
     def get_product_by_name(self,name:str)-> Product:
