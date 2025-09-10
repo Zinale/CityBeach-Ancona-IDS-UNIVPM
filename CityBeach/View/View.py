@@ -154,9 +154,16 @@ class MainWindow(QWidget):
             if not self.selected_user:
                 return
             dlg = edit_user_ui(user_to_edit=self.selected_user, controller_user=self.users_controller)
+            nonlocal table
+            table.clearSelection()
             if dlg.exec():
-                self.model.save_to_file("data.pkl")
-                self.init_dipendenti_ui()
+                try:
+                    table = updateTableEmployees(table,list(self.users_controller.users.values()))
+                    self.selected_user = None
+                    self.model.save_to_file("data.pkl")
+                    #self.init_dipendenti_ui()
+                except Exception as E:
+                    print(e)
         def del_dipendente():
             if self.selected_user is None:
                 return False
@@ -232,121 +239,116 @@ class MainWindow(QWidget):
         self.setLayout(main_layout)
 
     def init_players_ui(self,player:Player = None):
-        self.clear_layout()
-        self.setStyleSheet("background-color: #FFF0E6;")
-        self.selected_player = None
-        self.setWindowTitle("CityBeach Ancona | Giocatori")
-        if not self.isMaximized():
-            self.center_window()
-        (main_layout, center_text, table, label_name, label_surname, label_eta, label_created_when,label_created_by, label_city,label_bookings,label_book_lastMonth, label_fav_time,
-         label_fav_sport, label_avg_n_player, add_play_btn, del_play_btn, back_btn)= view_players_ui_layout(list(self.players_controller.players.values()))
-        labels = (label_name,label_surname,label_eta,label_created_when,label_created_by,label_city,label_bookings,label_book_lastMonth,label_fav_time,label_fav_sport,label_avg_n_player)
-        for lab in labels:
-            lab.setText("")
-
-        def del_player():
-            if self.selected_player is None or not self.users_controller.get_current_user().is_admin:
-                QMessageBox.critical(self, "Errore","Solo un amministratore può rimuovere i giocatori")
+        try:
+            self.clear_layout()
+            self.setStyleSheet("background-color: #FFF0E6;")
+            self.selected_player = None
+            self.selected_user = None
+            self.selected_booking = None
+            self.setWindowTitle("CityBeach Ancona | Giocatori")
+            if not self.isMaximized():
+                self.center_window()
+            (main_layout, center_text, table, label_name, label_surname, label_eta, label_created_when,label_created_by, label_city,label_bookings,label_book_lastMonth, label_fav_time,
+             label_fav_sport, label_avg_n_player, add_play_btn, del_play_btn, back_btn) = view_players_ui_layout(list(self.players_controller.players.values()))
+            labels = (label_name,label_surname,label_eta,label_created_when,label_created_by,label_city,label_bookings,label_book_lastMonth,label_fav_time,label_fav_sport,label_avg_n_player)
+            for lab in labels:
+                lab.setText("")
+            def del_player():
+                if self.selected_player is None or not self.users_controller.get_current_user().is_admin:
+                    QMessageBox.critical(self, "Errore","Solo un amministratore può rimuovere i giocatori")
+                    return False
+                confirm = self.confirmDeletePlayer()
+                if confirm:
+                    status, err_id = self.players_controller.delete_player(self.selected_player)
+                    if status:
+                        self.model.save_to_file("data.pkl")
+                        self.model = AppData.load_from_file("data.pkl")
+                        QMessageBox.information(self, "Rimosso", f"Il profilo di {self.selected_player.name} {self.selected_player.surname} è stato rimosso")
+                        self.init_players_ui()
+                        return True
+                    else:
+                        if err_id==1:
+                            QMessageBox.critical(self, "Errore", "Errore")
+                        elif err_id == 2:
+                            QMessageBox.warning(self, "Errore", "Si è verificato un problema durante l'operazione.")
                 return False
-            confirm = self.confirmDeletePlayer()
-            if confirm:
-                status, err_id = self.players_controller.delete_player(self.selected_player)
-                if status:
-                    self.model.save_to_file("data.pkl")
-                    self.model = AppData.load_from_file("data.pkl")
-                    QMessageBox.information(self, "Rimosso", f"Il profilo di {self.selected_player.name} {self.selected_player.surname} è stato rimosso")
-                    self.init_players_ui()
-                    return True
-                else:
-                    if err_id==1:
-                        QMessageBox.critical(self, "Errore", "Errore")
-                    elif err_id == 2:
-                        QMessageBox.warning(self, "Errore", "Si è verificato un problema durante l'operazione.")
-            return False
 
-        def show_edit_player_ui():
-            #phase = 0 -> register
-            #phase = 1 -> edit player
-            #print(self.selected_player.id)
-            dlg = info_Player_ui(phase=1,player_to_edit = self.selected_player,playerController=self.players_controller)
-            if dlg.exec():
-                self.model.save_to_file("data.p"
-                                        "kl")
-                self.init_players_ui()
-        def table_on_item_selected():
-            selected_player = table.selectedItems()
+            def show_add_player_ui():
+                dlg = info_Player_ui(phase=0, playerController=self.players_controller,
+                                     currentUser=self.users_controller.current_user)
+                if dlg.exec():
+                    self.model.players_next_id = self.players_controller.player_id
+                    self.model.save_to_file("data.pkl")
+                    self.init_players_ui()
+
+            def show_edit_player_ui():
+                #phase = 0 -> register
+                #phase = 1 -> edit player
+                #print(self.selected_player.id)
+                dlg = info_Player_ui(phase=1,player_to_edit = self.selected_player,playerController=self.players_controller)
+                nonlocal table
+                table.clearSelection()
+                if dlg.exec():
+                    try:
+                        self.selected_player=None
+                        self.model.save_to_file("data.pkl")
+                        table = updateTablePlayers(table, list(self.players_controller.players.values()))
+                        #self.init_players_ui()
+                    except Exception as e:
+                        print(e)
+
+            def table_on_item_selected():
+                selected_player = table.selectedItems()
+                try:
+                    if selected_player and selected_player.__len__() == 1:
+                        row = selected_player[0].row()
+                        player_item = table.item(row, 4)  # email
+                        if not player_item or not player_item.text():
+                            self.selected_player = None
+                            return
+                        self.selected_player = self.players_controller.findByEmail(player_item.text()) #find by email
+                        del_play_btn.setStyleSheet(style_QButton_white_17Gotham)
+                        del_play_btn.setEnabled(True)
+                        #UPDATE STATS
+                        label_name.setText(self.selected_player.name.upper())
+                        label_surname.setText(self.selected_player.surname.upper())
+                        label_eta.setText(f"Età: {self.selected_player.get_age()}")
+                        label_created_when.setText(f"Registrato il: {self.selected_player.data_created.date()}")
+                        label_created_by.setText(f"Registrato da: {self.selected_player.added_by}")
+                        label_city.setText(f"Città: {self.selected_player.residence}")
+                        label_bookings.setText(f"Prenotazioni: {len([b for b in self.bookings_controller.bookings.values() if b.player == self.selected_player])}")
+                        label_book_lastMonth.setText(f"Pren. questo mese: {len([b for b in self.bookings_controller.bookings.values() if b.player == self.selected_player and b.time.day.month == date.today().month])}")
+                        label_fav_sport.setText(f"Sport Preferito: {self.bookings_controller.getFavoriteSport(self.selected_player)}")
+                        label_fav_time.setText(f"Orario Preferito: {self.bookings_controller.getFavoriteTime(self.selected_player)}")
+                        label_avg_n_player.setText(f"Media pers/pren: {self.bookings_controller.getAvgPersonForBooking(self.selected_player)}")
+                    else:
+                        self.selected_player = None
+                        del_play_btn.setStyleSheet(style_QButton_disabled)
+                        del_play_btn.setEnabled(False)
+                        for lab in labels:
+                            lab.setText("")
+                except Exception as e:
+                    print(e)
+
+            table.itemDoubleClicked.connect(show_edit_player_ui)
+
+            add_play_btn.clicked.connect(show_add_player_ui)
+
+            del_play_btn.clicked.connect(del_player)
+            center_text.setText(f"{self.users_controller.get_current_user().username}")
+            if not self.users_controller.get_current_user().is_admin:
+                center_text.setStyleSheet(style_text_red_on_white)
+            else:
+                center_text.setStyleSheet(style_text_white_on_red)
+            back_btn.clicked.connect(self.init_main_ui)
+            table.itemSelectionChanged.connect(table_on_item_selected)
             try:
-                if selected_player and selected_player.__len__() == 1:
-                    row = selected_player[0].row()
-                    player_item = table.item(row,4) #email
-                    if not player_item:
-                        return
-                    self.selected_player = self.players_controller.findByEmail(player_item.text()) #find by email
-                    del_play_btn.setStyleSheet(style_QButton_white_17Gotham)
-                    del_play_btn.setEnabled(True)
-                    #UPDATE STATS
-                    label_name.setText(self.selected_player.name.upper())
-                    label_surname.setText(self.selected_player.surname.upper())
-                    label_eta.setText(f"Età: {self.selected_player.get_age()}")
-                    label_created_when.setText(f"Registrato il: {self.selected_player.data_created.date()}")
-                    label_created_by.setText(f"Registrato da: {self.selected_player.added_by}")
-                    label_city.setText(f"Città: {self.selected_player.residence}")
-                    label_bookings.setText(f"Prenotazioni: {len([b for b in self.bookings_controller.bookings.values() if b.player == self.selected_player])}")
-                    label_book_lastMonth.setText(f"Pren. questo mese: {len([b for b in self.bookings_controller.bookings.values() if b.player == self.selected_player and b.time.day.month == date.today().month])}")
-                    label_fav_sport.setText(f"Sport Preferito: {self.bookings_controller.getFavoriteSport(self.selected_player)}")
-                    label_fav_time.setText(f"Orario Preferito: {self.bookings_controller.getFavoriteTime(self.selected_player)}")
-                    label_avg_n_player.setText(f"Media pers/pren: {self.bookings_controller.getAvgPersonForBooking(self.selected_player)}")
-                else:
-                    self.selected_player = None
-                    del_play_btn.setStyleSheet(style_QButton_disabled)
-                    del_play_btn.setEnabled(False)
-                    for lab in labels:
-                        lab.setText("a")
+                self.setLayout(main_layout)
             except Exception as e:
                 print(e)
-
-        def show_add_player_ui():
-            dlg = info_Player_ui(phase=0,playerController=self.players_controller,currentUser=self.users_controller.current_user)
-            if dlg.exec():
-                self.model.players_next_id = self.players_controller.player_id
-                self.model.save_to_file("data.pkl")
-                self.init_players_ui()
-
-        table.itemDoubleClicked.connect(show_edit_player_ui)
-
-        add_play_btn.clicked.connect(show_add_player_ui)
-
-        del_play_btn.clicked.connect(del_player)
-        center_text.setText(f"{self.users_controller.get_current_user().username}")
-        if not self.users_controller.get_current_user().is_admin:
-            center_text.setStyleSheet(style_text_red_on_white)
-        else:
-            center_text.setStyleSheet(style_text_white_on_red)
-        back_btn.clicked.connect(self.init_main_ui)
-        try:
-            if player is not None:
-                for row in range(table.rowCount()):
-                    email_item = table.item(row, 4)
-                    phone_item = table.item(row, 5)
-                    if email_item is None or phone_item is None:
-                        continue
-                    #print(email_item.text(), type(email_item.text()))
-                    #print(phone_item.text(), type(phone_item.text()))
-                    if email_item and phone_item:
-                        if email_item.text() == player.email and phone_item.text() == player.phone:
-                            self.selected_player = player
-                            table.blockSignals(True)
-                            table.setCurrentCell(row, 4)
-                            table.selectRow(row)
-                            table.scrollToItem(email_item)
-                            table.blockSignals(False)
-                            break
-                        break
         except Exception as e:
-            import traceback
-            traceback.print_exc()
-        table.itemSelectionChanged.connect(table_on_item_selected)
-        self.setLayout(main_layout)
+            print(e)
+
 
     def init_fields_lockers_static_ui(self):
         self.clear_layout()
@@ -565,19 +567,8 @@ class MainWindow(QWidget):
                     self.model.bookings_next_id = self.bookings_controller.booking_id
                     self.model.save_to_file("data.pkl")
                     self.init_bookings_ui()
-            def open_player_profile():
-                #@TODO: Fix this
-                return
-                try:
-                    player = self.players_controller.players[self.selected_booking.player.id]
-                    self.init_players_ui(player)
-                except Exception as e:
-                    print(e)
-                    QMessageBox.warning(self,"Giocatore non trovato","Il profilo del giocatore di questa prenotazione potrebbe essere stato eliminato")
-                    return
 
             table.itemSelectionChanged.connect(table_on_item_selected)
-            table.itemDoubleClicked.connect(open_player_profile)
 
             book_btn.clicked.connect(show_add_booking_ui)
             del_book_btn.clicked.connect(cancel_booking)
@@ -588,9 +579,10 @@ class MainWindow(QWidget):
                 center_text.setStyleSheet(style_text_white_on_red)
 
             back_btn.clicked.connect(self.init_main_ui)
+
+            self.setLayout(main_layout)
         except Exception as e:
             print(e)
-        self.setLayout(main_layout)
 
     def init_restaurant_ui(self):
         self.delete_mode = False
@@ -687,7 +679,7 @@ class MainWindow(QWidget):
         reply = QMessageBox.question(
             self, "Conferma uscita", "Sei sicuro di voler uscire?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No
+            QMessageBox.StandardButton.Yes
         )
         if reply == QMessageBox.StandardButton.Yes:
             self.users_controller.logout()

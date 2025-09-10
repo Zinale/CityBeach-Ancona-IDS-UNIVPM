@@ -113,6 +113,38 @@ def view_dipendenti_ui_layout(lista_dipendenti):
     main_layout.addLayout(bottom_bar)
     return main_layout,center_text, table, dip_btn, del_dip_btn,back_btn
 
+def updateTableEmployees(table,users):
+    table.clear()
+    table.setColumnCount(9)
+    table.setHorizontalHeaderLabels(
+        ["Nome", "Cognome", "ID", "Amministratore", "Username",
+         "Data di Nascita", "Sesso", "Creato il", "Creato da"]
+    )
+    visible_users = [u for u in users if u.id != 1]  # not "root" user
+    table.setRowCount(len(visible_users))
+    for row, user in enumerate(visible_users):
+        values = [
+            str(user.name),
+            str(user.surname),
+            str(user.id),
+            "Si" if user.is_admin else "No",
+            str(user.username),
+            str(user.birthday),
+            str(user.gender.value),
+            str(user.data_created),
+            str(user.added_by)
+        ]
+        for col, val in enumerate(values):
+            item = QTableWidgetItem(val)
+            if user.is_admin:
+                item.setBackground(QBrush(QColor("#E30613")))
+                item.setForeground(QBrush(QColor("#ffffff")))
+            item.setFlags(Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled)
+            table.setItem(row, col, item)
+    table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+    table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+    return table
+
 class add_Dipendete_ui(QDialog):
     def __init__(self,controller:AppUsersController = None):
         super().__init__()

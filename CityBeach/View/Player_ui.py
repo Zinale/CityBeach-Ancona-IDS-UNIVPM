@@ -34,8 +34,9 @@ def view_players_ui_layout(player_list: List[Player]):
     vLayout.addWidget(contextText)
     hSplitter = QSplitter(Qt.Orientation.Horizontal)
 
-    # ----------------- TREE WIDGET ----------------
+    # ----------------- TABLE WIDGET ----------------
     table = QTableWidget()
+    table.clear()
     def populateTable():
         players = []
         table.clear()
@@ -72,6 +73,7 @@ def view_players_ui_layout(player_list: List[Player]):
                 item.setFlags(Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled)
                 table.setItem(row, col, item)
 
+    table.verticalHeader().setVisible(False)
     table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
     table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
 
@@ -260,6 +262,29 @@ def view_players_ui_layout(player_list: List[Player]):
     populateTable()
     return main_layout, center_text, table, label_name,label_surname,label_eta,label_created_when,label_created_by,label_city,label_bookings,label_book_lastMonth,label_fav_time,label_fav_sport,label_avg_n_player,add_play_btn, del_play_btn,back_btn
 
+def updateTablePlayers(table, players):
+    table.clear()
+    table.setColumnCount(7)
+    table.setHorizontalHeaderLabels(
+        ["Nome", "Cognome", "Data di Nascita", "Sesso", "Email", "Telefono", "Id"])
+    table.setRowCount(len(players))
+    for row, player in enumerate(players):
+        values =([
+            str(player.name),
+            str(player.surname),
+            str(player.birthday.strftime("%d/%m/%Y")),
+            str(player.gender.value),
+            str(player.email),
+            str(player.phone),
+            str(player.id)
+        ])
+        for col, val in enumerate(values):
+            item = QTableWidgetItem(val)
+            item.setFlags(Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled)
+            table.setItem(row, col, item)
+    return table
+
+
 class info_Player_ui(QDialog):
     def __init__(self,phase:int,playerController:AppPlayersController,player_to_edit:Player=None,currentUser:User=None):
         #phase = 0 -> to register new Player
@@ -348,8 +373,6 @@ class info_Player_ui(QDialog):
         main_layout.addLayout(layout)
         main_layout.addLayout(btn_layout)
 
-        self.setLayout(main_layout)
-
         def submit_data():
             data = {
                 "name": nameBar.text(),
@@ -382,6 +405,7 @@ class info_Player_ui(QDialog):
                             QMessageBox.warning(self, "Errore", "Numero di telefono già usato")
                         elif err_id == -1:
                             QMessageBox.critical(self, "Errore", "Errore")
+                        self.accept()
                 except:
                     QMessageBox.critical(self, "Errore", "Controller non valido/ha riscontrato un errore.")
                     self.close()
@@ -404,6 +428,7 @@ class info_Player_ui(QDialog):
                             QMessageBox.warning(self, "Errore", "Numero di telefono già usato")
                         elif err_id == -1:
                             QMessageBox.critical(self, "Errore", "Errore")
+                        self.close()
                 except:
                     self.close()
         save_btn.clicked.connect(submit_data)
