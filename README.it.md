@@ -118,8 +118,8 @@ CityBeach/
 | Sistema prenotazioni                           | ✅ Completata |
 | Gestione attrezzature sportive                 | ✅ Completata |
 | Gestione area ristoro                          | ✅ Completata |
-| Styling finale & layout responsivo             | 🔄 In corso   |
-| Generazione report (PDF)                       | 🔄 In corso   |
+| Styling finale & layout responsivo             | ✅ Completata   |
+| Generazione report (PDF)                       | ✅ Completata   |
 
 ---
 

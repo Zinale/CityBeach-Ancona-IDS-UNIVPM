@@ -118,8 +118,8 @@ CityBeach/
 | Booking system                                | ✅ Done        |
 | Sports equipment management                   | ✅ Done        |
 | Refreshment area management                   | ✅ Done        |
-| Final styling & responsive layout             | 🔄 In progress |
-| Report generation (PDF)                       | 🔄 In progress |
+| Final styling & responsive layout             | ✅ Done |
+| Report generation (PDF)                       | ✅ Done |
 
 ---
 
