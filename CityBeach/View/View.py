@@ -103,7 +103,7 @@ class MainWindow(QWidget):
         self.selected_locker = None
         self.selected_field = None
         self.selected_booking = None
-        a, b = 1100, 700
+        a, b = 1200, 700
         self.setMinimumSize(a, b)
         if int(self.width()) < a:
             self.resize(a,b)

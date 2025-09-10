@@ -339,7 +339,7 @@ class AppBookingsController:
     def generate_plot_avg_age_all_fields(self,year:int):
         month = ["Gen","Feb","Mar","Apr","Mag","Giu","Lug","Ago","Set","Ott","Nov","Dic"]
         bookings_map = {}       #month -> list(total age, n players)
-        for m in range(12):
+        for m in range(1,13):
             bookings_map[m] = [0,0]
         for b in list(self.bookings.values()):
             if b.time.day.year != year:
@@ -365,7 +365,7 @@ class AppBookingsController:
     def generate_plot_total_genders_all_fields(self,year:int):
         months = ["Gen","Feb","Mar","Apr","Mag","Giu","Lug","Ago","Set","Ott","Nov","Dic"]
         bookings_map = {}  #month -> [M,F]
-        for m in range(12):
+        for m in range(1,13):
             bookings_map[m] = [0,0]
         for b in list(self.bookings.values()):
             if b.time.day.year != year:
@@ -406,7 +406,7 @@ class AppBookingsController:
         bookings_map = {}  # month -> {Field-name,Total Hours}
         setNames = set(b.field.name for b in list(self.bookings.values()))
         tracker = {}
-        for m in range(12):
+        for m in range(1,13):
             bookings_map[m] = {}
             for name in setNames:
                 bookings_map[m][name] = 0
@@ -441,7 +441,7 @@ class AppBookingsController:
     def generate_earning_trend(self,year:int):
         months = ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"]
         bookings_map = {}  # month -> total earn
-        for m in range(12):
+        for m in range(1,13):
             bookings_map[m] = 0
         for b in list(self.bookings.values()):
             if b.time.day.year != year:
@@ -449,9 +449,9 @@ class AppBookingsController:
             bookings_map[b.time.day.month] += b.price
         fig, ax = plt.subplots(figsize=(7, 7))
         fig.subplots_adjust()
-        ax.plot(months, [bookings_map[m] for m in range(12)], c="#E30613")
+        ax.plot(months, [bookings_map[m] for m in range(1,13)], c="#E30613")
         plt.xlabel("Mese")
-        plt.ylabel("Valore")
+        plt.ylabel("Euro")
         plt.xticks(rotation=45)
         buf = BytesIO()
         fig.savefig(buf, format='png', dpi=600)
