@@ -17,9 +17,9 @@ class AppRestaurantController:
             price = data["price"]
             if not bool(pattern.match(name)) or name in [p.name for p in self.products]:
                 return False, 1
-            if quantity <= 0:
+            if quantity < 0:
                 return False, 2
-            if price <= 0:
+            if price < 0:
                 return False, 3
             prod = Product(name=name,productType=type,quantity=quantity,price=price)
             self.products.append(prod)

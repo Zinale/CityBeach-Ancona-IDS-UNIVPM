@@ -16,6 +16,12 @@ class RestaurantTestCase(unittest.TestCase):
             "quantity":20,
             "price": 1
         }
+        self.data_2_product ={
+            "name": "Acqua Naturale 1l",
+            "type": ProductType("Bevanda"),
+            "quantity":0,
+            "price": 1.5
+        }
 
     def test_register_editQty_remove_product(self):
         success_registration = self.restaurant_controller.register_product(self.data_product)
@@ -27,6 +33,11 @@ class RestaurantTestCase(unittest.TestCase):
         self.assertEqual(prod.quantity,30)      #20+10
 
         removed = self.restaurant_controller.remove_product("Acqua Naturale 0.5l")
+        self.assertFalse(removed)                   #quantità != 0
+
+        self.restaurant_controller.register_product(self.data_2_product)
+        prod = self.restaurant_controller.get_product_by_name("Acqua Naturale 1l")
+        removed = self.restaurant_controller.remove_product(prod)
         self.assertTrue(removed)
 
     def test_create_order(self):
