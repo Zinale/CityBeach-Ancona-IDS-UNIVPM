@@ -233,7 +233,7 @@ def view_players_ui_layout(player_list: List[Player]):
 
     logo_label = QLabel()
     try:
-        pixmap = QPixmap("src/img/logo.png")
+        pixmap = QPixmap(image_path("logo.png"))
         if not pixmap.isNull():
             logo_label.setPixmap(
                 pixmap.scaledToHeight(60, Qt.TransformationMode.SmoothTransformation)

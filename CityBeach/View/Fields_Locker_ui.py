@@ -119,7 +119,7 @@ def view_fields_lockers_static_ui_layout(field_list: List[Field], locker_list: L
     img_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
     IMG_WIDGET = QLabel()
-    pixmap = QPixmap("src/img/field.png")
+    pixmap = QPixmap(image_path("field.png"))
     scaled_pixmap = pixmap.scaled(370, 350, Qt.AspectRatioMode.KeepAspectRatioByExpanding, Qt.TransformationMode.SmoothTransformation)
     IMG_WIDGET.setPixmap(scaled_pixmap)
     IMG_WIDGET.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -187,7 +187,7 @@ def view_fields_lockers_static_ui_layout(field_list: List[Field], locker_list: L
 
     logo_label = QLabel()
     try:
-        pixmap = QPixmap("src/img/logo.png")
+        pixmap = QPixmap(image_path("logo.png"))
         if not pixmap.isNull():
             logo_label.setPixmap(
                 pixmap.scaledToHeight(60, Qt.TransformationMode.SmoothTransformation)
@@ -361,7 +361,7 @@ def view_fields_lockers_dynamic_ui_layout(field_list: List[Field],locker_list:Li
 
     logo_label = QLabel()
     try:
-        pixmap = QPixmap("src/img/logo.png")
+        pixmap = QPixmap(image_path("logo.png"))
         if not pixmap.isNull():
             logo_label.setPixmap(
                 pixmap.scaledToHeight(60, Qt.TransformationMode.SmoothTransformation)

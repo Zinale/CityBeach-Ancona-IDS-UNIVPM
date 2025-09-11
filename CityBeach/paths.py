@@ -8,6 +8,7 @@ FONTS_DIR = os.path.join(SRC_DIR, "fonts")
 
 def image_path(filename: str) -> str:
     return os.path.join(IMG_DIR, filename)
-
+def file_path(filename:str)->str:
+    return os.path.join(SRC_DIR,filename)
 def font_path(filename: str) -> str:
     return os.path.join(FONTS_DIR, filename)

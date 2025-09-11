@@ -184,7 +184,7 @@ def style_img1_bg(img:str):
     QPushButton {{
         border: 2px solid #000000;
         border-radius: 20px;
-        border-image: url("src/img/{img}") 0 0 0 0 stretch stretch;
+        border-image: url('{image_path(img).replace("\\","/")}') 0 0 0 0 stretch stretch;
         background-repeat: no-repeat;
         background-position: center;
         background-size: cover;

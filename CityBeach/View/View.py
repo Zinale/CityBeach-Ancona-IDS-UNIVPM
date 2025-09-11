@@ -27,7 +27,7 @@ class MainWindow(QWidget):
         self.setWindowFlag(Qt.WindowType.Window)
 
         #CONTROLLERS
-        self.model = AppData.load_from_file("data.pkl")
+        self.model = AppData.load_from_file()
         self.restaurant_controller=AppRestaurantController(self.model.products, self.model.orders)
         self.users_controller = AppUsersController(self.model.users,self.model.users_next_id)
         self.sport_equipment_controller = AppSportsEquipmentController(self.model.equipment)
@@ -48,7 +48,7 @@ class MainWindow(QWidget):
             success, status = self.users_controller.register(data,password="admin")
             if success:
                 self.model.users_next_id = self.users_controller.user_id
-                self.model.save_to_file("data.pkl")
+                self.model.save_to_file()
             else:
                 QMessageBox.critical(self,"ERRORE AVVIO","NESSUN PROFILO UTENTE ESISTENTE")
                 self.close()
@@ -160,7 +160,7 @@ class MainWindow(QWidget):
                 try:
                     table = updateTableEmployees(table,list(self.users_controller.users.values()))
                     self.selected_user = None
-                    self.model.save_to_file("data.pkl")
+                    self.model.save_to_file()
                     #self.init_dipendenti_ui()
                 except Exception as E:
                     print(e)
@@ -169,8 +169,8 @@ class MainWindow(QWidget):
                 return False
             status, err_id = self.users_controller.delete_user(self.selected_user)
             if status:
-                self.model.save_to_file("data.pkl")
-                self.model = AppData.load_from_file("data.pkl")
+                self.model.save_to_file()
+                self.model = AppData.load_from_file()
                 QMessageBox.information(self, "Rimosso", "Utente eliminato.")
                 self.init_dipendenti_ui()
                 return True
@@ -195,7 +195,7 @@ class MainWindow(QWidget):
             dlg = add_Dipendete_ui(controller=self.users_controller)
             if dlg.exec():
                 self.model.users_next_id = self.users_controller.user_id
-                self.model.save_to_file("data.pkl")
+                self.model.save_to_file()
                 self.init_dipendenti_ui()
         table.itemSelectionChanged.connect(table_on_item_selected)
 
@@ -261,8 +261,8 @@ class MainWindow(QWidget):
                 if confirm:
                     status, err_id = self.players_controller.delete_player(self.selected_player)
                     if status:
-                        self.model.save_to_file("data.pkl")
-                        self.model = AppData.load_from_file("data.pkl")
+                        self.model.save_to_file()
+                        self.model = AppData.load_from_file()
                         QMessageBox.information(self, "Rimosso", f"Il profilo di {self.selected_player.name} {self.selected_player.surname} è stato rimosso")
                         self.init_players_ui()
                         return True
@@ -278,7 +278,7 @@ class MainWindow(QWidget):
                                      currentUser=self.users_controller.current_user)
                 if dlg.exec():
                     self.model.players_next_id = self.players_controller.player_id
-                    self.model.save_to_file("data.pkl")
+                    self.model.save_to_file()
                     self.init_players_ui()
 
             def show_edit_player_ui():
@@ -291,7 +291,7 @@ class MainWindow(QWidget):
                 if dlg.exec():
                     try:
                         self.selected_player=None
-                        self.model.save_to_file("data.pkl")
+                        self.model.save_to_file()
                         table = updateTablePlayers(table, list(self.players_controller.players.values()))
                         #self.init_players_ui()
                     except Exception as e:
@@ -372,8 +372,8 @@ class MainWindow(QWidget):
             if confirm:
                 status, err_id = self.fields_controller.delete_field(self.selected_field)
                 if status:
-                    self.model.save_to_file("data.pkl")
-                    self.model = AppData.load_from_file("data.pkl")
+                    self.model.save_to_file()
+                    self.model = AppData.load_from_file()
                     QMessageBox.information(self, "Rimosso", f"Il Campo da gioco '{self.selected_field.name}' è stato rimosso")
                     self.init_fields_lockers_static_ui()
                 else:
@@ -389,8 +389,8 @@ class MainWindow(QWidget):
             if confirm:
                 status, err_id = self.lockers_controller.delete_locker(self.selected_locker)
                 if status:
-                    self.model.save_to_file("data.pkl")
-                    self.model = AppData.load_from_file("data.pkl")
+                    self.model.save_to_file()
+                    self.model = AppData.load_from_file()
                     QMessageBox.information(self, "Rimosso", f"Lo spogliatoio '{self.selected_locker.name}' è stato rimosso")
                     self.init_fields_lockers_static_ui()
                 else:
@@ -406,7 +406,7 @@ class MainWindow(QWidget):
             dlg = add_field_ui(fieldController=self.fields_controller,currentUser=self.users_controller.current_user)
             if dlg.exec():
                 self.model.fields_next_id = self.fields_controller.field_id
-                self.model.save_to_file("data.pkl")
+                self.model.save_to_file()
                 self.init_fields_lockers_static_ui()
                 return True
             return False
@@ -417,14 +417,14 @@ class MainWindow(QWidget):
             dlg = info_locker_ui(self.lockers_controller,phase=0,currentUser=self.users_controller.current_user)
             if dlg.exec():
                 self.model.lockers_next_id = self.lockers_controller.locker_id
-                self.model.save_to_file("data.pkl")
+                self.model.save_to_file()
                 self.init_fields_lockers_static_ui()
                 return True
             return False
         def show_edit_locker_ui():
             dlg = info_locker_ui(lockersController=self.lockers_controller,phase=1,locker_to_edit=self.selected_locker)
             if dlg.exec():
-                self.model.save_to_file("data.pkl")
+                self.model.save_to_file()
                 self.init_fields_lockers_static_ui()
 
         def item_on_tree_field_selected():
@@ -535,7 +535,7 @@ class MainWindow(QWidget):
                 elif self.selected_booking.state == BookingState.CANCELLED:
                     self.selected_booking.state = BookingState.REGISTERED
 
-                self.model.save_to_file("data.pkl")
+                self.model.save_to_file()
                 self.init_bookings_ui()
                 return True
 
@@ -565,7 +565,7 @@ class MainWindow(QWidget):
                                      currentUser=self.users_controller.current_user, se_list=list(self.sport_equipment_controller.equipment.values()))
                 if dlg.exec():
                     self.model.bookings_next_id = self.bookings_controller.booking_id
-                    self.model.save_to_file("data.pkl")
+                    self.model.save_to_file()
                     self.init_bookings_ui()
 
             table.itemSelectionChanged.connect(table_on_item_selected)
@@ -598,7 +598,7 @@ class MainWindow(QWidget):
                 return False
             dlg = add_product_ui(controller=self.restaurant_controller,prod_list=self.restaurant_controller.products)
             if dlg.exec():
-                self.model.save_to_file("data.pkl")
+                self.model.save_to_file()
                 self.init_restaurant_ui()
                 return True
             return False
@@ -615,14 +615,14 @@ class MainWindow(QWidget):
                 return False
             dlg = edit_qty_product_ui(self.restaurant_controller.products,self.restaurant_controller.get_product_by_name,self.restaurant_controller.edit_product)
             if dlg.exec():
-                self.model.save_to_file("data.pkl")
+                self.model.save_to_file()
                 self.init_restaurant_ui()
                 return True
             return False
         def show_history_ui():
             dlg = OrdersOverviewDialog(self.restaurant_controller.orders,self.users_controller.get_current_user().is_admin,self.restaurant_controller.delete_order)
             if dlg.exec():
-                self.model.save_to_file("data.pkl")
+                self.model.save_to_file()
                 self.init_restaurant_ui()
                 return True
             return False
@@ -642,7 +642,7 @@ class MainWindow(QWidget):
 
 
     def logout(self):
-        self.model.save_to_file("data.pkl")
+        self.model.save_to_file()
         self.users_controller.logout()
         self.init_login_ui()
 
@@ -701,6 +701,6 @@ class MainWindow(QWidget):
 
     def check_and_update_bookings(self):
         self.bookings_controller.check_and_update()
-        self.model.save_to_file("data.pkl")
+        self.model.save_to_file()
         
         

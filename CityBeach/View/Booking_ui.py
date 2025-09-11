@@ -205,7 +205,7 @@ def view_booking_ui_layout(booking_list:List[Booking]):
 
     logo_label = QLabel()
     try:
-        pixmap = QPixmap("src/img/logo.png")
+        pixmap = QPixmap(image_path("logo.png"))
         if not pixmap.isNull():
             logo_label.setPixmap(
                 pixmap.scaledToHeight(60, Qt.TransformationMode.SmoothTransformation)

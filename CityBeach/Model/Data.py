@@ -7,7 +7,7 @@ from Model.SportsEquipment import *
 from Model.Booking import *
 from Model.SportsCategory import *
 from Model.Order import *
-
+from paths import file_path
 #all the time_slots available
 TIME_SLOTS = []
 for i in range(28):
@@ -15,6 +15,8 @@ for i in range(28):
                                startTime=time(9 + i//2,30*((i)%2)),
                                endTime=time(9 + ((i+1)//2),30-30*((i)%2))))
 TIME_SLOTS_str = [str(ts) for ts in TIME_SLOTS]
+
+FILE_PATH = file_path("data.pkl")
 
 class AppData:
     def __init__(self):
@@ -40,14 +42,14 @@ class AppData:
         self.products:List[Product] = []
         self.orders:List[Order] = []
 
-    def save_to_file(self, path: str):
-        with open(path, 'wb') as f:
+    def save_to_file(self):
+        with open(FILE_PATH, 'wb') as f:
             pickle.dump(self, f)
 
     @staticmethod
-    def load_from_file(path: str) -> "AppData":
+    def load_from_file() -> "AppData":
         try:
-            with open(path, 'rb') as f:
+            with open(FILE_PATH, 'rb') as f:
                 return pickle.load(f)
         except (FileNotFoundError,pickle.UnpicklingError):
             return AppData()
